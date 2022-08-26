@@ -242,8 +242,9 @@ function updateComputations2to1(n, sources) {
 
 function updateComputations4to1(n, sources) {
   var [get1, set1] = sources[0],
-    [get2] = sources[1];
-  ([get3] = sources[2]), ([get4] = sources[3]);
+    [get2] = sources[1],
+    [get3] = sources[2],
+    [get4] = sources[3];
   computed(() => get1() + get2() + get3() + get4());
   for (var i = 0; i < n; i++) {
     set1(i);
