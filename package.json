@@ -1,0 +1,14 @@
+{
+  "name": "reactively",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "bench-shallow": "node --allow-natives-syntax benches/bench.js",
+    "bench-grid": "node --allow-natives-syntax benches/grid.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
