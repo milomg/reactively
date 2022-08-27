@@ -1,5 +1,5 @@
 {
-  "name": "@reactively/wrap",
+  "name": "@reactively/lit",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "lit",
+    "lit.dev",
+    "reactive"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "lit": "^2.3.1"
+  }
 }

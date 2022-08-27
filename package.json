@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "bench-shallow": "node --allow-natives-syntax benches/bench.js",
-    "bench-grid": "node --allow-natives-syntax benches/grid.js"
+    "bench-grid": "node --allow-natives-syntax benches/grid.js",
+    "test": "jest",
+    "component-test": "cypress open"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {}
 }
