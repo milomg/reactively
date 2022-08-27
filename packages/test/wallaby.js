@@ -5,7 +5,7 @@ module.exports = () => {
     testFramework: {
       configFile: "./jest.config.js",
     },
-    files: ["src/**/*.ts"],
+    files: ["src/**/*.ts", { pattern: "src/**/*.test.ts", ignore: true }],
     tests: ["src/**/*.test.ts"],
   };
 };
