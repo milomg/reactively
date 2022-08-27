@@ -1,7 +1,6 @@
 import { LitElement, PropertyDeclaration } from "lit";
-import { dlog } from "../util/DebugLog";
-import { installReactiveProperty, reactivesToInit } from "./Decorators";
-import { Reactive } from "./ReactiveNodes";
+import { installReactiveProperty, reactivesToInit } from "@reactively/decorate";
+import { Reactive } from "@reactively/core";
 
 export class ReactiveLitElement extends LitElement {
   constructor() {
@@ -25,10 +24,10 @@ export class ReactiveLitElement extends LitElement {
   ): PropertyDescriptor | undefined {
     const litDescriptor = super.getPropertyDescriptor(name, key, options);
     if (!this._buildingReactiveProperty) {
-      dlog("unmodified lit property", { name, key });
+      console.log("unmodified lit property", { name, key });
       return litDescriptor;
     }
-    dlog("reactive lit property", { name, key });
+    console.log("reactive lit property", { name, key });
     const reactiveNode = new Reactive<any>(null);
     if (!litDescriptor) {
       return undefined;
@@ -68,7 +67,7 @@ export function reactiveProperty(
  * the class exists.
  */
 function buildReactivePropMap(prototype: ReactiveLitElement, name?: string): void {
-  dlog("buildReactivePropMap", prototype, { name });
+  console.log("buildReactivePropMap", prototype, { name });
   if (name) {
     if (!prototype._reactiveProps) {
       prototype._reactiveProps = [];

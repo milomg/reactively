@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ESNext", "DOM"],
+    "types": ["@types/jest"],
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+  }
+}

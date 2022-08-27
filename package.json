@@ -13,5 +13,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {}
+  "devDependencies": {
+    "esbuild": "^0.15.5",
+    "typescript": "^4.8.2"
+  }
 }

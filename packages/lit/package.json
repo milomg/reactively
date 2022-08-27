@@ -2,10 +2,12 @@
   "name": "@reactively/lit",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild ./src/index.ts --outdir=dist",
+    "build:types": "tsc"
   },
   "keywords": [
     "lit",
@@ -16,5 +18,9 @@
   "license": "ISC",
   "devDependencies": {
     "lit": "^2.3.1"
+  },
+  "dependencies": {
+    "@reactively/core": "workspace:*",
+    "@reactively/decorate": "workspace:*"
   }
 }
