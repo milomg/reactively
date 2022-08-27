@@ -1,13 +1,18 @@
 # Reactively
 
-Blueberry is a lightweight library for fine grained reactive programming. It’s a clean way to add caching and smart recalculation to your app. 
+Reactively is a library for fine grained reactive programming.
+It's simple and lightweight.
+Use Reactively to add smart recalculation and caching almost anywhere.
 
 ```jsx
-example
+example;
 ```
 
-If you worry about unnecessarily repeating expensive operations (like memory allocation, network operations, storage, long computations, etc.), Blueberry might be of help.
+Of course, you can manually write your own caching and depency checking
+to avoid repeating expensive operations
+like memory allocation, network operations, storage, long computations, etc.
+But a fine grained reactive declarative programming library like Reactively 
+makes it easier and more maintainable.
 
-Mark your code with @reactive and the library will automatically cache and minimize recomputation. Now you don’t have to sprinkle caches, `memoize`, and hasChanged() checks through your code.
-
-Blueberry provides fine grained reactivity and nothing more. That makes Blueberry small and easy to mix in to existing projects.
+Reactively provides fine grained reactivity and nothing more.
+That makes Reactively small and easy to mix in to existing projects.
