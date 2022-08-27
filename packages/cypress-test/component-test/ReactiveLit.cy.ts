@@ -1,4 +1,4 @@
-import "./ReactiveLit";
+import "./ReactiveLitTest1";
 
 it("reactive lit element", () => {
   cy.get("body").then(async (bodySelector) => {

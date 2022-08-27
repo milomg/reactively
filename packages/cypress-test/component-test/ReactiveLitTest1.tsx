@@ -3,8 +3,8 @@ import { customElement, property } from "lit/decorators.js";
 import {
   ReactiveLitElement,
   reactiveProperty,
-} from "../../src/reactive/ReactiveLitElement";
-import { reactive } from "../../src/reactive/Decorators";
+} from "@reactively/lit";
+import { reactive } from "@reactively/decorate";
 
 /**
  * a test class for mixing reactively properties with lit
