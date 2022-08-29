@@ -1,4 +1,4 @@
-import { Reactive } from "./core.js";
+import { Reactive, stabilize } from "./core.js";
 
 // The following is an implementation of the cellx benchmark https://codesandbox.io/s/cellx-bench-forked-s6kusj
 
@@ -13,21 +13,25 @@ const cellx = (layers) => {
   let layer = start;
 
   for (let i = layers; i > 0; i--) {
-    layer = ((m) => {
-      const s = {
-        prop1: new Reactive(() => m.prop2.get()),
-        prop2: new Reactive(() => m.prop1.get() - m.prop3.get()),
-        prop3: new Reactive(() => m.prop2.get() + m.prop4.get()),
-        prop4: new Reactive(() => m.prop3.get()),
-      };
+    const m = layer;
+    const s = {
+      prop1: new Reactive(() => m.prop2.get()),
+      prop2: new Reactive(() => m.prop1.get() - m.prop3.get()),
+      prop3: new Reactive(() => m.prop2.get() + m.prop4.get()),
+      prop4: new Reactive(() => m.prop3.get()),
+    };
 
-      s.prop1.get();
-      s.prop2.get();
-      s.prop3.get();
-      s.prop4.get();
+    new Reactive(() => s.prop1.get(), true);
+    new Reactive(() => s.prop2.get(), true);
+    new Reactive(() => s.prop3.get(), true);
+    new Reactive(() => s.prop4.get(), true);
 
-      return s;
-    })(layer);
+    s.prop1.get();
+    s.prop2.get();
+    s.prop3.get();
+    s.prop4.get();
+
+    layer = s;
   }
 
   const end = layer;
@@ -46,6 +50,8 @@ const cellx = (layers) => {
   start.prop3.set(2);
   start.prop4.set(1);
 
+  stabilize();
+
   const after = [
     end.prop1.get(),
     end.prop2.get(),
@@ -62,7 +68,7 @@ const cellx = (layers) => {
 const arraysEqual = (a, b) => {
   if (a.length !== b.length) return false;
 
-  for (var i = 0; i < a.length; ++i) {
+  for (let i = 0; i < a.length; ++i) {
     if (a[i] !== b[i]) return false;
   }
 
@@ -101,7 +107,10 @@ const benchmark = () => {
       [-3, -6, -2, 2],
       [-2, -4, 2, 3],
     ],
-    // 5000: [[2, 4, -1, -6], [-2, 1, -4, -4]]
+    5000: [
+      [2, 4, -1, -6],
+      [-2, 1, -4, -4],
+    ],
   };
 
   const results = {};

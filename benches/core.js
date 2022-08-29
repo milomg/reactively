@@ -21,11 +21,13 @@ export class Reactive {
     this.observerSlots = null;
   }
   stale(state) {
-    if (this.state < state) this.state = state;
-    if (this.effect) effectQueue.push(this);
-    else if (this.observers) {
-      for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].stale(1 /* CacheState.CHECK */);
+    if (this.state < state) {
+      this.state = state;
+      if (this.effect) effectQueue.push(this);
+      else if (this.observers) {
+        for (let i = 0; i < this.observers.length; i++) {
+          this.observers[i].stale(1 /* CacheState.CHECK */);
+        }
       }
     }
   }
@@ -36,15 +38,11 @@ export class Reactive {
       }
     }
     this.value = value;
-    for (let i = 0; i < effectQueue.length; i++) {
-      effectQueue[i].get();
-    }
-    effectQueue.length = 0;
   }
 
   update() {
     if (this.sources) {
-      cleanNode(this)
+      cleanNode(this);
     }
     const oldValue = this.value;
     const listener = CurrentCompute;
@@ -54,7 +52,7 @@ export class Reactive {
     } finally {
       CurrentCompute = listener;
     }
-  
+
     this.state = 0 /* CacheState.CURRENT */;
     if (oldValue !== this.value && this.observers) {
       for (let i = 0; i < this.observers.length; i++) {
@@ -69,10 +67,10 @@ export class Reactive {
     }
     if (this.state == 1 /* CacheState.CHECK */) {
       if (this.sources) {
-        for (let i = 0; i< this.sources.length;i++) {
+        for (let i = 0; i < this.sources.length; i++) {
           this.sources[i].updateIfNecessary();
         }
-        if (this.state = 2 /* CacheState.DIRTY */) {
+        if ((this.state = 2) /* CacheState.DIRTY */) {
           return this.update();
         }
       }
@@ -119,12 +117,23 @@ function cleanNode(node) {
   }
 }
 
+function setSignal(value) {
+  this.set(value);
+  stabilize();
+}
 export function signal(value) {
   const signal = new Reactive(value);
-  return [signal.get.bind(signal), signal.set.bind(signal)];
+  return [signal.get.bind(signal), setSignal.bind(signal)];
 }
 
 export function computed(fn) {
   const computed = new Reactive(fn, true);
   return computed.get.bind(computed);
+}
+
+export function stabilize() {
+  for (let i = 0; i < effectQueue.length; i++) {
+    effectQueue[i].get();
+  }
+  effectQueue.length = 0;
 }

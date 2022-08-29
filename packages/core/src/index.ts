@@ -52,8 +52,10 @@ export class Reactive<T> {
   }
 
   stale(state: CacheState): void {
-    if (this.state < state) this.state = state;
-    this.observers?.forEach((x) => x.stale(CacheState.CHECK));
+    if (this.state < state) {
+      this.state = state;
+      this.observers?.forEach((x) => x.stale(CacheState.CHECK));
+    }
   }
 
   set(value: T): void {
