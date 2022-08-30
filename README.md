@@ -12,7 +12,7 @@ Use Reactively to add smart recalculation and caching almost anywhere.
 import { $r } from "@reactively/wrap";
 
 const counter = $r(0);
-const isEven = $r(() => counter() & (1 == 0));
+const isEven = $r(() => (counter() & 1) == 0);
 
 const render = $r(
   () => (document.body.textContent = isEven() ? "even" : "odd")
