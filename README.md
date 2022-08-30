@@ -2,7 +2,8 @@
 
 Reactively is a library for fine grained reactive programming.
 It's simple and lightweight.
-(`@reactively/core` is currently only 391 bytes gzipped, but expect this to change)
+
+`@reactively/core` is currently only 391 bytes gzipped (expect this to grow as we add features)
 
 Reactively provides fine grained reactivity and nothing more.
 Use Reactively to add smart recalculation and caching almost anywhere.
@@ -44,7 +45,7 @@ is easier, and the result is more maintainable.
 
 Traditionally, if you want to memoize a function in JavaScript, you have to manually specify all the dependencies as parameters, even if sometimes you don't use all the parameters.
 
-Reactively eschews that in favor of automatically detecting what variables you use in a reactive expression.a
+Reactively eschews that in favor of automatically detecting what variables you use in a reactive expression.
 
 ```ts
 import { $r } from "@reactively/wrap";
@@ -191,8 +192,18 @@ But that doesn’t mean the reactive system needs to respond to a change at the 
 
 These are the questions the reactive execution system needs to address.
 
-Push systems emphasize pushing changes from the roots down to the leaves. Push systems use batches to combine the multiple changes into one execution pass to avoid glitches. Batching is user visible though, exposing issues of consistency between batches and batch control which adds complexity to the developer experience.
+Push systems emphasize pushing changes from the roots down to the leaves. 
+Push algorithms are fast for the framework to manage 
+but can push changes even through unused parts of the graph, 
+which wastes time on unused user computations and may surprise the user. 
+For efficiency, push systems typically expect the user to specify a 'batch' of changes
+to push at once.
 
-Pull systems emphasize traversing the graph in reverse order, from user consumed reactive elements up towards roots. Pull systems have a simple developer experience and don’t require batching. But pull systems are are apt to traverse the tree too often. Each leaf element needs to traverse all the way up the tree to detect changes, potentially resulting in many extra traversals.
+Pull systems emphasize traversing the graph in reverse order, 
+from user consumed reactive elements up towards roots. 
+Pull systems have a simple developer experience and don’t require explicit batching. 
+But pull systems are are apt to traverse the tree too often. Each leaf element needs to traverse all the way up the tree to detect changes, potentially resulting in many extra traversals.
 
-Reactively is a hybrid push pull system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from the lowest level. This costs the framework an extra traversal of its internal graph. But the developer wins by getting the simplicity of a pull system and the execution efficiency of a push system.
+Reactively is a hybrid push pull system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from the lowest level. This costs the framework an extra traversal of its internal graph. 
+But the developer wins by getting the simplicity of a pull system 
+and the most of the execution efficiency of a push system.
