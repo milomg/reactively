@@ -3,7 +3,7 @@ import { defineConfig } from "cypress";
 export default defineConfig({
   component: {
     devServer: {
-      framework: "react",
+      framework: undefined as "react",
       bundler: "vite",
     },
     supportFile: false
