@@ -1,14 +1,14 @@
 /**
  * Nodes for constructing a reactive graph of reactive values and reactive computations.
  * The graph is acyclic.
- * The user inputs new values into the graph by calling set() on one more more reactive nodes. 
+ * The user inputs new values into the graph by calling set() on one more more reactive nodes.
  * The user retrieves computed results from the graph by calling get() on one or more reactive nodes.
- * The library is responsible for running any necessary reactive computations so that get() is 
+ * The library is responsible for running any necessary reactive computations so that get() is
  * up to date with all prior set() calls anywhere in the graph.
  *
  * We call input nodes 'roots' and the output nodes 'leaves' of the graph here in discussion,
  * but the distinction is based on the use of the graph, all nodes have the same internal structure.
- * Changes flow from roots to leaves. It would be effective but inefficient to immediately propagate 
+ * Changes flow from roots to leaves. It would be effective but inefficient to immediately propagate
  * all changes from a root through the graph to descendant leaves. Instead we defer change
  * most change progogation computation until a leaf is accessed. This allows us to coalesce computations
  * and skip altogether recalculating unused sections of the graph.
@@ -16,7 +16,7 @@
  * Each reactive node tracks its sources and its observers (observers are other
  * elements that have this node as a source). Source and observer links are updated automatically
  * as observer reactive computations re-evaluate and call get() on their sources.
- * 
+ *
  * Each node stores a cache state to support the change propogation algorithm: 'clean', 'check', or 'dirty'
  * In general, execution proceeds in three passes:
  *  1. set() propogates changes some flags down the graph to the leaves
@@ -33,11 +33,10 @@
 let CurrentReaction: Reactive<any> | undefined = undefined;
 
 /** reactive nodes are marked dirty when their source values change TBD*/
-const enum CacheState {
-  CURRENT = 0, // reactive value is valid, no need to recompute
-  CHECK,  // reactive value might be stale, check parent nodes to decide whether to recompute
-  DIRTY, // reactive value is invalid, parents have changed, valueneeds to be recomputed
-}
+const CacheCurrent = 0; // reactive value is valid, no need to recompute
+const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
+const CacheDirty = 2; // reactive value is invalid, parents have changed, valueneeds to be recomputed
+type CacheState = typeof CacheCurrent | typeof CacheCheck | typeof CacheDirty;
 
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
@@ -52,11 +51,11 @@ const enum CacheState {
  * cached.
  */
 export class Reactive<T> {
-  value: T;
-  fn?: () => T;
-  observers?: Set<Reactive<any>>;
-  sources?: Set<Reactive<any>>;
-  state: CacheState = CacheState.DIRTY;
+  private value: T;
+  private fn?: () => T;
+  private observers?: Set<Reactive<any>>;
+  private sources?: Set<Reactive<any>>;
+  private state: CacheState = CacheDirty;
   cleanups: ((oldValue: T) => void)[] = [];
 
   constructor(fnOrValue: (() => T) | T) {
@@ -69,22 +68,33 @@ export class Reactive<T> {
     }
   }
 
-  stale(state: CacheState): void {
-    if (this.state < state) {
-      this.state = state;
-      this.observers?.forEach((x) => x.stale(CacheState.CHECK));
+  get(): T {
+    if (CurrentReaction) {
+      if (!CurrentReaction.sources) CurrentReaction.sources = new Set();
+      CurrentReaction.sources.add(this);
+      if (!this.observers) this.observers = new Set();
+      this.observers.add(CurrentReaction);
     }
+    if (this.fn) this.updateIfNecessary();
+    return this.value;
   }
 
   set(value: T): void {
     if (this.value !== value) {
-      this.observers?.forEach((x) => x.stale(CacheState.DIRTY));
+      this.observers?.forEach((x) => x.stale(CacheDirty));
     }
     this.value = value;
   }
 
+  private stale(state: CacheState): void {
+    if (this.state < state) {
+      this.state = state;
+      this.observers?.forEach((x) => x.stale(CacheCheck));
+    }
+  }
+
   /** run the computation fn, updating the cached value */
-  update(): boolean {
+  private update(): boolean {
     if (this.sources) {
       this.sources.forEach((x) => x.observers?.delete(this));
       this.sources.clear();
@@ -96,10 +106,10 @@ export class Reactive<T> {
       this.cleanups = [];
       this.value = this.fn!();
     });
-    this.state = CacheState.CURRENT;
+    this.state = CacheCurrent;
 
     if (oldValue !== this.value) {
-      this.observers?.forEach((x) => (x.state = CacheState.DIRTY));
+      this.observers?.forEach((x) => (x.state = CacheDirty));
       return true;
     } else {
       return false;
@@ -107,12 +117,12 @@ export class Reactive<T> {
   }
 
   /** update() if dirty, or a parent turns out to be dirty. */
-  updateIfNecessary(): boolean {
-    if (this.state == CacheState.DIRTY) {
+  private updateIfNecessary(): boolean {
+    if (this.state == CacheDirty) {
       return this.update();
     }
 
-    if (this.state == CacheState.CHECK) {
+    if (this.state == CacheCheck) {
       if (this.sources) {
         let updated = false;
         for (const source of this.sources) {
@@ -122,22 +132,11 @@ export class Reactive<T> {
           return this.update();
         }
       }
-      this.state = CacheState.CURRENT; // no sources changed, so we don't need to update, and are current
+      this.state = CacheCurrent; // no sources changed, so we don't need to update, and are current
     }
 
-    // state is now CacheState.CURRENT;
+    // state is now CacheCurrent;
     return false;
-  }
-
-  get(): T {
-    if (CurrentReaction) {
-      if (!CurrentReaction.sources) CurrentReaction.sources = new Set();
-      CurrentReaction.sources.add(this);
-      if (!this.observers) this.observers = new Set();
-      this.observers.add(CurrentReaction);
-    }
-    if (this.fn) this.updateIfNecessary();
-    return this.value;
   }
 }
 
@@ -156,8 +155,6 @@ export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
   if (CurrentReaction) {
     CurrentReaction.cleanups.push(fn);
   } else {
-    throw new Error(
-      "onCleanup must be called from within a @reactive function"
-    );
+    console.error("onCleanup must be called from within a @reactive function");
   }
 }

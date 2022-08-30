@@ -3,7 +3,7 @@
     "strict": true,
     "target": "ESNext",
     "moduleResolution": "node",
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM"],
     "outDir": "./dist",
     "declaration": true,
     "emitDeclarationOnly": true,
