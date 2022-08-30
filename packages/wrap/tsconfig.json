@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ESNext"],
+    "outDir": "./dist",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "paths": {
+      "@reactively/core": ["../core/src/core"],
+    }
+  }
+}

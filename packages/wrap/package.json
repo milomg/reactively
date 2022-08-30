@@ -2,12 +2,17 @@
   "name": "@reactively/wrap",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/wrap.js",
+  "types": "./dist/wrap.d.ts",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild ./src/wrap.ts --outdir=dist",
+    "build:types": "tsc"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@reactively/core": "workspace:*"
+  }
 }
