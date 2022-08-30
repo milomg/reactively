@@ -6,6 +6,9 @@
     "lib": ["ESNext"],
     "outDir": "./dist",
     "declaration": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "paths": {
+      "@reactively/*": ["../*/src"]
+    }
   }
 }

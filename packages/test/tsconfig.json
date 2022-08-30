@@ -8,5 +8,8 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
+    "paths": {
+      "@reactively/*": ["../*/src"]
+    }
   }
 }

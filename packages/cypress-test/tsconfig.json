@@ -8,7 +8,9 @@
     "moduleResolution": "Node",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "jsx": "react-jsx"
+    "paths": {
+      "@reactively/*": ["../*/src"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx"],
 }
