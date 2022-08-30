@@ -6,7 +6,7 @@ module.exports = {
     "\\.[jt]sx?$": "babel-jest",
   },
   moduleNameMapper: {
-    "^@reactively(.*)$": "<rootDir>/../$1/src",
+    "^@reactively/(.*)$": "<rootDir>/../$1/src",
   },
   projects: [
     "<rootDir>",
