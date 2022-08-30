@@ -10,7 +10,8 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "paths": {
-      "@reactively/*": ["../*/src"]
+      "@reactively/core": ["../core/src/core"],
+      "@reactively/decorate": ["../decorate/src/decorate"]
     }
   }
 }

@@ -2,11 +2,11 @@
   "name": "@reactively/decorate",
   "version": "0.0.0",
   "description": "",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/decorate.js",
+  "types": "./dist/decorate.d.ts",
   "type": "module",
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=dist",
+    "build": "esbuild ./src/decorate.ts --outdir=dist",
     "build:types": "tsc"
   },
   "keywords": [],

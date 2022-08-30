@@ -2,11 +2,11 @@
   "name": "@reactively/lit",
   "version": "0.0.0",
   "description": "",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/lit.js",
+  "types": "./dist/lit.d.ts",
   "type": "module",
   "scripts": {
-    "build": "esbuild ./src/index.ts --outdir=dist",
+    "build": "esbuild ./src/lit.ts --outdir=dist",
     "build:types": "tsc"
   },
   "keywords": [

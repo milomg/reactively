@@ -2,15 +2,15 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "types": [
-      "cypress",
-    ],
+    "types": ["cypress"],
     "moduleResolution": "Node",
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "paths": {
-      "@reactively/*": ["../*/src"]
+      "@reactively/core": ["../core/src/core"],
+      "@reactively/decorate": ["../decorate/src/decorate"],
+      "@reactively/lit": ["../lit/src/lit"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx"]
 }
