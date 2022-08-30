@@ -1,13 +1,31 @@
 /**
- * Nodes for constructing a reactive graph of reactive values and computations.
+ * Nodes for constructing a reactive graph of reactive values and reactive computations.
+ * The graph is acyclic.
+ * The user inputs new values into the graph by calling set() on one more more reactive nodes. 
+ * The user retrieves computed results from the graph by calling get() on one or more reactive nodes.
+ * The library is responsible for running any necessary reactive computations so that get() is 
+ * up to date with all prior set() calls anywhere in the graph.
  *
- * Each reactive element tracks its sources and its observers (observers are other
- * elements that have this node as a source).
+ * We call input nodes 'roots' and the output nodes 'leaves' of the graph here in discussion,
+ * but the distinction is based on the use of the graph, all nodes have the same internal structure.
+ * Changes flow from roots to leaves. It would be effective but inefficient to immediately propagate 
+ * all changes from a root through the graph to descendant leaves. Instead we defer change
+ * most change progogation computation until a leaf is accessed. This allows us to coalesce computations
+ * and skip altogether recalculating unused sections of the graph.
  *
- * Conceptually, changes flow from sources to observers though the actual execution of
- * change propogation is more complex.
- *
- * Changes introduced by set() operations mark... TBD.
+ * Each reactive node tracks its sources and its observers (observers are other
+ * elements that have this node as a source). Source and observer links are updated automatically
+ * as observer reactive computations re-evaluate and call get() on their sources.
+ * 
+ * Each node stores a cache state to support the change propogation algorithm: 'clean', 'check', or 'dirty'
+ * In general, execution proceeds in three passes:
+ *  1. set() propogates changes some flags down the graph to the leaves
+ *     children are marked as dirty and their deeper descendants marked as check
+ *     (no reactive computations are evaluated)
+ *  2. get() requests that parent nodes updateIfNecessary(), which proceeds recursively up the tree
+ *     to decide whether the node is clean (parents unchanged) or dirty (parents changed)
+ *  3. updateIfNecessary() evaluates the reactive computation if the node is dirty
+ *     (the computations are executed in root to leaf order because of the traversal order)
  */
 
 /** current capture context for identifying @reactive sources (other reactive elements)
@@ -16,9 +34,9 @@ let CurrentReaction: Reactive<any> | undefined = undefined;
 
 /** reactive nodes are marked dirty when their source values change TBD*/
 const enum CacheState {
-  CURRENT = 0,
-  CHECK,
-  DIRTY,
+  CURRENT = 0, // reactive value is valid, no need to recompute
+  CHECK,  // reactive value might be stale, check parent nodes to decide whether to recompute
+  DIRTY, // reactive value is invalid, parents have changed, valueneeds to be recomputed
 }
 
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
@@ -123,7 +141,7 @@ export class Reactive<T> {
   }
 }
 
-/* Evalute the reactive function body, dynamically capturing any other reactiveseused */
+/* Evalute the reactive function body, dynamically capturing any other reactives used */
 function withCurrentCompute(reactive: Reactive<any>, fn: () => any): any {
   const listener = CurrentReaction;
   CurrentReaction = reactive;
