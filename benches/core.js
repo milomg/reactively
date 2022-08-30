@@ -70,7 +70,7 @@ export class Reactive {
         for (let i = 0; i < this.sources.length; i++) {
           this.sources[i].updateIfNecessary();
         }
-        if ((this.state = 2) /* CacheState.DIRTY */) {
+        if (this.state == 2 /* CacheState.DIRTY */) {
           return this.update();
         }
       }
