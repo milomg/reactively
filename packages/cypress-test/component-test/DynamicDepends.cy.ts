@@ -38,29 +38,30 @@ function withPerf<T>(name: string, fn: () => T): T {
 }
 
 /**
- * Make a rectangular dependency graph.
+ * Make a rectangular dependency graph, with an equal number of source elements
+ * and computation elements at every layer.
  *
  * @param width number of source elements and number of computed elements per layer
  * @param layers total number of source and computed layers
- * @param dynamicMod every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
+ * @param dynamicNth every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
  * @returns the graph
  */
 function makeGraph(
   width: number,
   layers: number,
-  dynamicMod = 1
+  dynamicNth = 1
 ): ReactiveWrap<number>[][] {
   const sources = new Array(width).fill(0).map((_, i) => $r(i));
-  const rows = makeDependentRows(sources, layers - 1, dynamicMod);
+  const rows = makeDependentRows(sources, layers - 1, dynamicNth);
   return [sources, ...rows];
 }
 
 /**
- * Execute the graph by writing one of the sources and reading all of the leaves.
+ * Execute the graph by writing one of the sources and reading some or all of the leaves.
  *
  * @return the sum of all leaf values
  */
-function runGraph(graph: ReactiveWrap<number>[][], iterations: number): number {
+function runGraph(graph: ReactiveWrap<number>[][], iterations: number, readNth = 1): number {
   const sources = graph[0];
   const leaves = graph[graph.length - 1];
   for (let i = 0; i < iterations; i++) {
@@ -69,7 +70,8 @@ function runGraph(graph: ReactiveWrap<number>[][], iterations: number): number {
     leaves.forEach((leaf) => leaf());
   }
 
-  const sum = leaves.reduce((total, leaf) => leaf() + total, 0);
+  const nthLeaves = leaves.filter((_, i) => i % readNth === 0);
+  const sum = nthLeaves.reduce((total, leaf) => leaf() + total, 0);
   return sum;
 }
 
@@ -90,12 +92,12 @@ function logGraph(rows: ReactiveWrap<number>[][]): void {
 function makeDependentRows(
   sources: ReactiveWrap<number>[],
   numRows: number,
-  dynamicMod: number
+  dynamicNth: number
 ): ReactiveWrap<number>[][] {
   let prevRow = sources;
   const rows = [];
   for (let l = 0; l < numRows; l++) {
-    const row = makeRow(prevRow, dynamicMod);
+    const row = makeRow(prevRow, dynamicNth);
     rows.push(row);
     prevRow = row;
   }
@@ -104,13 +106,13 @@ function makeDependentRows(
 
 function makeRow(
   sources: ReactiveWrap<number>[],
-  dynamicMod = 1
+  dynamicNth = 1
 ): ReactiveWrap<number>[] {
   return sources.map((s, i) => {
     const sourceA = sources[i];
     const sourceIndexB = (i + 1) % sources.length;
     const sourceB = sources[sourceIndexB];
-    if (i % dynamicMod === 0) {
+    if (i % dynamicNth === 0) {
       // static node, always reference both sources
       return $r(() => sourceA() + sourceB());
     } else {
