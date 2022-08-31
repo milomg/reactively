@@ -1,43 +1,44 @@
 # Reactively
 
 Reactively is a library for fine grained reactive programming.
-It's simple and lightweight.
-
-`@reactively/core` is currently only 391 bytes gzipped (expect this to grow as we add features)
-
-Reactively provides fine grained reactivity and nothing more.
 Use Reactively to add smart recalculation and caching almost anywhere.
+Reactively provides fine grained reactivity and nothing more.
+
+`@reactively/core` is currently only 391 bytes gzipped (it will grow as we add a few planned features)
+
 
 ```ts
 import { $r } from "@reactively/wrap";
 
+// declare some reactive variables. 
 const counter = $r(0);
 const isEven = $r(() => (counter() & 1) == 0);
+const render = $r(() => (document.body.textContent = isEven() ? "even" : "odd"));
 
-const render = $r(
-  () => (document.body.textContent = isEven() ? "even" : "odd")
-);
+// modify reactive variables. 
+// dependent reactives are recalculated but only if necessary
+//   (and note that dependencies do not need to be declared,
+//    they are tracked automatically: counter -> isEven -> render)
 
 counter.set(1);
 render(); // "odd"
 
 counter.set(3);
-counter.set(5); // still "odd"
-render(); // no-op.
+counter.set(5); // still odd
+render(); // no-op! 
 
 counter.set(2);
 render(); // "even"
 ```
 
-Reactively caches the results of the render() function
-automatically. Reactively won't run render() again unless its inputs have changed.
+Reactively caches the results of the render() function automatically
+and Reactively won't run render() again unless its inputs have changed.
 So the second call to render() is optimized into a no-op.
 
-Of course, you can manually write your own caching and dependency checking
-to avoid repeating expensive operations
+Reactively is useful to avoid unnecessarily repeating expensive operations
 (memory allocation, network operations, storage, long computations, DOM manipulation, etc.)
-But a declarative approach with a fine grained reactive programming library like Reactively
-is easier, and the result is more maintainable.
+While you can manually write your own caching and dependency checking,
+a declarative approach is easier, and the result is more maintainable.
 
 ---
 
@@ -192,18 +193,18 @@ But that doesn’t mean the reactive system needs to respond to a change at the 
 
 These are the questions the reactive execution system needs to address.
 
-Push systems emphasize pushing changes from the roots down to the leaves. 
+*Push* systems emphasize pushing changes from the roots down to the leaves. 
 Push algorithms are fast for the framework to manage 
 but can push changes even through unused parts of the graph, 
 which wastes time on unused user computations and may surprise the user. 
 For efficiency, push systems typically expect the user to specify a 'batch' of changes
 to push at once.
 
-Pull systems emphasize traversing the graph in reverse order, 
+*Pull* systems emphasize traversing the graph in reverse order, 
 from user consumed reactive elements up towards roots. 
 Pull systems have a simple developer experience and don’t require explicit batching. 
 But pull systems are are apt to traverse the tree too often. Each leaf element needs to traverse all the way up the tree to detect changes, potentially resulting in many extra traversals.
 
-Reactively is a hybrid push pull system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from the lowest level. This costs the framework an extra traversal of its internal graph. 
+Reactively is a hybrid *push-pull* system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from leaves. This costs the framework some bookkeeping and an extra traversal of its internal graph. 
 But the developer wins by getting the simplicity of a pull system 
 and the most of the execution efficiency of a push system.
