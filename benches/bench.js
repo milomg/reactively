@@ -1,3 +1,5 @@
+// Inspired by https://github.com/solidjs/solid/blob/main/packages/solid/bench/bench.cjs
+
 import { signal, computed } from "./core.js";
 
 const now = typeof process === "undefined" ? browserNow : nodeNow;

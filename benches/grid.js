@@ -1,6 +1,6 @@
-import { Reactive, stabilize } from "./core.js";
+// The following is an implementation of the cellx benchmark https://github.com/Riim/cellx/blob/master/perf/perf.html
 
-// The following is an implementation of the cellx benchmark https://codesandbox.io/s/cellx-bench-forked-s6kusj
+import { Reactive, stabilize } from "./core.js";
 
 const cellx = (layers) => {
   const start = {

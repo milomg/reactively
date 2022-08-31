@@ -71,7 +71,10 @@ importers:
       jest: 29.0.1
 
   packages/wrap:
-    specifiers: {}
+    specifiers:
+      '@reactively/core': workspace:*
+    dependencies:
+      '@reactively/core': link:../core
 
 packages:
 
