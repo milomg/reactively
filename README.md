@@ -4,8 +4,7 @@ Reactively is a library for fine grained reactive programming.
 Use Reactively to add smart recalculation and caching almost anywhere.
 Reactively provides fine grained reactivity and nothing more.
 
-`@reactively/core` is currently only 391 bytes gzipped (it will grow as we add a few planned features)
-
+`@reactively/core` is currently less than 1K bytes gzipped. 
 
 ```ts
 import { $r } from "@reactively/wrap";
