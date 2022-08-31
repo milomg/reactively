@@ -1,14 +1,10 @@
 import { $r, ReactiveWrap } from "@reactively/wrap";
 
-it.only("static graph: 10 x 5 deep, many times", () => {
+it("static dependency graph: 10 x 5, 100K iteration", () => {
   const graph = makeGraph(10, 5);
 
-  const startName = "sg5x3.10.start";
-  performance.mark(startName);
-  const sum = runGraph(graph, 100000);
-  const time = performance.measure("sg5x3.10", startName);
-  console.log("sum:", sum);
-  console.log("duration:", time.duration);
+  const sum = withPerf("sg10x3.100K", () => runGraph(graph, 100000));
+  expect(sum).equals(15999840);
 });
 
 it("static graph", () => {
@@ -18,15 +14,52 @@ it("static graph", () => {
   expect(sum).equal(108);
 });
 
+it("dynamic graph", () => {
+  const graph = makeGraph(4, 2, 2);
+  const sum = runGraph(graph, 10);
+  // logGraph(graph);
+  expect(sum).equal(74);
+});
+
+it("dynamic graph 10 x 5, 100K iterations", () => {
+  const graph = makeGraph(10, 5, 2);
+  const sum = withPerf("dynamicGraph", () => runGraph(graph, 100000));
+  expect(sum).equals(11999955)
+});
+
+function withPerf<T>(name: string, fn: () => T): T {
+  const startName = name + ".start";
+  performance.mark(startName);
+  const result = fn();
+  const time = performance.measure(name, startName);
+  cy.log(name, "duration:", time.duration);
+  console.log(name, "duration:", time.duration);
+  return result;
+}
+
+/**
+ * Make a rectangular dependency graph.
+ *
+ * @param width number of source elements and number of computed elements per layer
+ * @param layers total number of source and computed layers
+ * @param dynamicMod every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
+ * @returns the graph
+ */
 function makeGraph(
-  elemsPerLayer: number,
-  layers: number
+  width: number,
+  layers: number,
+  dynamicMod = 1
 ): ReactiveWrap<number>[][] {
-  const sources = new Array(elemsPerLayer).fill(0).map((_, i) => $r(i));
-  const rows = makeDependentRows(sources, layers - 1);
+  const sources = new Array(width).fill(0).map((_, i) => $r(i));
+  const rows = makeDependentRows(sources, layers - 1, dynamicMod);
   return [sources, ...rows];
 }
 
+/**
+ * Execute the graph by writing one of the sources and reading all of the leaves.
+ *
+ * @return the sum of all leaf values
+ */
 function runGraph(graph: ReactiveWrap<number>[][], iterations: number): number {
   const sources = graph[0];
   const leaves = graph[graph.length - 1];
@@ -36,35 +69,61 @@ function runGraph(graph: ReactiveWrap<number>[][], iterations: number): number {
     leaves.forEach((leaf) => leaf());
   }
 
-  const sum = leaves.reduce((total, elem) => elem() + total, 0);
+  const sum = leaves.reduce((total, leaf) => leaf() + total, 0);
   return sum;
 }
 
 function logGraph(rows: ReactiveWrap<number>[][]): void {
   rows.forEach((row) => {
-    console.log(row.map((row) => row()).join(" "));
+    console.log(
+      row
+        .map((elem) => {
+          const value = elem();
+          const dynamic = (elem as any)._dynamic ? "*" : "";
+          return `${value}${dynamic}`;
+        })
+        .join(" ")
+    );
   });
 }
 
 function makeDependentRows(
   sources: ReactiveWrap<number>[],
-  numRows: number
+  numRows: number,
+  dynamicMod: number
 ): ReactiveWrap<number>[][] {
   let prevRow = sources;
   const rows = [];
   for (let l = 0; l < numRows; l++) {
-    const row = makeRow(prevRow);
+    const row = makeRow(prevRow, dynamicMod);
     rows.push(row);
     prevRow = row;
   }
   return rows;
 }
 
-function makeRow(sources: ReactiveWrap<number>[]): ReactiveWrap<number>[] {
+function makeRow(
+  sources: ReactiveWrap<number>[],
+  dynamicMod = 1
+): ReactiveWrap<number>[] {
   return sources.map((s, i) => {
     const sourceA = sources[i];
     const sourceIndexB = (i + 1) % sources.length;
     const sourceB = sources[sourceIndexB];
-    return $r(() => sourceA() + sourceB());
+    if (i % dynamicMod === 0) {
+      // static node, always reference both sources
+      return $r(() => sourceA() + sourceB());
+    } else {
+      // dynamic node, references 2nd source only if 1st source is even
+      const node = $r(() => {
+        let sum = sourceA() + 1;
+        if (sum & 0x1) {
+          sum += sourceB();
+        }
+        return sum;
+      });
+      (node as any)._dynamic = true;
+      return node;
+    }
   });
 }
