@@ -19,13 +19,13 @@
  *
  * Each node stores a cache state to support the change propogation algorithm: 'clean', 'check', or 'dirty'
  * In general, execution proceeds in three passes:
- *  1. set() propogates changes some flags down the graph to the leaves
- *     children are marked as dirty and their deeper descendants marked as check
+ *  1. set() propogates changes down the graph to the leaves
+ *     direct children are marked as dirty and their deeper descendants marked as check
  *     (no reactive computations are evaluated)
  *  2. get() requests that parent nodes updateIfNecessary(), which proceeds recursively up the tree
  *     to decide whether the node is clean (parents unchanged) or dirty (parents changed)
  *  3. updateIfNecessary() evaluates the reactive computation if the node is dirty
- *     (the computations are executed in root to leaf order because of the traversal order)
+ *     (the computations are executed in root to leaf order)
  */
 
 /** current capture context for identifying @reactive sources (other reactive elements) and cleanups
@@ -33,14 +33,15 @@
 let CurrentReaction: Reactive<any> | undefined = undefined;
 let CurrentGets: Reactive<any>[] | null = null;
 
-/** A list of non-current 'effect' nodes that will be updated when stabilize() is called */
+/** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
 
 /** reactive nodes are marked dirty when their source values change TBD*/
-const CacheCurrent = 0; // reactive value is valid, no need to recompute
+const CacheClean = 0; // reactive value is valid, no need to recompute
 const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
 const CacheDirty = 2; // reactive value is invalid, parents have changed, valueneeds to be recomputed
-type CacheState = typeof CacheCurrent | typeof CacheCheck | typeof CacheDirty;
+type CacheState = typeof CacheClean | typeof CacheCheck | typeof CacheDirty;
+type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
 
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
@@ -96,7 +97,7 @@ export class Reactive<T> {
     this.value = value;
   }
 
-  private stale(state: CacheState): void {
+  private stale(state: CacheNonClean): void {
     if (this.state < state) {
       this.state = state;
       if (this.observers) {
@@ -105,8 +106,8 @@ export class Reactive<T> {
         }
       }
     }
-    // If we were previously current, then we know that we may need to update to get the new value
-    if (this.state === CacheCurrent && this.effect) EffectQueue.push(this);
+    // If we were previously clean, then we know that we may need to update to get the new value
+    if (this.state === CacheClean && this.effect) EffectQueue.push(this);
   }
 
   /** run the computation fn, updating the cached value */
@@ -163,7 +164,7 @@ export class Reactive<T> {
       }
     }
 
-    this.state = CacheCurrent;
+    this.state = CacheClean;
   }
 
   /** update() if dirty, or a parent turns out to be dirty. */
@@ -180,8 +181,8 @@ export class Reactive<T> {
       this.update();
     }
 
-    // By now we must be current, so mark ourselves as current.
-    this.state = CacheCurrent;
+    // By now we must be clean, so mark ourselves as clean.
+    this.state = CacheClean;
   }
 
   /** (Inspired by https://github.com/solidjs/solid/blob/eb63706ab4fa566478486b2b3b47ec6d39e0d4bc/packages/solid/src/reactive/signal.ts#L1580)
@@ -233,7 +234,7 @@ function arrayEq<T>(a: T[], b: T[] | null): boolean {
   return true;
 }
 
-/** run all non-current effect nodes */
+/** run all non-clean effect nodes */
 export function stabilize() {
   for (let i = 0; i < EffectQueue.length; i++) {
     EffectQueue[i].get();
