@@ -5,13 +5,13 @@ it.only("static graph: 10 x 5 deep, many times", () => {
 
   const startName = "sg5x3.10.start";
   performance.mark(startName);
-  runGraph(graph, 10000);
+  const sum = runGraph(graph, 100000);
   const time = performance.measure("sg5x3.10", startName);
+  console.log("sum:", sum);
   console.log("duration:", time.duration);
 });
 
 it("static graph", () => {
-  console.clear();
   const graph = makeGraph(3, 3);
   const sum = runGraph(graph, 10);
 
