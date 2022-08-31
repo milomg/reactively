@@ -9,7 +9,8 @@
     "paths": {
       "@reactively/core": ["../core/src/core"],
       "@reactively/decorate": ["../decorate/src/decorate"],
-      "@reactively/lit": ["../lit/src/lit"]
+      "@reactively/lit": ["../lit/src/lit"],
+      "@reactively/wrap": ["../wrap/src/wrap"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]
