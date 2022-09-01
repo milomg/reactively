@@ -54,14 +54,13 @@ it("dynamic graph 10 x 5, 100K iterations", () => {
   expect(counter.count).equals(1250027);
 });
 
-// TODO perf test with dynamic graph, read only some leaves
-// it("dynamic graph 10 x 10, read 1/5 leaves. 100K iterations", () => {
-//   const counter = new Counter();
-//   const graph = makeGraph(10, 5, counter, 2);
-//   const sum = withPerf("dynamicGraph 10x10 1/5 leaves", () => runGraph(graph, 100000, 5));
-//   expect(sum).equals(2399983);
-//   expect(counter.count).equals(520016);
-// });
+it("dynamic graph 10 x 10, read 1/5 leaves. 100K iterations", () => {
+  const counter = new Counter();
+  const graph = makeGraph(10, 5, counter, 2);
+  const sum = withPerf("dynamicGraph 10x10 1/5 leaves", () => runGraph(graph, 100000, 5));
+  expect(sum).equals(2399983);
+  expect(counter.count).equals(520016);
+});
 
 function withPerf<T>(name: string, fn: () => T): T {
   const startName = name + ".start";
