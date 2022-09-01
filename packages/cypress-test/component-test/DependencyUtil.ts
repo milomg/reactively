@@ -12,8 +12,9 @@ export function withPerf<T>(name: string, fn: () => T): T {
 
 export interface GraphAndCounter {
   graph: ReactiveWrap<number>[][];
-  counter: Counter;
+  counter:Counter;
 }
+
 /**
  * Make a rectangular dependency graph, with an equal number of source elements
  * and computation elements at every layer.
@@ -32,7 +33,7 @@ export function makeGraph(
   const counter = new Counter();
   const rows = makeDependentRows(sources, layers - 1, counter, dynamicNth);
   const graph = [sources, ...rows];
-  return { graph, counter };
+  return {graph, counter};
 }
 
 /**
