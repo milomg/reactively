@@ -14,6 +14,13 @@ it("static graph", () => {
   expect(sum).equal(108);
 });
 
+it.only("static graph, read 2/3 of leaves", () => {
+  const graph = makeGraph(3, 3);
+  const sum = runGraph(graph, 10, 2);
+
+  expect(sum).equal(71);
+});
+
 it("dynamic graph", () => {
   const graph = makeGraph(4, 2, 2);
   const sum = runGraph(graph, 10);
@@ -26,6 +33,15 @@ it("dynamic graph 10 x 5, 100K iterations", () => {
   const sum = withPerf("dynamicGraph", () => runGraph(graph, 100000));
   expect(sum).equals(11999955)
 });
+
+
+/*
+TODO 
+  count executions
+  perf test with fewer leaf reads
+DONE
+  test with fewer leaf reads
+*/
 
 function withPerf<T>(name: string, fn: () => T): T {
   const startName = name + ".start";
@@ -64,13 +80,13 @@ function makeGraph(
 function runGraph(graph: ReactiveWrap<number>[][], iterations: number, readNth = 1): number {
   const sources = graph[0];
   const leaves = graph[graph.length - 1];
+  const nthLeaves = leaves.filter((_, i) => i % readNth === 0);
   for (let i = 0; i < iterations; i++) {
     const sourceDex = i % sources.length;
     sources[sourceDex].set(i + sourceDex);
-    leaves.forEach((leaf) => leaf());
+    nthLeaves.forEach((leaf) => leaf());
   }
 
-  const nthLeaves = leaves.filter((_, i) => i % readNth === 0);
   const sum = nthLeaves.reduce((total, leaf) => leaf() + total, 0);
   return sum;
 }
