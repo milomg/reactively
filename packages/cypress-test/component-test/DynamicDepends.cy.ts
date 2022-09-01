@@ -3,7 +3,7 @@ import { $r, ReactiveWrap } from "@reactively/wrap";
 it("static dependency graph: 10 x 5, 100K iteration", () => {
   const graph = makeGraph(10, 5);
 
-  const sum = withPerf("sg10x3.100K", () => runGraph(graph, 100000));
+  const sum = withPerf("sg10x5.100K", () => runGraph(graph, 100000));
   expect(sum).equals(15999840);
 });
 
@@ -14,11 +14,17 @@ it("static graph", () => {
   expect(sum).equal(108);
 });
 
-it.only("static graph, read 2/3 of leaves", () => {
+it("static graph, read 2/3 of leaves", () => {
   const graph = makeGraph(3, 3);
   const sum = runGraph(graph, 10, 2);
 
   expect(sum).equal(71);
+});
+
+it.only("static graph 10 x 10, read 1/5 of leaves, 100K iterations", () => {
+  const graph = makeGraph(10, 10);
+  const sum = withPerf("sg10x10/5.100K", () => runGraph(graph, 100000, 5));
+  expect(sum).equals(102398976);
 });
 
 it("dynamic graph", () => {
@@ -38,8 +44,8 @@ it("dynamic graph 10 x 5, 100K iterations", () => {
 /*
 TODO 
   count executions
-  perf test with fewer leaf reads
 DONE
+  perf test with fewer leaf reads
   test with fewer leaf reads
 */
 
