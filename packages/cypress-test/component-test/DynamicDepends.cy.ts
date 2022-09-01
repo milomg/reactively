@@ -124,7 +124,7 @@ function makeRow(
         }
         return sum;
       });
-      (node as any)._dynamic = true;
+      (node as any)._dynamic = true; // mark dynamic nodes for logging the graph
       return node;
     }
   });
