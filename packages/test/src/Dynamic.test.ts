@@ -27,11 +27,14 @@ test("dynamic sources recalculate correctly", () => {
 });
 
 /*
-s-a-l
- \ % 
-  b
+dependency is dynamic: sometimes l depends on b, sometimes not.
+  s          s
+ / \        / \
+a   b  or  a   b
+ \ /        \
+  l          l
 */
-test.skip("dynamic sources don't re-execute a parent unnecessarily", () => {
+test("dynamic sources don't re-execute a parent unnecessarily", () => {
   const s = _(2);
   const a = _(() => s() + 1);
   let bCount = 0;
@@ -51,5 +54,5 @@ test.skip("dynamic sources don't re-execute a parent unnecessarily", () => {
   expect(bCount).toEqual(1);
   s.set(3);
   expect(l()).toEqual(4);
-  expect(bCount).toEqual(1); // TODO fixme, should be 1
+  expect(bCount).toEqual(1); 
 });

@@ -160,23 +160,29 @@ export class Reactive<T> {
 
     // handle diamond depenendencies if we're the parent of a diamond.
     if (oldValue !== this.value && this.observers) {
-      // We're now transitioning to clean, probably because one of our children
-      // called updateIfNecesary() on us. Our other children need to know that
-      // we've changed value, so we mark them as dirty
+      // We've changed value, so mark our children as dirty so they'll reevaluate
       for (let i = 0; i < this.observers.length; i++) {
         this.observers[i].state = CacheDirty;
       }
     }
-
+    
+    // We've rerun with the latest values from all of our sources.
+    // This means that we no longer need to update until a signal changes
     this.state = CacheClean;
   }
 
   /** update() if dirty, or a parent turns out to be dirty. */
   private updateIfNecessary(): void {
-    // If we are potentially dirty, try and update our parents.
+    // If we are potentially dirty, see if we have a parent who has actually changed value
     if (this.state === CacheCheck && this.sources) {
       for (const source of this.sources) {
-        source.updateIfNecessary();
+        source.updateIfNecessary(); // updateIfNecessary() can change this.state
+        if ((this.state as CacheState) === CacheDirty) {
+          // Stop the loop here so we won't trigger updates on other parents unnecessarily
+          // If our computation changes to no longer use some sources, we don't
+          // want to update() a source we used last time, but now don't use.
+          break;
+        }
       }
     }
 
@@ -185,13 +191,13 @@ export class Reactive<T> {
       this.update();
     }
 
-    // By now we must be clean, so mark ourselves as clean.
+    // By now, we're clean
     this.state = CacheClean;
   }
 
   /** (Inspired by https://github.com/solidjs/solid/blob/eb63706ab4fa566478486b2b3b47ec6d39e0d4bc/packages/solid/src/reactive/signal.ts#L1580)
    *  Remove all sources' links to us by editing each sources' observers array and related slot numbers.
-   * 
+   *
    *  To enable quickly deletions of our entry from the observers array, we keep
    *  track of the array _index_ in each sources' observers array that holds the reference to our node.
    *  To delete our entry, we pop the last element from the sources observers array and overwrite our entry.
