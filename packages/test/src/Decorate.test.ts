@@ -3,10 +3,8 @@ import { hasReactive, reactive } from "@reactively/decorate";
 
 @hasReactive()
 class OneComputed {
-  @reactive a = 7;
-
   callCount1 = 0;
-
+  @reactive a = 7;
   @reactive value1 = (): number => {
     this.callCount1++;
     const result = this.a + 10;
@@ -30,14 +28,17 @@ test("one signal", () => {
   expect(simple.callCount1).toEqual(2);
 });
 
+/*
+a-v1-v2
+ /
+b
+*/
 @hasReactive()
 class TwoComputed {
   @reactive a = 7;
-
   @reactive b = 1;
 
   callCount1 = 0;
-
   @reactive value1 = (): number => {
     this.callCount1++;
     const result = this.a * this.b;
@@ -45,7 +46,6 @@ class TwoComputed {
   };
 
   callCount2 = 0;
-
   @reactive value2 = (): number => {
     this.callCount2++;
     const result = this.value1() + 1;
@@ -68,12 +68,12 @@ test("two signals", () => {
 test("dependent computed", () => {
   const simple = new TwoComputed();
   expect(simple.value2()).toBe(8);
-  expect(simple.callCount2).toBe(1);
   expect(simple.callCount1).toBe(1);
+  expect(simple.callCount2).toBe(1);
   simple.a = 3;
   expect(simple.value2()).toBe(4);
-  expect(simple.callCount2).toBe(2);
   expect(simple.callCount1).toBe(2);
+  expect(simple.callCount2).toBe(2);
 });
 
 test("equality check", () => {
@@ -91,7 +91,6 @@ test("equality check", () => {
 @hasReactive()
 class DyanmicComputed {
   @reactive a = 1;
-
   @reactive b = 2;
 
   callCountA = 0;
@@ -206,9 +205,14 @@ test("boolean check", () => {
   expect(c.callCount).toBe(2); // unchanged, oughtn't run because bool didn't change
 });
 
+/*
+s-a-b-d
+   \ /
+    c
+*/
 @hasReactive()
 class DiamondComputeds {
-  @reactive s = 0;
+  @reactive s = 1;
   @reactive a = () => this.s;
   @reactive b = () => this.a() * 2;
   @reactive c = () => this.a() * 3;
@@ -222,13 +226,13 @@ class DiamondComputeds {
 
 test("diamond computeds", () => {
   const c = new DiamondComputeds();
-  expect(c.d()).toBe(0);
-  expect(c.callCount).toBe(1);
-  c.s = 1;
   expect(c.d()).toBe(5);
-  expect(c.callCount).toBe(2);
+  expect(c.callCount).toBe(1);
   c.s = 2;
   expect(c.d()).toBe(10);
+  expect(c.callCount).toBe(2);
+  c.s = 3;
+  expect(c.d()).toBe(15);
   expect(c.callCount).toBe(3);
 });
 
