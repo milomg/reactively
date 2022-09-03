@@ -1,6 +1,6 @@
 import { Reactive } from "@reactively/core";
 
-export interface ReactiveWrap<T> { // LATER rename to something shorter?
+export interface ReactiveWrap<T> {
   (): T;
   set(value: T): void;
 }

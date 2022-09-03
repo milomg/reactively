@@ -9,7 +9,7 @@ class OneComputed {
 
   @reactive value1 = (): number => {
     this.callCount1++;
-    const result = this.a + 10;
+    const result = this.a + 10
     return result;
   };
 }
@@ -21,7 +21,7 @@ test("one signal", () => {
   expect(simple.value1()).toBe(12);
   expect(simple.callCount1).toEqual(2);
 
-  // extra get via value1() doesn't recalculate
+  // extra get via value1() doesn't recalculate 
   expect(simple.value1()).toBe(12);
   expect(simple.callCount1).toEqual(2);
 
@@ -209,9 +209,18 @@ test("boolean check", () => {
 @hasReactive()
 class DiamondComputeds {
   @reactive s = 0;
-  @reactive a = () => this.s;
-  @reactive b = () => this.a() * 2;
-  @reactive c = () => this.a() * 3;
+
+  @reactive a = (): number => {
+    return this.s;
+  };
+
+  @reactive b = (): number => {
+    return this.a() * 2;
+  };
+
+  @reactive c = (): number => {
+    return this.a() * 3;
+  };
 
   callCount = 0;
   @reactive d = (): number => {
@@ -219,7 +228,6 @@ class DiamondComputeds {
     return this.b() + this.c();
   };
 }
-
 test("diamond computeds", () => {
   const c = new DiamondComputeds();
   expect(c.d()).toBe(0);
@@ -230,20 +238,4 @@ test("diamond computeds", () => {
   c.s = 2;
   expect(c.d()).toBe(10);
   expect(c.callCount).toBe(3);
-});
-
-@hasReactive()
-class SetInsideReaction {
-  @reactive s = 1;
-  @reactive a = () => {
-    this.s = 2;
-  };
-  @reactive l = () => this.s + 100;
-}
-
-test("set inside reaction", () => {
-  const t = new SetInsideReaction();
-  const { a, l } = t;
-  a();
-  expect(l()).toEqual(102);
 });

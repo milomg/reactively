@@ -10,13 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@reactively/decorate": "workspace:*",
-    "@reactively/lit": "workspace:*"
+    "@reactively/lit": "workspace:*",
+    "@reactively/decorate": "workspace:*"
   },
   "devDependencies": {
     "cypress": "^10.6.0",
     "lit": "^2.3.1",
-    "solid-js": "^1.5.3",
     "vite": "^3.0.9"
   }
 }

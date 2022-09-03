@@ -19,7 +19,6 @@ importers:
       '@reactively/lit': workspace:*
       cypress: ^10.6.0
       lit: ^2.3.1
-      solid-js: ^1.5.3
       vite: ^3.0.9
     dependencies:
       '@reactively/decorate': link:../decorate
@@ -27,7 +26,6 @@ importers:
     devDependencies:
       cypress: 10.6.0
       lit: 2.3.1
-      solid-js: 1.5.3
       vite: 3.0.9
 
   packages/decorate:
@@ -2268,10 +2266,6 @@ packages:
       which: 2.0.2
     dev: true
 
-  /csstype/3.1.0:
-    resolution: {integrity: sha512-uX1KG+x9h5hIJsaKR9xHUeUraxf8IODOwq9JLNPq6BwB04a/xgpq3rcx47l5BZu5zBPlgD342tdke3Hom/nJRA==}
-    dev: true
-
   /cypress/10.6.0:
     resolution: {integrity: sha512-6sOpHjostp8gcLO34p6r/Ci342lBs8S5z9/eb3ZCQ22w2cIhMWGUoGKkosabPBfKcvRS9BE4UxybBtlIs8gTQA==}
     engines: {node: '>=12.0.0'}
@@ -4464,12 +4458,6 @@ packages:
       ansi-styles: 4.3.0
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
-    dev: true
-
-  /solid-js/1.5.3:
-    resolution: {integrity: sha512-F6LCJie+ZiGfvbHsqJ0UwDiSYN+2rR5CUGK7siU2fGptCDalMKL4mZVumQlwfq+wBSWlMt1BoB/OcjnYkDzBhg==}
-    dependencies:
-      csstype: 3.1.0
     dev: true
 
   /source-map-js/1.0.2:
