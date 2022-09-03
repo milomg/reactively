@@ -1,33 +1,6 @@
 import { $r, ReactiveWrap } from "@reactively/wrap";
 
-it("static dependency graph: 10 x 5, 100K iteration", () => {
-  const graph = makeGraph(10, 5);
-
-  const sum = withPerf("sg10x3.100K", () => runGraph(graph, 100000));
-  expect(sum).equals(15999840);
-});
-
-it("static graph", () => {
-  const graph = makeGraph(3, 3);
-  const sum = runGraph(graph, 10);
-
-  expect(sum).equal(108);
-});
-
-it("dynamic graph", () => {
-  const graph = makeGraph(4, 2, 2);
-  const sum = runGraph(graph, 10);
-  // logGraph(graph);
-  expect(sum).equal(74);
-});
-
-it("dynamic graph 10 x 5, 100K iterations", () => {
-  const graph = makeGraph(10, 5, 2);
-  const sum = withPerf("dynamicGraph", () => runGraph(graph, 100000));
-  expect(sum).equals(11999955)
-});
-
-function withPerf<T>(name: string, fn: () => T): T {
+export function withPerf<T>(name: string, fn: () => T): T {
   const startName = name + ".start";
   performance.mark(startName);
   const result = fn();
@@ -35,6 +8,11 @@ function withPerf<T>(name: string, fn: () => T): T {
   cy.log(name, "duration:", time.duration);
   console.log(name, "duration:", time.duration);
   return result;
+}
+
+export interface GraphAndCounter {
+  graph: ReactiveWrap<number>[][];
+  counter:Counter;
 }
 
 /**
@@ -46,14 +24,16 @@ function withPerf<T>(name: string, fn: () => T): T {
  * @param dynamicNth every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
  * @returns the graph
  */
-function makeGraph(
+export function makeGraph(
   width: number,
   layers: number,
   dynamicNth = 1
-): ReactiveWrap<number>[][] {
+): GraphAndCounter {
   const sources = new Array(width).fill(0).map((_, i) => $r(i));
-  const rows = makeDependentRows(sources, layers - 1, dynamicNth);
-  return [sources, ...rows];
+  const counter = new Counter();
+  const rows = makeDependentRows(sources, layers - 1, counter, dynamicNth);
+  const graph = [sources, ...rows];
+  return {graph, counter};
 }
 
 /**
@@ -61,21 +41,25 @@ function makeGraph(
  *
  * @return the sum of all leaf values
  */
-function runGraph(graph: ReactiveWrap<number>[][], iterations: number, readNth = 1): number {
+export function runGraph(
+  graph: ReactiveWrap<number>[][],
+  iterations: number,
+  readNth = 1
+): number {
   const sources = graph[0];
   const leaves = graph[graph.length - 1];
+  const nthLeaves = leaves.filter((_, i) => i % readNth === 0);
   for (let i = 0; i < iterations; i++) {
     const sourceDex = i % sources.length;
     sources[sourceDex].set(i + sourceDex);
-    leaves.forEach((leaf) => leaf());
+    nthLeaves.forEach((leaf) => leaf());
   }
 
-  const nthLeaves = leaves.filter((_, i) => i % readNth === 0);
   const sum = nthLeaves.reduce((total, leaf) => leaf() + total, 0);
   return sum;
 }
 
-function logGraph(rows: ReactiveWrap<number>[][]): void {
+export function logGraph(rows: ReactiveWrap<number>[][]): void {
   rows.forEach((row) => {
     console.log(
       row
@@ -89,15 +73,20 @@ function logGraph(rows: ReactiveWrap<number>[][]): void {
   });
 }
 
+export class Counter {
+  count = 0;
+}
+
 function makeDependentRows(
   sources: ReactiveWrap<number>[],
   numRows: number,
+  counter: Counter,
   dynamicNth: number
 ): ReactiveWrap<number>[][] {
   let prevRow = sources;
   const rows = [];
   for (let l = 0; l < numRows; l++) {
-    const row = makeRow(prevRow, dynamicNth);
+    const row = makeRow(prevRow, counter, dynamicNth);
     rows.push(row);
     prevRow = row;
   }
@@ -106,6 +95,7 @@ function makeDependentRows(
 
 function makeRow(
   sources: ReactiveWrap<number>[],
+  counter: Counter,
   dynamicNth = 1
 ): ReactiveWrap<number>[] {
   return sources.map((s, i) => {
@@ -114,17 +104,21 @@ function makeRow(
     const sourceB = sources[sourceIndexB];
     if (i % dynamicNth === 0) {
       // static node, always reference both sources
-      return $r(() => sourceA() + sourceB());
+      return $r(() => {
+        counter.count++;
+        return sourceA() + sourceB();
+      });
     } else {
       // dynamic node, references 2nd source only if 1st source is even
       const node = $r(() => {
+        counter.count++;
         let sum = sourceA() + 1;
         if (sum & 0x1) {
           sum += sourceB();
         }
         return sum;
       });
-      (node as any)._dynamic = true;
+      (node as any)._dynamic = true; // mark dynamic nodes for logging the graph
       return node;
     }
   });
