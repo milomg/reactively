@@ -158,7 +158,11 @@ export class Reactive<T> {
       CurrentReaction = prevReaction;
     }
 
+    // handle diamond depenendencies if we're the parent of a diamond.
     if (oldValue !== this.value && this.observers) {
+      // We're now transitioning to clean, probably because one of our children
+      // called updateIfNecesary() on us. Our other children need to know that
+      // we've changed value, so we mark them as dirty
       for (let i = 0; i < this.observers.length; i++) {
         this.observers[i].state = CacheDirty;
       }
