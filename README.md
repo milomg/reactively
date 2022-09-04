@@ -4,17 +4,19 @@ Reactively is a library for fine grained reactive programming.
 Use Reactively to add smart recalculation and caching almost anywhere.
 Reactively provides fine grained reactivity and nothing more.
 
-`@reactively/core` is currently less than 1K bytes gzipped. 
+`@reactively/core` is currently less than 1K bytes gzipped.
 
 ```ts
 import { $r } from "@reactively/wrap";
 
-// declare some reactive variables. 
+// declare some reactive variables.
 const counter = $r(0);
 const isEven = $r(() => (counter() & 1) == 0);
-const render = $r(() => (document.body.textContent = isEven() ? "even" : "odd"));
+const render = $r(() => {
+  document.body.textContent = isEven() ? "even" : "odd";
+});
 
-// modify reactive variables. 
+// modify reactive variables.
 // dependent reactives are recalculated but only if necessary
 //   (and note that dependencies do not need to be declared,
 //    they are tracked automatically: counter -> isEven -> render)
@@ -24,7 +26,7 @@ render(); // "odd"
 
 counter.set(3);
 counter.set(5); // still odd
-render(); // no-op! 
+render(); // no-op!
 
 counter.set(2);
 render(); // "even"
@@ -140,14 +142,14 @@ without extra protection.
  * Here's the dataflow relationship between the reactive parts:
  *    size -> bufferBlocks -> buffer
  */
+@hasReactive()
 class ResizeableBuffer {
   @reactive size = 0;
-
-  @reactive blocks = () => Math.ceil(this.size / 2 ** 16);
-
+  @reactive blocks = () => Math.ceil(this.size / 2 ** 12);
   @reactive buffer = () => {
-    this._buf = new Buffer(this.blocks()).copyFrom(this._buf);
-    return this._buf;
+    const newBuf = Buffer.allocUnsafe(this.blocks * 2 ** 12);
+    this._buf && newBuf.copy(this.buf);
+    return (this._buf = newBuf);
   };
 }
 
@@ -192,18 +194,18 @@ But that doesn’t mean the reactive system needs to respond to a change at the 
 
 These are the questions the reactive execution system needs to address.
 
-*Push* systems emphasize pushing changes from the roots down to the leaves. 
-Push algorithms are fast for the framework to manage 
-but can push changes even through unused parts of the graph, 
-which wastes time on unused user computations and may surprise the user. 
+_Push_ systems emphasize pushing changes from the roots down to the leaves.
+Push algorithms are fast for the framework to manage
+but can push changes even through unused parts of the graph,
+which wastes time on unused user computations and may surprise the user.
 For efficiency, push systems typically expect the user to specify a 'batch' of changes
 to push at once.
 
-*Pull* systems emphasize traversing the graph in reverse order, 
-from user consumed reactive elements up towards roots. 
-Pull systems have a simple developer experience and don’t require explicit batching. 
+_Pull_ systems emphasize traversing the graph in reverse order,
+from user consumed reactive elements up towards roots.
+Pull systems have a simple developer experience and don’t require explicit batching.
 But pull systems are are apt to traverse the tree too often. Each leaf element needs to traverse all the way up the tree to detect changes, potentially resulting in many extra traversals.
 
-Reactively is a hybrid *push-pull* system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from leaves. This costs the framework some bookkeeping and an extra traversal of its internal graph. 
-But the developer wins by getting the simplicity of a pull system 
+Reactively is a hybrid _push-pull_ system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from leaves. This costs the framework some bookkeeping and an extra traversal of its internal graph.
+But the developer wins by getting the simplicity of a pull system
 and the most of the execution efficiency of a push system.
