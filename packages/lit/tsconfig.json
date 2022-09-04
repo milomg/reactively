@@ -1,14 +1,8 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "strict": true,
-    "target": "ESNext",
-    "moduleResolution": "node",
-    "lib": ["ESNext", "DOM"],
-    "outDir": "./dist",
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
+    "noEmit": true,
+    "emitDeclarationOnly": false,
     "paths": {
       "@reactively/core": ["../core/src/core"],
       "@reactively/decorate": ["../decorate/src/decorate"]

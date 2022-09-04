@@ -1,11 +1,7 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "strict": true,
-    "target": "ESNext",
-    "moduleResolution": "node",
-    "lib": ["ESNext", "DOM"],
-    "outDir": "./dist",
-    "declaration": true,
-    "emitDeclarationOnly": true,
+    "noEmit": true,
+    "emitDeclarationOnly": false,
   }
 }

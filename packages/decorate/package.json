@@ -8,7 +8,7 @@
   "scripts": {
     "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/decorate.ts --outdir=dist",
-    "build:types": "tsc"
+    "build:types": "tsc --project ./tsconfig.build.json"
   },
   "keywords": [],
   "files": [

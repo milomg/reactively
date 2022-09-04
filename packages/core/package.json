@@ -1,6 +1,6 @@
 {
   "name": "@reactively/core",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "./dist/core.js",
   "types": "./dist/core.d.ts",
@@ -9,7 +9,7 @@
     "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/core.ts --outdir=dist",
     "sizeCheck": "esbuild ./src/core.ts --drop:console --minify --bundle '--mangle-props=^([^sg]|[sg][^e]|[sg]e[^t]).*$' | gzip | wc -c",
-    "build:types": "tsc"
+    "build:types": "tsc --project ./tsconfig.build.json"
   },
   "files": [
     "dist"
