@@ -11,7 +11,10 @@ importers:
       typescript: 4.8.2
 
   packages/core:
-    specifiers: {}
+    specifiers:
+      rimraf: ^3.0.2
+    devDependencies:
+      rimraf: 3.0.2
 
   packages/cypress-test:
     specifiers:
