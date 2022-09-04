@@ -16,10 +16,10 @@ const render = $r(() => {
   document.body.textContent = isEven() ? "even" : "odd";
 });
 
-// modify reactive variables.
-// dependent reactives are recalculated but only if necessary
-//   (and note that dependencies do not need to be declared,
-//    they are tracked automatically: counter -> isEven -> render)
+/* modify reactive variables.
+   dependent reactives are recalculated but only if necessary
+     (and note that dependencies do not need to be declared,
+      they are tracked automatically: counter -> isEven -> render) */
 
 counter.set(1);
 render(); // "odd"
@@ -142,6 +142,8 @@ without extra protection.
  * Here's the dataflow relationship between the reactive parts:
  *    size -> bufferBlocks -> buffer
  */
+import { hasReactive, reactive } from "@reactively/decorate";
+
 @hasReactive()
 class ResizeableBuffer {
   @reactive size = 0;
