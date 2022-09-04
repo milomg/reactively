@@ -10,6 +10,9 @@
     "build:types": "tsc"
   },
   "keywords": [],
+  "files": [
+    "dist"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
