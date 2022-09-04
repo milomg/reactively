@@ -1,6 +1,6 @@
 {
   "name": "@reactively/core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "./dist/core.js",
   "types": "./dist/core.d.ts",
@@ -10,6 +10,9 @@
     "sizeCheck": "esbuild ./src/core.ts --drop:console --minify --bundle '--mangle-props=^([^sg]|[sg][^e]|[sg]e[^t]).*$' | gzip | wc -c",
     "build:types": "tsc"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC"
