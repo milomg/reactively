@@ -164,7 +164,7 @@ b.buffer().setAt(0, 100);
 /* A reactive system can find other efficiencies. Here's one example: */
 
 b.size += 1; // grow the number of elements, but blocks doesn't change
-b.buffer(); // hopefully no new buffer allocated here. See 'equality propogation'
+b.buffer(); // no new buffer allocated here!
 ```
 
 **Reactive system terminology**
