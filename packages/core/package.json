@@ -1,12 +1,12 @@
 {
   "name": "@reactively/core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "./dist/core.js",
   "types": "./dist/core.d.ts",
   "type": "module",
   "scripts": {
-    "prepublish": "rimraf dist && pnpm run build",
+    "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/core.ts --outdir=dist",
     "sizeCheck": "esbuild ./src/core.ts --drop:console --minify --bundle '--mangle-props=^([^sg]|[sg][^e]|[sg]e[^t]).*$' | gzip | wc -c",
     "build:types": "tsc"
