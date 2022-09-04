@@ -6,6 +6,7 @@
   "types": "./dist/wrap.d.ts",
   "type": "module",
   "scripts": {
+    "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/wrap.ts --outdir=dist",
     "build:types": "tsc"
   },

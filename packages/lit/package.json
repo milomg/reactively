@@ -6,6 +6,7 @@
   "types": "./dist/lit.d.ts",
   "type": "module",
   "scripts": {
+    "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/lit.ts --outdir=dist",
     "build:types": "tsc"
   },

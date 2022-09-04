@@ -6,6 +6,7 @@
   "types": "./dist/decorate.d.ts",
   "type": "module",
   "scripts": {
+    "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/decorate.ts --outdir=dist",
     "build:types": "tsc"
   },
