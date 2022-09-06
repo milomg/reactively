@@ -13,15 +13,26 @@ import { Reactive } from "@reactively/core";
 export const reactivesToInit: WeakMap<object, string[]> = new Map();
 
 /** mark a class that contains reactive properties */
-export function hasReactive() {
-  return function (constructor: any): typeof constructor {
+export function hasReactive(constructor: Function): any;
+export function hasReactive(): (constructor: Function) => any;
+export function hasReactive(constructor?: any) {
+  if (!constructor) {
+    return function (constructor: any): typeof constructor {
+      return class extends constructor {
+        constructor(...args: any[]) {
+          super(...args);
+          initializeReactives(this);
+        }
+      } as typeof constructor;
+    };
+  } else {
     return class extends constructor {
       constructor(...args: any[]) {
         super(...args);
         initializeReactives(this);
       }
     } as typeof constructor;
-  };
+  }
 }
 
 /** save a reference to a reactive property so that we can later modify the property getters and setters */

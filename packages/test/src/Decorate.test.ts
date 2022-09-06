@@ -1,7 +1,7 @@
 import { onCleanup } from "@reactively/core";
 import { hasReactive, reactive } from "@reactively/decorate";
 
-@hasReactive()
+@hasReactive
 class OneComputed {
   callCount1 = 0;
   @reactive a = 7;
