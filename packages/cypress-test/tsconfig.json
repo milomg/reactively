@@ -13,5 +13,5 @@
       "@reactively/wrap": ["../wrap/src/wrap"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["**/*.ts", "**/*.tsx", "../test/src/util/**/*.ts"]
 }
