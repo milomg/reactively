@@ -8,6 +8,7 @@ module.exports = {
   moduleNameMapper: {
     "^@reactively/(.*)$": "<rootDir>/../$1/src/$1",
   },
+  setupFilesAfterEnv: ["./jestConsole.ts"],
   projects: [
     "<rootDir>",
     "<rootDir>/../decorate",
