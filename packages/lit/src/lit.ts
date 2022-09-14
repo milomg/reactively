@@ -1,15 +1,18 @@
 import { LitElement, PropertyDeclaration } from "lit";
-import { installReactiveProperty, reactivesToInit } from "@reactively/decorate";
+import {
+  HasReactive,
+  installReactiveProperty,
+} from "@reactively/decorate";
 import { Reactive } from "@reactively/core";
 
 export class ReactiveLitElement extends LitElement {
   constructor() {
     super();
-    reactiveInit(this);
+    reactiveInit(this); // TODO if this works, why do we need @hasReactive in decorate? can't we do this?
   }
 
   /** We have two modes for getPropertyDescriptor, one for building regular lit properties, and
-   * one for building reactive properties.
+   * one for building reactive lit properties.
    */
   static _buildingReactiveProperty = false;
   _reactiveProps: string[] | undefined;
@@ -53,8 +56,14 @@ export class ReactiveLitElement extends LitElement {
 // TODO take options from lit's @property
 
 /** Mark a mutable property that can be tracked for changes. */
-export function reactiveProperty(prototype: ReactiveLitElement, name: string): any;
-export function reactiveProperty(): (prototype: ReactiveLitElement, name: string) => any;
+export function reactiveProperty(
+  prototype: ReactiveLitElement,
+  name: string
+): any;
+export function reactiveProperty(): (
+  prototype: ReactiveLitElement,
+  name: string
+) => any;
 export function reactiveProperty(
   prototype?: ReactiveLitElement,
   name?: string
@@ -66,7 +75,10 @@ export function reactiveProperty(
 /** we can't store the properties in the class, because the decorator is being called before
  * the class exists.
  */
-function buildReactivePropMap(prototype: ReactiveLitElement, name?: string): void {
+function buildReactivePropMap(
+  prototype: ReactiveLitElement,
+  name?: string
+): void {
   console.log("buildReactivePropMap", prototype, { name });
   if (name) {
     if (!prototype._reactiveProps) {
@@ -83,14 +95,16 @@ function reactiveInit(instance: ReactiveLitElement): void {
 
   ReactiveLitElement._buildingReactiveProperty = true;
   reactiveProto._reactiveProps?.forEach((name) => {
-    ReactiveLitElement.createProperty(name)
+    ReactiveLitElement.createProperty(name);
   });
   ReactiveLitElement._buildingReactiveProperty = false;
 
   /* this should installReactiveProperty on every key that's not a lit property */
-  reactivesToInit.get(reactiveProto)?.forEach((key) => {
-    if (key === "doubleName") {
-      installReactiveProperty(instance, key);
-    }
+  // TODO testme
+  // Pobably we need to expect the user to do @hasReactive instead of doing it here..
+  // if the user initializes a method in the constructor.. hmm. not sure that's possible.
+  // maybe we can do it here after all!
+  (reactiveProto as HasReactive).__toInstall?.forEach(([key, descriptor]) => {
+    installReactiveProperty(instance, key, descriptor);
   });
 }
