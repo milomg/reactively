@@ -62,7 +62,7 @@ export class Reactive<T> {
   private sources: Reactive<any>[] | null = null; // sources in reference order, not deduplicated (up links)
 
   // We use slots to allow for a constant time deletion of an edge connecting a source and an observer (while avoiding sets, which are slow to create)
-  // The algorithm is described in cleanNode() below
+  // The scheme is described in removeParentObservers() below
   private observerSlots: number[] | null = null; // index in the observer's sources array that points to us
   private sourceSlots: number[] | null = null; // index in the source's observer array that points to us
   private state: CacheState = CacheDirty;
