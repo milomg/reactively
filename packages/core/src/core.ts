@@ -37,9 +37,9 @@ let CurrentGets: Reactive<any>[] | null = null;
 let EffectQueue: Reactive<any>[] = [];
 
 /** reactive nodes are marked dirty when their source values change TBD*/
-const CacheClean = 0; // reactive value is valid, no need to recompute
-const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
-const CacheDirty = 2; // reactive value is invalid, parents have changed, valueneeds to be recomputed
+export const CacheClean = 0; // reactive value is valid, no need to recompute
+export const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
+export const CacheDirty = 2; // reactive value is invalid, parents have changed, valueneeds to be recomputed
 type CacheState = typeof CacheClean | typeof CacheCheck | typeof CacheDirty;
 type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
 
