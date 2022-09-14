@@ -169,23 +169,34 @@ b.size += 1; // grow the number of elements, but blocks doesn't change
 b.buffer(); // no new buffer allocated here!
 ```
 
-**Reactive system terminology**
+**Reactive terminology**
 
-_reactive, computed, signals, effects, state_
+_reactive, computed, signals, effects, state, memo_
 
-In lighter weight reactive systems, reactive elements are sometimes called ‘computed’ values, ‘effects’, ‘memo’, ‘reactions’, or ‘reactive’ values. Some systems distinguish reactions from sources that are set from inputs external to the reactive system. Reactive sources are variously called ‘signals’ or ‘events’ or ‘state’.
+In some lighter weight reactive systems, 
+sources that can be set externally from the reactive system 
+are distinguished from reaction code that runs within the system.
+Reactive sources are variously called ‘signals’ or ‘events’ or ‘state’.
 
-In Reactively, sources and reactions are simply labeled @reactive.
+Reactive functions might be called 
+‘computed’ values, ‘effects’, ‘memo’, ‘reactions’, or ‘reactive’ values.
+Some systems further distinguish between intermediate reactions that can be used by
+other reactions ('computed') and leaf reactions ('effects').
+
+In `Reactively`, all reactive sources and computations are simply labeled @reactive.
 
 _streams_
 
-The flow of data through the reactive graph can also be encapsulated in asynchronous streams. Streams enable abstraction over patterns of data flow over time: debouncing, grouping, etc. Streams are rich but complicated abstractions. Most front end frameworks have chosen lighter weight approaches to reactivity, as we have here.
+The flow of data through the reactive graph can also be encapsulated in asynchronous streams. 
+Streams enable abstraction over patterns of data flow over time: debouncing, grouping, etc. 
+Streams are rich but complicated abstractions. 
+Most front end frameworks have chosen lighter weight approaches to reactivity, as we have here.
 
 _fine grain vs coarse grain_
 
 A reactive library tracks the sources and a reactive elements and smartly re-executes only when needed.
-But how big is a a reactive element?
-Reactively is fine grained - it applies to individual functions, and variables or properties.
+But what kind of thing can be a reactive element?
+`Reactively` is fine grained - it applies to individual functions, variables and properties.
 Some reactive libraries re-execute at a coarser level, by component. (e.g. lit or React)
 
 **Execution model**
