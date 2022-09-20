@@ -1,9 +1,6 @@
 import { html, TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import {
-  ReactiveLitElement,
-  reactiveProperty,
-} from "@reactively/lit";
+import { ReactiveLitElement, reactiveProperty } from "@reactively/lit";
 import { reactive } from "@reactively/decorate";
 
 /**
@@ -11,19 +8,19 @@ import { reactive } from "@reactively/decorate";
  */
 @customElement("reactive-lit1")
 export class ReactiveLitTest1 extends ReactiveLitElement {
-  @property() intro = "Hello"; // not a reactively property
+  @property() litOnly = "Hello"; // not a reactively property
+  @reactiveProperty() comboProp = "?"; // reactively and lit property
+  @reactive nonLit = "!"; // not a lit property
 
-  @reactiveProperty() name = "?"; // reactively and lit property
-
-  @reactive doubleName(): string { // not a lit property
+  @reactive computed(): string {
     this.computeCount++;
-    return this.name + "-" + this.name;
+    return this.comboProp + this.nonLit;
   }
 
   computeCount = 0;
 
   render(): TemplateResult {
-    return html`<div id="hello">${this.intro} ${this.doubleName()}</div>`;
+    return html`<div id="hello">${this.litOnly} ${this.computed()}</div>`;
   }
 }
 

@@ -1,34 +1,57 @@
 import "./ReactiveLitTest1";
+import { withElement } from "./WithElement";
 
-it("reactive lit element", () => {
-  cy.get("body").then(async (bodySelector) => {
-    const el = document.createElement("reactive-lit1");
-    bodySelector[0].appendChild(el);
+describe("reactive lit element", () => {
+  it("re-renders when lit only property is changed", () => {
+    withElement("reactive-lit1", (selection, elem) => {
+      selection
+        .contains("Hello ?!")
+        .then(() => {
+          // we've rendered once in the initial state, and computed once
+          expect(elem.computeCount).to.equal(1);
 
-    cy.get("#hello", { includeShadowDom: true })
-      .contains("Hello ?-?")
-      .then(() => {
-        // we've rendered once in the initial state, and computed once
-        expect(el.computeCount).to.equal(1);
+          elem.litOnly = "Well"; // triggers a re-render
 
-        el.intro = "Well"; // triggers a re-render
-      })
-      .contains("Well ?-?") // verify the re-render
-      .then(() => {
-        // doubleName is reactively memoized, and so it should not re-execute 
-        // since name has not changed.
-        // (whether lit calls it to render, or we call it again directly.)
-        expect(el.computeCount).to.equal(1);
-        expect(el.doubleName()).equal("?-?");
-        expect(el.computeCount).to.equal(1);
+          // we've rendered once in the initial state, and computed once
+          expect(elem.computeCount).to.equal(1);
+        })
+        .contains("Well ?!"); // verify the re-render
+    });
+  });
 
-        el.name = "Fred"; // triggers a re-render
-      })
-      .contains("Well Fred-Fred") // verify the re-render
-      .then(() => {
-        expect(el.computeCount).to.equal(2);
-        expect(el.doubleName()).equal("Fred-Fred");
-        expect(el.computeCount).to.equal(2);
-      });
+  it("recomputes computed property when combo property changes", () => {
+    withElement("reactive-lit1", (selection, e) => {
+      selection
+        .then(() => {
+          // no recompute necessary even as we read computedCombo()
+          expect(e.computeCount).to.equal(1);
+          expect(e.computed()).equal("?!");
+          expect(e.computeCount).to.equal(1);
+
+          e.comboProp = "Fred"; // triggers a re-render
+        })
+        .contains("Hello Fred!") // verify the re-render
+        .then(() => {
+          expect(e.computeCount).to.equal(2);
+          expect(e.computed()).equal("Fred!");
+          expect(e.computeCount).to.equal(2);
+        });
+    });
+  });
+
+  it("does not re-render when a non-lit reactive property changes", () => {
+    withElement("reactive-lit1", (selection, e) => {
+      selection
+        .then(() => {
+          e.nonLit = ","; // does not trigger a re-render
+        })
+        .contains("Hello ?!") // verify no re-render
+        .then(() => {
+          expect(e.computeCount).to.equal(1);
+
+          e.litOnly = "Well"; // triggers a re-render
+        })
+        .contains("Well ?,") // verify re-render picked up non-lit change
+    });
   });
 });

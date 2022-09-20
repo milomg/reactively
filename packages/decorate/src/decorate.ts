@@ -1,189 +1,146 @@
 import { Reactive } from "@reactively/core";
 
-/** Mark a class that contains reactive properties */
-export function hasReactive(constructor: Function): any;
-export function hasReactive(): (constructor: Function) => any;
-export function hasReactive(constructor?: any) {
-  if (!constructor) {
-    return function (constructor: any): typeof constructor {
-      return class extends constructor {
-        constructor(...args: any[]) {
-          super(...args);
-          initialize(this);
-        }
-      } as typeof constructor;
-    };
-  } else {
-    return class extends constructor {
-      constructor(...args: any[]) {
-        super(...args);
-        initialize(this);
-      }
-    } as typeof constructor;
-  }
-}
+/*
+This module supports creating Typescript classes with reactive properties. 
+The user should inherit from HasReactive and decorate reactive properties with the @reactive decorator.
+Decorated properties will track their interdependencies automatically and update only when needed.
 
-/** Decorate a reactive property in a class. 
- * The decorated property can be a value, a method, or a get accessor. 
- * Note that the class must also be decorated with `@hasReactive` */
-export function reactive(prototype: any, name: string): any;
-export function reactive(): (prototype: any, name: string) => any;
+Some properties on HasReactive instances and prototypes are added/rewritten to support reactivity.
+. Every instance gets a __reactive property containing an internal `Reactive` node
+  for each reactive property.
+. The prototype gets accessor functions (get, possibly set) for each property.
+  The accessor function references the instance's reactive node to read write property values
+  and trigger reactivity.
+
+The decorator API is not implemented in the browser. Decoration is instead implemented 
+by the typescript compiler, and also implemented by babel, esbuild, etc. The 
+implementation by those different compilers are not quite the same as each other and is not
+as specified in the typescript handbook (Sep 2022). Some differences:
+. decorator functions may return a property descriptor, which babel builds will use.
+  Returning {} from a decorator function will not add an instance property on babel builds.
+. babel builds provide an additonal property 'initializer' on the descriptor, which
+  specifies a function that initialize the value of a property on the instance.
+. babel builds and ts/esbuild builds construct objects differently wrt property 
+  inititialization.  
+*/
+
+/** Decorate a `@reactive` property in a class.
+ *
+ * The decorated property can be a value, a method, or a get accessor.
+ * The class must inherit from HasReactive (or ReactiveLitElement) */
+export function reactive(prototype: HasReactiveInternal, name: string): any;
+export function reactive(): (
+  prototype: HasReactiveInternal,
+  name: string
+) => any;
 export function reactive(
-  prototype?: any,
+  prototype?: HasReactiveInternal,
   name?: any,
   descriptor?: PropertyDescriptor
 ): ((prototype: any, name: string) => void) | any {
-  if (prototype) return queueReactives(prototype, name, descriptor!);
-  else return queueReactives;
+  if (prototype) return addReactive(prototype, name, descriptor!);
+  else return addReactive;
+}
+
+/** Classes that contain `@reactive` properties should extend `HasReactive`
+ * (or another class that implements the HasReactive contract).
+ */
+export class HasReactive implements HasReactiveInternal {
+  __reactive?: Record<string, Reactive<unknown>>;
+
+  constructor() {
+    createReactives(this);
+  }
 }
 
 /** Properties added to the instance and prototype as the instance is constructed. */
-export interface HasReactive {
-  /* true if accessors have been installed on the prototype. stored on the prototype */
-  __accessors?: boolean;
+export interface DecoratedInternal {
+  /* list of reactive properties to setup per instance. stored on the prototype */
+  __toInstall?: [string, PropertyDescriptor | undefined][];
+}
 
-  /* list of reactive properties to setup per class and instance. stored on the prototype */
-  __toInstall?: [string, PropertyDescriptor][];
-
+export interface HasReactiveInternal {
   /* reactive nodes, one per reactive property. stored on the instance */
   __reactive?: Record<string, Reactive<unknown>>;
 }
 
-interface ReactiveClass extends Record<string, unknown>, HasReactive {}
-
-/** Save a list of reactive properties that will be installed on each object instance 
- * and the prototype of the class. */
-function queueReactives(
-  proto: HasReactive,
-  name: string,
-  descriptor: PropertyDescriptor
-): void {
-  const reactives = proto.__toInstall || (proto.__toInstall = []);
-  reactives.push([name, descriptor]);
-}
-
-/** Create Reactive nodes for every reactive property and save them
- * in the instance's __reactive property.  */
-function initialize(instance: any) {
-  const toInstall = (instance as HasReactive).__toInstall;
-  initReactives(instance, toInstall);
-  installAccessors(instance, toInstall);
-  deleteKeys(instance, toInstall);
-}
-
-/** Install getter/setter accessors for reactive properties in the intance's
- * prototype chain. */
-function installAccessors(
-  instance: any,
-  toInstall?: [string, PropertyDescriptor][]
-): void {
-  const proto = Object.getPrototypeOf(instance);
-  const protoProto = Object.getPrototypeOf(proto) as ReactiveClass;
-
-  /* We need to initialize the prototype's accessors only once. The accessors are part of the
-    class, not the instance. Nonetheless we defer creating the class accessors on the prototype 
-    until instance creation so that we can examine the first instance's property values.
-
-    If the the property value is a method, we'll can create an accessor
-    that returns a function, vs. an accessor that returns a value.
-
-    installAccessors() is triggered by subclass constructor that runs after all 
-    the properties have been initialized either by property assignment expressions 
-    or by the instance's constructor.
-  */
-  if (!protoProto.__accessors) {
-    protoProto.__accessors = true;
-    toInstall?.forEach(([key, descriptor]) => {
-      installOneAccessor(protoProto, instance, key, descriptor);
-    });
-  }
-}
-
-/** Add a Reactive node to the instance for each reactive property.
+/** Create Reactive nodes for every reactive property.
  *
- * The Reactive nodes are stored in the __reactive property on the instance.  */
-function initReactives(
-  instance: ReactiveClass,
-  toInstall?: [string, PropertyDescriptor][]
-) {
-  if (!instance.__reactive) {
-    instance.__reactive = {};
-    for (const [key, descriptor] of toInstall || []) {
-      if (descriptor.get) {
-        instance.__reactive[key] = new Reactive(descriptor.get.bind(instance));
-      } else if (typeof instance[key] === "function") {
-        const boundFn = (instance[key] as Function).bind(instance);
-        instance.__reactive[key] = new Reactive(boundFn);
-      } else {
-        instance.__reactive[key] = new Reactive(instance[key]);
-      }
+ * The list of property names and descriptions is stored in the prototype in __toInstall
+ * The Reactive nodes are stored in the __reactive property on the instance.
+ *
+ * This is called when every new HasReactive instance is constructed.
+ */
+export function createReactives(r: HasReactiveInternal) {
+  const reactives = r.__reactive || (r.__reactive = {});
+  for (const [key, descriptor] of (r as DecoratedInternal).__toInstall || []) {
+    if (descriptor?.get) {
+      // getter
+      reactives[key] = new Reactive(descriptor.get.bind(r));
+    } else if (typeof descriptor?.value === "function") {
+      // method
+      const boundFn = descriptor.value.bind(r);
+      reactives[key] = new Reactive(boundFn);
+    } else {
+      // signal
+
+      /* babel builds have initializer fns on the descriptor, so we call that now.
+         tsc builds don't have initializer functions, but they call this.prop = value in the constructor,
+         so the set accessor will set the initial value */
+      const initializer = (descriptor as any)?.initializer;
+      const value = initializer ? initializer.call(r) : undefined;
+
+      reactives[key] = new Reactive<unknown>(value);
     }
   }
 }
 
-/** Remove the keys for all reactive properties from the instance.
- *
- * The prototype now has a get accessor for each reactive key (possibly a set accessor too),
- * and the original instance keys are in the way. */
-function deleteKeys(instance: any, toInstall?: [string, PropertyDescriptor][]) {
-  toInstall?.forEach(([key]) => {
-    delete instance[key];
-  });
+/** Save a list of reactive properties that will be installed on each object instance
+ * and the prototype of the class. */
+function addReactive(
+  proto: HasReactiveInternal,
+  key: string,
+  descriptor: PropertyDescriptor
+): any {
+  installOneAccessor(proto, key, descriptor);
+  queueReactiveToInstall(proto as DecoratedInternal, key, descriptor);
+  return {}; // so babel builds don't create a property on the instance
 }
 
-/** Install get and set accessor functions on the prototype 
+/** save info about a reactive property for installation on every instance */
+export function queueReactiveToInstall(
+  proto: DecoratedInternal,
+  key: string,
+  descriptor?: PropertyDescriptor
+) {
+  const toInstall = proto.__toInstall || (proto.__toInstall = []);
+  toInstall.push([key, descriptor]);
+}
+
+/** Install get and set accessor functions for reactive propertes on the prototype
+ *
  * (internally the accessors reference a Reactive node
  * stored in the __reactive property on the instance.)  */
 function installOneAccessor(
-  proto: ReactiveClass,
-  oneInstance: any,
+  proto: HasReactive,
   key: string,
   descriptor: PropertyDescriptor
 ): void {
-  if (descriptor.get) {
-    Object.defineProperty(proto, key, {
-      get: function () {
-        return this.__reactive[key].get();
-      },
-    });
-  } else if (typeof oneInstance[key] === "function") {
-    proto[key] = function () {
-      return this.__reactive![key].get();
-    };
-  } else {
-    Object.defineProperty(proto, key, {
-      get: function () {
-        return this.__reactive[key].get();
-      },
-      set: function (v: any) {
-        return this.__reactive[key].set(v);
-      },
-    });
+  function reactiveGet(this: HasReactiveInternal) {
+    return this.__reactive![key].get();
   }
-}
-
-// TODO currently used for lit only, DRY with above
-export function installReactiveProperty(
-  instance: any,
-  key: string,
-  descriptor: PropertyDescriptor
-): void {
-  const valueOrFn = instance[key];
-  let reactive: Reactive<any>;
-  if (descriptor.get) {
-    const getFn = descriptor.get.bind(instance);
-    reactive = new Reactive(getFn);
-    Object.defineProperty(instance, key, {
-      get: reactive.get.bind(reactive),
+  if (descriptor?.get) {
+    Object.defineProperty(proto, key, {
+      get: reactiveGet,
     });
-  } else if (typeof valueOrFn === "function") {
-    reactive = new Reactive(valueOrFn.bind(instance));
-    instance[key] = () => reactive.get(); // TODO try bind
+  } else if (typeof descriptor?.value === "function") {
+    (proto as Record<string, unknown>)[key] = reactiveGet;
   } else {
-    reactive = new Reactive(valueOrFn);
-    Object.defineProperty(instance, key, {
-      get: reactive.get.bind(reactive),
-      set: reactive.set.bind(reactive),
+    Object.defineProperty(proto, key, {
+      get: reactiveGet,
+      set: function (this: HasReactiveInternal, v: any) {
+        return this.__reactive![key].set(v);
+      },
     });
   }
 }

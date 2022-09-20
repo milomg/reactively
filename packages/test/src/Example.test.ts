@@ -1,4 +1,4 @@
-import { hasReactive, reactive } from "@reactively/decorate";
+import { HasReactive, reactive } from "@reactively/decorate";
 
 function saveToCloud(name: string, buf: number[]): number[] {
   console.log(buf);
@@ -34,8 +34,7 @@ export class PatternMaker {
   }
 }
 
-@hasReactive
-export class ReactivePatternMaker {
+export class ReactivePatternMaker extends HasReactive {
   @reactive size = 10e5;
   @reactive fillOffset = -1;
   @reactive modulus = 100;

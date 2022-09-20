@@ -1,5 +1,5 @@
 import { onCleanup } from "@reactively/core";
-import { hasReactive, reactive } from "@reactively/decorate";
+import { HasReactive, reactive } from "@reactively/decorate";
 
 /* 
         a  b
@@ -7,8 +7,7 @@ import { hasReactive, reactive } from "@reactively/decorate";
         c
 */
 test("two signals", () => {
-  @hasReactive()
-  class TwoSignals {
+  class TwoSignals extends HasReactive {
     @reactive a = 7;
     @reactive b = 1;
 
@@ -39,8 +38,7 @@ test("two signals", () => {
         d
 */
 test("dependent computed", () => {
-  @hasReactive()
-  class TwoComputed {
+  class TwoComputed extends HasReactive {
     @reactive a = 7;
     @reactive b = 1;
 
@@ -74,8 +72,7 @@ test("dependent computed", () => {
       c
 */
 test("equality check", () => {
-  @hasReactive
-  class OneReaction {
+  class OneReaction extends HasReactive {
     callCount1 = 0;
     @reactive a = 7;
     @reactive c() {
@@ -103,8 +100,7 @@ test("equality check", () => {
       cAB
 */
 test("dynamic computed", () => {
-  @hasReactive()
-  class DyanmicComputed {
+  class DyanmicComputed extends HasReactive {
     @reactive a = 1;
     @reactive b = 2;
 
@@ -160,8 +156,7 @@ class CleanupCounter {
       c (cleanup)
 */
 test("onCleanup", () => {
-  @hasReactive()
-  class Cleanup {
+  class Cleanup extends HasReactive {
     counter = new CleanupCounter();
 
     @reactive a = 1;
@@ -192,8 +187,7 @@ test("onCleanup", () => {
         c
 */
 test("boolean equality check", () => {
-  @hasReactive()
-  class BooleanCheck {
+  class BooleanCheck extends HasReactive {
     @reactive a = 0;
 
     @reactive b() {
@@ -231,8 +225,7 @@ test("boolean equality check", () => {
          d
 */
 test("diamond computeds", () => {
-  @hasReactive()
-  class DiamondComputeds {
+  class DiamondComputeds extends HasReactive {
     @reactive s = 1;
     @reactive a() {
       return this.s;
@@ -261,15 +254,13 @@ test("diamond computeds", () => {
   expect(c.callCount).toBe(3);
 });
 
-
 /*
       s
       | 
       l  a (sets s)
 */
 test("set inside reaction", () => {
-  @hasReactive()
-  class SetInsideReaction {
+  class SetInsideReaction extends HasReactive {
     @reactive s = 1;
     @reactive a() {
       this.s = 2;
