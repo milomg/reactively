@@ -6,8 +6,9 @@ export function withPerf<T>(name: string, fn: () => T): T {
   performance.mark(startName);
   const result = fn();
   const time = performance.measure(name, startName);
-  cy.log(name, "duration:", time.duration);
-  console.log(name, "duration:", time.duration);
+  const msg = `${name} time: ${time.duration}`;
+  cy.log(msg);
+  console.log(msg);
   return result;
 }
 
