@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
     "target": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "types": ["cypress"],
