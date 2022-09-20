@@ -1,3 +1,4 @@
+import { preactSignalFramework } from './PreactSignalFramework';
 import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
 import { reactivelyWrap } from "./ReactivelyWrapFramework";
 import { solidFramework } from "./SolidFramework";
@@ -91,6 +92,12 @@ const basePerfFrameworks: PerfFramework[] = [
   },
   {
     framework: solidFramework,
+    makeGraph: (width: number, totalLayers: number, staticNth: number) =>
+      makeGraph(width, totalLayers, staticNth, solidFramework),
+    testPullCounts: false,
+  },
+  {
+    framework: preactSignalFramework,
     makeGraph: (width: number, totalLayers: number, staticNth: number) =>
       makeGraph(width, totalLayers, staticNth, solidFramework),
     testPullCounts: false,
