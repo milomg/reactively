@@ -6,6 +6,6 @@ export default defineConfig({
       framework: undefined as unknown as "react",
       bundler: "vite",
     },
-    supportFile: false
+    supportFile: false,
   },
 });

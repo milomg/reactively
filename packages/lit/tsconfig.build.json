@@ -6,6 +6,6 @@
     "moduleResolution": "node",
     "outDir": "./dist",
     "declaration": true,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": true
   }
 }

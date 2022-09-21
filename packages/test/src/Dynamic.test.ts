@@ -21,7 +21,7 @@ test("dynamic sources recalculate correctly", () => {
   c();
   expect(count).toBe(2);
 
-  b.set(4); 
+  b.set(4);
   c();
   expect(count).toBe(2);
 });
@@ -38,7 +38,8 @@ test("dynamic sources don't re-execute a parent unnecessarily", () => {
   const s = _(2);
   const a = _(() => s() + 1);
   let bCount = 0;
-  const b = _(() => { // b depends on s, so b's always dirty when s changes, but b may be unneeded.
+  const b = _(() => {
+    // b depends on s, so b's always dirty when s changes, but b may be unneeded.
     bCount++;
     return s() + 10;
   });
@@ -54,5 +55,5 @@ test("dynamic sources don't re-execute a parent unnecessarily", () => {
   expect(bCount).toEqual(1);
   s.set(3);
   expect(l()).toEqual(4);
-  expect(bCount).toEqual(1); 
+  expect(bCount).toEqual(1);
 });

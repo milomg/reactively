@@ -63,12 +63,17 @@ export class ReactiveLitElement
   }
 }
 
-/** Mark a lit+reactively property that is tracked for dependency changes 
+/** Mark a lit+reactively property that is tracked for dependency changes
  * and triggers a component update when set */
 export function reactiveProperty(
   options?: PropertyDeclaration
-): ((prototype: LitElement, name: string, descriptor?: PropertyDescriptor) => void) | any {
-
+):
+  | ((
+      prototype: LitElement,
+      name: string,
+      descriptor?: PropertyDescriptor
+    ) => void)
+  | any {
   return function reactiveComboProp(
     proto: ReactiveLitElement,
     key: string,
@@ -77,7 +82,7 @@ export function reactiveProperty(
     queueReactiveToInstall(proto as any, key, descriptor);
     installComboAccessor(proto, key, descriptor, options);
     return {};
-  }
+  };
 }
 
 /** Install lit+reactive get/set accessors for an '@reactiveProperty' .  */

@@ -103,7 +103,6 @@ test("one reaction, computed method", () => {
   expect(o.callCount1).toEqual(2);
 });
 
-
 test.skip("one computed, destructured", () => {
   class OneComputed extends HasReactive {
     @reactive c() {

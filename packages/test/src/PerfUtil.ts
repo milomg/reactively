@@ -16,7 +16,9 @@ export function graphPerf(
   iterations: number,
   readNth: number,
   framework: ReactiveFramework
-):number {
+): number {
   const perfName = `${graphName} i=${iterations} r=${readNth}`;
-  return withPerf(perfName, () => runGraph(graph, iterations, readNth, framework));
-};
+  return withPerf(perfName, () =>
+    runGraph(graph, iterations, readNth, framework)
+  );
+}

@@ -2,6 +2,6 @@
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
     "noEmit": true,
-    "emitDeclarationOnly": false,
+    "emitDeclarationOnly": false
   }
 }

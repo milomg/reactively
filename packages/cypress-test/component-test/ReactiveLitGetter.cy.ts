@@ -13,8 +13,8 @@ describe("reactive lit element with getter", () => {
         .contains("#2") // confirm that we triggered a render
         .then(() => {
           // object property should be reflected to html attribute
-          expect(el.getAttribute("a")).to.equal("2"); 
-          
+          expect(el.getAttribute("a")).to.equal("2");
+
           // confirm that getter is cached by reactively
           el.doesGet;
           expect(el.computeCount).to.equal(2);

@@ -31,12 +31,10 @@ export function perfTests(testLib: TestLib): PerfTest[] {
   });
 }
 
-
 export interface TestResult {
   sum: number;
   count: number;
 }
-
 
 function testName(test: TestWithFramework): string {
   const { config, perfFramework } = test;

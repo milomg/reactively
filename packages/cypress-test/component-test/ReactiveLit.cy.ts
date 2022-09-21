@@ -51,7 +51,7 @@ describe("reactive lit element", () => {
 
           e.litOnly = "Well"; // triggers a re-render
         })
-        .contains("Well ?,") // verify re-render picked up non-lit change
+        .contains("Well ?,"); // verify re-render picked up non-lit change
     });
   });
 });

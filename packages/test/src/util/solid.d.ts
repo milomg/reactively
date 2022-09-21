@@ -1,3 +1,3 @@
-declare module 'solid-js/dist/solid.cjs' {
-  export * from 'solid-js/types';
+declare module "solid-js/dist/solid.cjs" {
+  export * from "solid-js/types";
 }

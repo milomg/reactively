@@ -40,7 +40,10 @@ let EffectQueue: Reactive<any>[] = [];
 export const CacheClean = 0; // reactive value is valid, no need to recompute
 export const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
 export const CacheDirty = 2; // reactive value is invalid, parents have changed, valueneeds to be recomputed
-export type CacheState = typeof CacheClean | typeof CacheCheck | typeof CacheDirty;
+export type CacheState =
+  | typeof CacheClean
+  | typeof CacheCheck
+  | typeof CacheDirty;
 type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
 
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
@@ -165,7 +168,7 @@ export class Reactive<T> {
         this.observers[i].state = CacheDirty;
       }
     }
-    
+
     // We've rerun with the latest values from all of our sources.
     // This means that we no longer need to update until a signal changes
     this.state = CacheClean;
