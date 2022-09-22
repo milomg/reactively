@@ -9,6 +9,8 @@ import { allTests, TestConfig, TestWithFramework } from "./PerfConfigurations";
 /** wrapper for running a performance test on cypresss or jest  */
 export interface TestLib {
   withPerf: <T>(name: string, fn: () => T) => T;
+  collectGarbage: () => void;
+  optimizeFunctionOnNextCall: (fn: Function) => void;
 }
 
 /** runnable test with confguration info */
@@ -32,8 +34,8 @@ export function perfTests(testLib: TestLib): PerfTest[] {
 }
 
 export interface TestResult {
-  sum: number;
-  count: number;
+  sum?: number;
+  count?: number;
 }
 
 function testName(test: TestWithFramework): string {
@@ -49,11 +51,24 @@ function runTest(
   test: TestWithFramework,
   testLib: TestLib
 ): TestResult {
+  testLib.collectGarbage();
+
   const { config, perfFramework } = test;
   const { makeGraph, framework } = perfFramework;
   const { width, totalLayers, staticNth, readNth, iterations } = config;
-  const { graph, counter } = makeGraph(width, totalLayers, staticNth);
 
+  function warmup() {
+    const warmupIterations = 10;
+    const warmupReadNth = 1;
+    const { graph } = makeGraph(width, totalLayers, staticNth);
+    runGraph(graph, warmupIterations, warmupReadNth, framework);
+  }
+  warmup();
+  warmup();
+  testLib.optimizeFunctionOnNextCall(runGraph);
+  warmup();
+
+  const { graph, counter } = makeGraph(width, totalLayers, staticNth);
   return testLib.withPerf(name, () => {
     const sum = runGraph(graph, iterations, readNth, framework);
     return { sum, count: counter.count };

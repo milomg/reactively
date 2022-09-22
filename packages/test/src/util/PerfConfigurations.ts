@@ -1,37 +1,41 @@
-import { preactSignalFramework } from './PreactSignalFramework';
+import { preactSignalFramework } from "./PreactSignalFramework";
 import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
 import { reactivelyWrap } from "./ReactivelyWrapFramework";
 import { solidFramework } from "./SolidFramework";
 import { TestResult } from "./PerfTests";
 import { makeDecoratedGraph } from "./DecoratedGraph";
 import { ReactiveFramework } from "./ReactiveFramework";
-import { GraphAndCounter, makeGraph } from "./DependencyGraph";
+import {
+  GraphAndCounter,
+  makeGraph as genericMakeGraph,
+} from "./DependencyGraph";
 
-export interface TestConfig {
-  width: number;
-  totalLayers: number;
-  staticNth: number;
-  readNth: number;
-  iterations: number;
-  expected: TestResult;
-}
-
-export interface PerfFramework {
-  framework: ReactiveFramework;
-  makeGraph: (
-    width: number,
-    totalLayers: number,
-    staticNth: number
-  ) => GraphAndCounter;
-  testPullCounts: boolean;
-}
-
-export interface TestWithFramework {
-  config: TestConfig;
-  perfFramework: PerfFramework;
-}
+const frameworkInfo: FrameworkInfo[] = [
+  {
+    framework: reactivelyWrap,
+    testPullCounts: true,
+  },
+  { framework: solidFramework },
+  { framework: preactSignalFramework },
+  {
+    framework: reactivelyDecorate,
+    testPullCounts: true,
+    makeGraph: makeDecoratedGraph,
+  },
+];
 
 const baseTests: TestConfig[] = [
+  {
+    width: 5,
+    totalLayers: 1000,
+    staticNth: 1,
+    readNth: 1,
+    iterations: 400,
+    expected: {
+      sum: 1.0688298356683017e304,
+      count: 1995606,
+    },
+  },
   {
     width: 10,
     totalLayers: 5,
@@ -65,6 +69,17 @@ const baseTests: TestConfig[] = [
       count: 520016,
     },
   },
+  {
+    width: 1000,
+    totalLayers: 5,
+    staticNth: 2,
+    readNth: 10,
+    iterations: 40000,
+    expected: {
+      sum: 47993100,
+      count: 112996,
+    },
+  },
 ];
 
 /** The test generator for decorator tests is not as flexible, so we handle
@@ -83,50 +98,70 @@ const decoratableTests: TestConfig[] = [
   },
 ];
 
-const basePerfFrameworks: PerfFramework[] = [
-  {
-    framework: reactivelyWrap,
-    makeGraph: (width: number, totalLayers: number, staticNth: number) =>
-      makeGraph(width, totalLayers, staticNth, reactivelyWrap),
-    testPullCounts: true,
-  },
-  {
-    framework: solidFramework,
-    makeGraph: (width: number, totalLayers: number, staticNth: number) =>
-      makeGraph(width, totalLayers, staticNth, solidFramework),
-    testPullCounts: false,
-  },
-  {
-    framework: preactSignalFramework,
-    makeGraph: (width: number, totalLayers: number, staticNth: number) =>
-      makeGraph(width, totalLayers, staticNth, solidFramework),
-    testPullCounts: false,
-  },
-];
+export interface PerfFramework {
+  framework: ReactiveFramework;
+  makeGraph: (
+    width: number,
+    totalLayers: number,
+    staticNth: number
+  ) => GraphAndCounter;
+  testPullCounts: boolean;
+}
 
-const decoratePerfFramework: PerfFramework = {
-  framework: reactivelyDecorate,
-  makeGraph: makeDecoratedGraph,
-  testPullCounts: true,
-};
+export interface TestConfig {
+  width: number;
+  totalLayers: number;
+  staticNth: number;
+  readNth: number;
+  iterations: number;
+  expected: TestResult;
+}
 
-const allFrameworks = [...basePerfFrameworks, decoratePerfFramework];
+export interface TestWithFramework {
+  config: TestConfig;
+  perfFramework: PerfFramework;
+}
+
+const allFrameworks: PerfFramework[] = makeFrameworks(frameworkInfo);
+const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(
+  (f) => f.framework !== reactivelyDecorate
+)!;
+
+type FrameworkInfo = Partial<PerfFramework> & Pick<PerfFramework, "framework">;
+
+function makeFrameworks(info: FrameworkInfo[]): PerfFramework[] {
+  return info.map((i) => {
+    function defaultMakeG(
+      width: number,
+      totalLayers: number,
+      staticNth: number
+    ): GraphAndCounter {
+      return genericMakeGraph(width, totalLayers, staticNth, i.framework);
+    }
+    const { framework, testPullCounts = false, makeGraph = defaultMakeG } = i;
+    return {
+      framework,
+      testPullCounts,
+      makeGraph,
+    };
+  });
+}
 
 export const allTests: TestWithFramework[] = makeTestList();
 
 function makeTestList(): TestWithFramework[] {
-  const compatList = decoratableTests.flatMap((config) => {
+  const decorable = decoratableTests.flatMap((config) => {
     return allFrameworks.map((perfFramework) => ({
       config,
       perfFramework,
     }));
   });
-  const baseList = baseTests.flatMap((config) => {
+  const main = baseTests.flatMap((config) => {
     return basePerfFrameworks.map((perfFramework) => ({
       config,
       perfFramework,
     }));
   });
 
-  return [...compatList, ...baseList];
+  return [...decorable, ...main];
 }

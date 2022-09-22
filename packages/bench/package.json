@@ -1,0 +1,19 @@
+{
+  "name": "reactively-bench",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bench": "pnpm esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node | pnpm node --allow-natives-syntax - $@"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^18.7.16",
+    "esbuild": "^0.15.5",
+    "typescript": "^4.8.2",
+    "v8-natives": "^1.2.5"
+  }
+}

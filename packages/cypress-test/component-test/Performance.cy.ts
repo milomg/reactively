@@ -1,7 +1,11 @@
 import { perfTests } from "../../test/src/util/PerfTests";
 import { withPerf } from "./CypressPerfUtil";
 
-const tests = perfTests({ withPerf });
+const tests = perfTests({
+  withPerf,
+  collectGarbage: () => {},
+  optimizeFunctionOnNextCall: () => {},
+});
 
 tests.forEach(({ name, run, config, testPullCounts }) => {
   it(name, () => {
