@@ -16,7 +16,9 @@ const frameworkInfo: FrameworkInfo[] = [
     testPullCounts: true,
   },
   { framework: solidFramework },
-  { framework: preactSignalFramework },
+  { framework: preactSignalFramework,
+    testPullCounts: true,
+  },
   {
     framework: reactivelyDecorate,
     testPullCounts: true,
