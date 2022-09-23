@@ -43,7 +43,7 @@ function testName(test: TestWithFramework): string {
   const { width, totalLayers: l, staticNth, readNth, iterations } = config;
   const fm = perfFramework.framework.name.padEnd(20);
 
-  return `${fm} | ${l}x${width} s=${staticNth} i=${iterations} r=${readNth}`;
+  return `${fm} | ${width}x${l} s=${staticNth} i=${iterations} r=${readNth}`;
 }
 
 function runTest(
