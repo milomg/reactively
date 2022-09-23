@@ -1,4 +1,5 @@
 import { $r as _ } from "@reactively/wrap";
+import { promiseDelay } from "./util/AsyncUtil";
 
 test("async modify", async () => {
   const a = _(1);
@@ -46,8 +47,3 @@ test("async modify in reaction after await", async () => {
 //   await a();
 //   expect(l()).toEqual(102);
 // });
-
-/** return a promise that completes after a set number of milliseconds */
-function promiseDelay(timeout = 0): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, timeout));
-}
