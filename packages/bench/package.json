@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "bench": "pnpm esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node | pnpm node --allow-natives-syntax - $@"
+    "bench": "pnpm esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node | pnpm node --allow-natives-syntax - $@",
+    "distWatch": "pnpm esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node --outfile=dist/Benchmarks.cjs --watch",
+    "benchWatch": "pnpm chokidar dist/Benchmarks.cjs --initial -c 'pnpm node --allow-natives-syntax dist/Benchmarks.cjs $@'"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,7 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^18.7.16",
+    "chokidar-cli": "^3.0.0",
     "esbuild": "^0.15.5",
     "typescript": "^4.8.2",
     "v8-natives": "^1.2.5"
