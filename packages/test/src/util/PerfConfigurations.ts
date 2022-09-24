@@ -1,24 +1,27 @@
-import { preactSignalFramework } from "./PreactSignalFramework";
-import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
-import { reactivelyWrap } from "./ReactivelyWrapFramework";
-import { solidFramework } from "./SolidFramework";
-import { TestResult } from "./PerfTests";
 import { makeDecoratedGraph } from "./DecoratedGraph";
-import { ReactiveFramework } from "./ReactiveFramework";
 import {
   GraphAndCounter,
   makeGraph as genericMakeGraph,
 } from "./DependencyGraph";
+import { TestResult } from "./PerfTests";
+import { preactSignalFramework } from "./PreactSignalFramework";
+import { ReactiveFramework } from "./ReactiveFramework";
+import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
+import { reactivelyRaw } from "./ReactivelyRaw";
+import { reactivelyWrap } from "./ReactivelyWrapFramework";
+import { solidFramework } from "./SolidFramework";
 
 const frameworkInfo: FrameworkInfo[] = [
+  {
+    framework: reactivelyRaw,
+    testPullCounts: true,
+  },
   {
     framework: reactivelyWrap,
     testPullCounts: true,
   },
   { framework: solidFramework },
-  { framework: preactSignalFramework,
-    testPullCounts: true,
-  },
+  { framework: preactSignalFramework, testPullCounts: true },
   {
     framework: reactivelyDecorate,
     testPullCounts: true,
