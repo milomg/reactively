@@ -124,8 +124,10 @@ export class Reactive<T> {
     CurrentReaction = this;
     CurrentGets = [];
     try {
-      this.cleanups.forEach((c) => c(this.value));
-      this.cleanups = [];
+      if (this.cleanups.length) {
+        this.cleanups.forEach((c) => c(this.value));
+        this.cleanups = [];
+      }
       this.value = this.fn!();
 
       // if the sources have changed, update source & observer links
