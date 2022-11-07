@@ -32,6 +32,7 @@
  * - active while evaluating a reactive function body  */
 let CurrentReaction: Reactive<any> | undefined = undefined;
 let CurrentGets: Reactive<any>[] | null = null;
+let CurrentGetsIndex = 0;
 
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
@@ -86,7 +87,18 @@ export class Reactive<T> {
   }
 
   get(): T {
-    if (CurrentGets) CurrentGets.push(this);
+    if (CurrentReaction) {
+      if (
+        !CurrentGets &&
+        CurrentReaction.observers &&
+        CurrentReaction.observers[CurrentGetsIndex] == this
+      ) {
+        CurrentGetsIndex++;
+      } else {
+        if (!CurrentGets) CurrentGets = [this];
+        else CurrentGets.push(this);
+      }
+    }
     if (this.fn) this.updateIfNecessary();
     return this.value;
   }
@@ -120,9 +132,12 @@ export class Reactive<T> {
     /* Evalute the reactive function body, dynamically capturing any other reactives used */
     const prevReaction = CurrentReaction;
     const prevGets = CurrentGets;
+    const prevIndex = CurrentGetsIndex;
 
     CurrentReaction = this;
-    CurrentGets = [];
+    CurrentGets = null as any; // prevent TS from thinking CurrentGets is null below
+    CurrentGetsIndex = 0;
+
     try {
       if (this.cleanups.length) {
         this.cleanups.forEach((c) => c(this.value));
@@ -131,18 +146,25 @@ export class Reactive<T> {
       this.value = this.fn!();
 
       // if the sources have changed, update source & observer links
-      if (!arrayEq(CurrentGets, this.sources)) {
+      if (CurrentGets) {
         // remove all old sources' .observers links to us
         this.removeParentObservers();
 
         // update source up links (we will update the sourceSlots array below)
-        this.sources = CurrentGets;
+        if (this.sources) {
+          this.sources.length = CurrentGetsIndex + CurrentGets.length;
+          for (let i = 0; i < CurrentGets.length; i++) {
+            this.sources[CurrentGetsIndex + i] = CurrentGets[i];
+          }
+        } else {
+          this.sources = CurrentGets;
+        }
 
         // Prepare sourceSlots for filling
         if (!this.sourceSlots) this.sourceSlots = Array(this.sources.length);
         else this.sourceSlots.length = this.sources.length;
 
-        for (let i = 0; i < this.sources.length; i++) {
+        for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
           // Add ourselves to the end of the parent .observers array (and observerSlots array).
           const source = this.sources[i];
           if (!source.observers) {
@@ -161,6 +183,7 @@ export class Reactive<T> {
     } finally {
       CurrentGets = prevGets;
       CurrentReaction = prevReaction;
+      CurrentGetsIndex = prevIndex;
     }
 
     // handle diamond depenendencies if we're the parent of a diamond.
@@ -209,7 +232,7 @@ export class Reactive<T> {
    */
   private removeParentObservers(): void {
     if (!this.sources || !this.sourceSlots) return;
-    for (let i = 0; i < this.sources.length; i++) {
+    for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
       const source: Reactive<any> = this.sources[i]; // We don't actually delete sources here because we're replacing the entire array soon
       const index = this.sourceSlots[i];
       const observers = source.observers;
@@ -238,15 +261,6 @@ export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
   } else {
     console.error("onCleanup must be called from within a @reactive function");
   }
-}
-
-function arrayEq<T>(a: T[], b: T[] | null): boolean {
-  if (!b) return false;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
 }
 
 /** run all non-clean effect nodes */

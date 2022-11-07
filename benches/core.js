@@ -1,20 +1,27 @@
 "use strict";
 let CurrentReaction = void 0;
 let CurrentGets = null;
+let CurrentGetsIndex = 0;
 let EffectQueue = [];
-
+export const CacheClean = 0;
+export const CacheCheck = 1;
+export const CacheDirty = 2;
 export class Reactive {
+  value;
+  fn;
+  observers = null;
+  sources = null;
+  observerSlots = null;
+  sourceSlots = null;
+  state = CacheDirty;
+  effect;
   constructor(fnOrValue, effect) {
-    this.observers = null;
-    this.observerSlots = null;
-    this.sources = null;
-    this.sourceSlots = null;
-    this.state = 2;
     if (typeof fnOrValue === "function") {
       this.fn = fnOrValue;
       this.value = void 0;
       this.effect = effect || false;
-      if (effect) this.update();
+      if (effect)
+        this.update();
     } else {
       this.fn = void 0;
       this.value = fnOrValue;
@@ -22,14 +29,24 @@ export class Reactive {
     }
   }
   get() {
-    if (CurrentGets) CurrentGets.push(this);
-    if (this.fn) this.updateIfNecessary();
+    if (CurrentReaction) {
+      if (!CurrentGets && CurrentReaction.observers && CurrentReaction.observers[CurrentGetsIndex] == this) {
+        CurrentGetsIndex++;
+      } else {
+        if (!CurrentGets)
+          CurrentGets = [this];
+        else
+          CurrentGets.push(this);
+      }
+    }
+    if (this.fn)
+      this.updateIfNecessary();
     return this.value;
   }
   set(value) {
     if (this.value !== value && this.observers) {
       for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].stale(2);
+        this.observers[i].stale(CacheDirty);
       }
     }
     this.value = value;
@@ -37,29 +54,40 @@ export class Reactive {
   stale(state) {
     if (this.state < state) {
       this.state = state;
-      if (this.effect) EffectQueue.push(this);
-      else if (this.observers) {
+      if (this.observers) {
         for (let i = 0; i < this.observers.length; i++) {
-          this.observers[i].stale(1);
+          this.observers[i].stale(CacheCheck);
         }
       }
     }
+    if (this.state === CacheClean && this.effect)
+      EffectQueue.push(this);
   }
-
   update() {
     const oldValue = this.value;
     const prevReaction = CurrentReaction;
     const prevGets = CurrentGets;
+    const prevIndex = CurrentGetsIndex;
     CurrentReaction = this;
-    CurrentGets = [];
+    CurrentGets = null;
+    CurrentGetsIndex = 0;
     try {
       this.value = this.fn();
-      if (!arrayEq(CurrentGets, this.sources)) {
-        this.cleanNode();
-        this.sources = CurrentGets;
-        if (!this.sourceSlots) this.sourceSlots = Array(this.sources.length);
-        else this.sourceSlots.length = this.sources.length;
-        for (let i = 0; i < this.sources.length; i++) {
+      if (CurrentGets) {
+        this.removeParentObservers();
+        if (this.sources) {
+          this.sources.length = CurrentGetsIndex + CurrentGets.length;
+          for (let i = 0; i < CurrentGets.length; i++) {
+            this.sources[CurrentGetsIndex + i] = CurrentGets[i];
+          }
+        } else {
+          this.sources = CurrentGets;
+        }
+        if (!this.sourceSlots)
+          this.sourceSlots = Array(this.sources.length);
+        else
+          this.sourceSlots.length = this.sources.length;
+        for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
           const source = this.sources[i];
           if (!source.observers) {
             source.observers = [this];
@@ -68,68 +96,61 @@ export class Reactive {
             source.observers.push(this);
             source.observerSlots.push(i);
           }
-          this.sourceSlots[i] = source.observerSlots.length - 1;
+          this.sourceSlots[i] = source.observers.length - 1;
         }
       }
     } finally {
       CurrentGets = prevGets;
       CurrentReaction = prevReaction;
+      CurrentGetsIndex = prevIndex;
     }
-
     if (oldValue !== this.value && this.observers) {
       for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].state = 2;
+        this.observers[i].state = CacheDirty;
       }
     }
-    this.state = 0;
+    this.state = CacheClean;
   }
-
   updateIfNecessary() {
-    if (this.state == 1 && this.sources) {
+    if (this.state === CacheCheck && this.sources) {
       for (const source of this.sources) {
         source.updateIfNecessary();
+        if (this.state === CacheDirty) {
+          break;
+        }
       }
     }
-    if (this.state == 2) {
+    if (this.state === CacheDirty) {
       this.update();
     }
-    this.state = 0;
+    this.state = CacheClean;
   }
-
-  cleanNode() {
-    if (!this.sources || !this.sourceSlots) return;
-    while (this.sources.length) {
-      const source = this.sources.pop();
-      const index = this.sourceSlots.pop();
-      const obs = source.observers;
-      if (obs && obs.length) {
-        const n = obs.pop(),
-          s = source.observerSlots.pop();
-        if (index < obs.length) {
-          n.sourceSlots[s] = index;
-          obs[index] = n;
-          source.observerSlots[index] = s;
+  removeParentObservers() {
+    if (!this.sources || !this.sourceSlots)
+      return;
+    for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
+      const source = this.sources[i];
+      const index = this.sourceSlots[i];
+      const observers = source.observers;
+      if (observers && observers.length) {
+        const observersLast = observers.pop();
+        const observersLastSlot = source.observerSlots.pop();
+        if (index < observers.length) {
+          observers[index] = observersLast;
+          source.observerSlots[index] = observersLastSlot;
+          observersLast.sourceSlots[observersLastSlot] = index;
         }
       }
     }
   }
 }
-
-function arrayEq(a, b) {
-  if (!b) return false;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
 export function stabilize() {
   for (let i = 0; i < EffectQueue.length; i++) {
     EffectQueue[i].get();
   }
   EffectQueue.length = 0;
 }
+
 
 function setSignal(value) {
   this.set(value);
