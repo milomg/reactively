@@ -8,6 +8,6 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "outDir": "./dist",
+    "outDir": "./dist"
   }
 }

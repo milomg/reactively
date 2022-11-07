@@ -1,7 +1,7 @@
 import { performance, PerformanceEntry, PerformanceObserver } from "perf_hooks";
 import { promiseDelay } from "../../test/src/util/AsyncUtil";
 
-/** Track garbage collection time and report 
+/** Track garbage collection time and report
  * garbage collections that happened during watched function execution.  */
 export class GarbageTrack {
   private observer = new PerformanceObserver((list) =>

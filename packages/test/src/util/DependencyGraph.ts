@@ -48,7 +48,9 @@ export function graphName(
   totalLayers: number,
   staticNth: number
 ): string {
-  return `${framework.name.padEnd(20)} | ${totalLayers}x${width} s=${staticNth}`;
+  return `${framework.name.padEnd(
+    20
+  )} | ${totalLayers}x${width} s=${staticNth}`;
 }
 
 /**

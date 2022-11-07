@@ -1,120 +1,134 @@
-let CurrentCompute = undefined;
-
-let effectQueue = [];
+"use strict";
+let CurrentReaction = void 0;
+let CurrentGets = null;
+let EffectQueue = [];
 
 export class Reactive {
   constructor(fnOrValue, effect) {
-    this.state = 2 /* CacheState.DIRTY */;
+    this.observers = null;
+    this.observerSlots = null;
+    this.sources = null;
+    this.sourceSlots = null;
+    this.state = 2;
     if (typeof fnOrValue === "function") {
       this.fn = fnOrValue;
-      this.value = undefined;
-      this.effect = effect;
+      this.value = void 0;
+      this.effect = effect || false;
       if (effect) this.update();
     } else {
-      this.fn = undefined;
+      this.fn = void 0;
       this.value = fnOrValue;
       this.effect = false;
     }
-    this.sources = null;
-    this.sourceSlots = null;
-    this.observers = null;
-    this.observerSlots = null;
   }
-  stale(state) {
-    if (this.state < state) {
-      this.state = state;
-      if (this.effect) effectQueue.push(this);
-      else if (this.observers) {
-        for (let i = 0; i < this.observers.length; i++) {
-          this.observers[i].stale(1 /* CacheState.CHECK */);
-        }
-      }
-    }
+  get() {
+    if (CurrentGets) CurrentGets.push(this);
+    if (this.fn) this.updateIfNecessary();
+    return this.value;
   }
   set(value) {
     if (this.value !== value && this.observers) {
       for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].stale(2 /* CacheState.DIRTY */);
+        this.observers[i].stale(2);
       }
     }
     this.value = value;
   }
-
-  update() {
-    if (this.sources) {
-      cleanNode(this);
-    }
-    const oldValue = this.value;
-    const listener = CurrentCompute;
-    CurrentCompute = this;
-    try {
-      this.value = this.fn();
-    } finally {
-      CurrentCompute = listener;
-    }
-
-    this.state = 0 /* CacheState.CURRENT */;
-    if (oldValue !== this.value && this.observers) {
-      for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].stale(2 /* CacheState.DIRTY */);
+  stale(state) {
+    if (this.state < state) {
+      this.state = state;
+      if (this.effect) EffectQueue.push(this);
+      else if (this.observers) {
+        for (let i = 0; i < this.observers.length; i++) {
+          this.observers[i].stale(1);
+        }
       }
     }
+  }
+
+  update() {
+    const oldValue = this.value;
+    const prevReaction = CurrentReaction;
+    const prevGets = CurrentGets;
+    CurrentReaction = this;
+    CurrentGets = [];
+    try {
+      this.value = this.fn();
+      if (!arrayEq(CurrentGets, this.sources)) {
+        this.cleanNode();
+        this.sources = CurrentGets;
+        if (!this.sourceSlots) this.sourceSlots = Array(this.sources.length);
+        else this.sourceSlots.length = this.sources.length;
+        for (let i = 0; i < this.sources.length; i++) {
+          const source = this.sources[i];
+          if (!source.observers) {
+            source.observers = [this];
+            source.observerSlots = [i];
+          } else {
+            source.observers.push(this);
+            source.observerSlots.push(i);
+          }
+          this.sourceSlots[i] = source.observerSlots.length - 1;
+        }
+      }
+    } finally {
+      CurrentGets = prevGets;
+      CurrentReaction = prevReaction;
+    }
+
+    if (oldValue !== this.value && this.observers) {
+      for (let i = 0; i < this.observers.length; i++) {
+        this.observers[i].state = 2;
+      }
+    }
+    this.state = 0;
   }
 
   updateIfNecessary() {
-    if (this.state == 2 /* CacheState.DIRTY */) {
-      return this.update();
-    }
-    if (this.state == 1 /* CacheState.CHECK */) {
-      if (this.sources) {
-        for (let i = 0; i < this.sources.length; i++) {
-          this.sources[i].updateIfNecessary();
-        }
-        if (this.state == 2 /* CacheState.DIRTY */) {
-          return this.update();
-        }
+    if (this.state == 1 && this.sources) {
+      for (const source of this.sources) {
+        source.updateIfNecessary();
       }
-      this.state = 0 /* CacheState.CURRENT */;
     }
+    if (this.state == 2) {
+      this.update();
+    }
+    this.state = 0;
   }
-  get() {
-    if (CurrentCompute) {
-      const sSlot = this.observers ? this.observers.length : 0;
-      if (!CurrentCompute.sources) {
-        CurrentCompute.sources = [this];
-        CurrentCompute.sourceSlots = [sSlot];
-      } else {
-        CurrentCompute.sources.push(this);
-        CurrentCompute.sourceSlots.push(sSlot);
-      }
-      if (!this.observers) {
-        this.observers = [CurrentCompute];
-        this.observerSlots = [CurrentCompute.sources.length - 1];
-      } else {
-        this.observers.push(CurrentCompute);
-        this.observerSlots.push(CurrentCompute.sources.length - 1);
+
+  cleanNode() {
+    if (!this.sources || !this.sourceSlots) return;
+    while (this.sources.length) {
+      const source = this.sources.pop();
+      const index = this.sourceSlots.pop();
+      const obs = source.observers;
+      if (obs && obs.length) {
+        const n = obs.pop(),
+          s = source.observerSlots.pop();
+        if (index < obs.length) {
+          n.sourceSlots[s] = index;
+          obs[index] = n;
+          source.observerSlots[index] = s;
+        }
       }
     }
-    if (this.fn) this.updateIfNecessary();
-    return this.value;
   }
 }
 
-function cleanNode(node) {
-  while (node.sources.length) {
-    const source = node.sources.pop(),
-      index = node.sourceSlots.pop(),
-      obs = source.observers;
-    if (obs && obs.length) {
-      const n = obs.pop(),
-        s = source.observerSlots.pop();
-      if (index < obs.length) {
-        n.sourceSlots[s] = index;
-        obs[index] = n;
-        source.observerSlots[index] = s;
-      }
-    }
+function arrayEq(a, b) {
+  if (!b) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
   }
+  return true;
+}
+
+export function stabilize() {
+  for (let i = 0; i < EffectQueue.length; i++) {
+    EffectQueue[i].get();
+  }
+  EffectQueue.length = 0;
 }
 
 function setSignal(value) {
@@ -129,11 +143,4 @@ export function signal(value) {
 export function computed(fn) {
   const computed = new Reactive(fn, true);
   return computed.get.bind(computed);
-}
-
-export function stabilize() {
-  for (let i = 0; i < effectQueue.length; i++) {
-    effectQueue[i].get();
-  }
-  effectQueue.length = 0;
 }
