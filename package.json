@@ -7,8 +7,9 @@
   "scripts": {
     "bench-shallow": "node --allow-natives-syntax benches/bench.js",
     "bench-grid": "node --allow-natives-syntax benches/grid.js",
-    "test": "jest",
-    "component-test": "cypress open"
+    "bench-graph": "pnpm --filter \"reactively-bench\" bench",
+    "test": "pnpm --filter \"reactively-test\" test",
+    "component-test": "pnpm --filter \"cypress-test\" test"
   },
   "keywords": [],
   "author": "",

@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "bench": "pnpm esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node | pnpm node --allow-natives-syntax - $@",
-    "distWatch": "pnpm esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node --outfile=dist/Benchmarks.cjs --watch",
-    "benchWatch": "pnpm chokidar dist/Benchmarks.cjs --initial -c 'pnpm node --allow-natives-syntax dist/Benchmarks.cjs $@'"
+    "bench": "esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node | node --allow-natives-syntax",
+    "distWatch": "esbuild src/Benchmarks.ts --external:v8-natives --bundle --format=cjs --platform=node --outfile=dist/Benchmarks.cjs --watch",
+    "benchWatch": "chokidar dist/Benchmarks.cjs --initial -c 'node --allow-natives-syntax dist/Benchmarks.cjs'"
   },
   "keywords": [],
   "author": "",

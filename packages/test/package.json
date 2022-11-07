@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "bench": "node --allow-natives-syntax ../../node_modules/.pnpm/jest@29.0.1_@types+node@18.7.16/node_modules/jest/bin/jest.js Bench"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
