@@ -57,3 +57,44 @@ test("dynamic sources don't re-execute a parent unnecessarily", () => {
   expect(l()).toEqual(4);
   expect(bCount).toEqual(1);
 });
+
+/*
+  s
+  |
+  l
+*/
+test("dynamic source disappears entirely", () => {
+  const s = _(1);
+  let done = false;
+  let count = 0;
+
+  const c = _(() => {
+    count++;
+
+    if (done) {
+      return 0;
+    } else {
+      const value = s();
+      if (value > 2) {
+        done = true; // break the link between s and c
+      }
+      return value;
+    }
+  });
+
+  expect(c()).toBe(1);
+  expect(count).toBe(1);
+  s.set(3);
+  expect(c()).toBe(3);
+  expect(count).toBe(2);
+
+  s.set(1); // we've now locked into 'done' state
+  expect(c()).toBe(0);
+  expect(count).toBe(3);
+
+  // we're still locked into 'done' state, and count no longer advances
+  // in fact, c() will never execute again..
+  s.set(0); 
+  expect(c()).toBe(0);
+  expect(count).toBe(3);
+});
