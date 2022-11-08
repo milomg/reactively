@@ -30,7 +30,7 @@ export class Reactive {
   }
   get() {
     if (CurrentReaction) {
-      if (!CurrentGets && CurrentReaction.observers && CurrentReaction.observers[CurrentGetsIndex] == this) {
+      if (!CurrentGets && CurrentReaction.sources && CurrentReaction.sources[CurrentGetsIndex] == this) {
         CurrentGetsIndex++;
       } else {
         if (!CurrentGets)
@@ -75,7 +75,7 @@ export class Reactive {
       this.value = this.fn();
       if (CurrentGets) {
         this.removeParentObservers();
-        if (this.sources) {
+        if (this.sources && CurrentGetsIndex > 0) {
           this.sources.length = CurrentGetsIndex + CurrentGets.length;
           for (let i = 0; i < CurrentGets.length; i++) {
             this.sources[CurrentGetsIndex + i] = CurrentGets[i];
@@ -98,6 +98,10 @@ export class Reactive {
           }
           this.sourceSlots[i] = source.observers.length - 1;
         }
+      } else if (this.sources && CurrentGetsIndex < this.sources.length) {
+        this.removeParentObservers();
+        this.sources.length = CurrentGetsIndex;
+        this.sourceSlots.length = CurrentGetsIndex;
       }
     } finally {
       CurrentGets = prevGets;

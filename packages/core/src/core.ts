@@ -90,8 +90,8 @@ export class Reactive<T> {
     if (CurrentReaction) {
       if (
         !CurrentGets &&
-        CurrentReaction.observers &&
-        CurrentReaction.observers[CurrentGetsIndex] == this
+        CurrentReaction.sources &&
+        CurrentReaction.sources[CurrentGetsIndex] == this
       ) {
         CurrentGetsIndex++;
       } else {
@@ -149,9 +149,8 @@ export class Reactive<T> {
       if (CurrentGets) {
         // remove all old sources' .observers links to us
         this.removeParentObservers();
-
         // update source up links (we will update the sourceSlots array below)
-        if (this.sources) {
+        if (this.sources && CurrentGetsIndex > 0) {
           this.sources.length = CurrentGetsIndex + CurrentGets.length;
           for (let i = 0; i < CurrentGets.length; i++) {
             this.sources[CurrentGetsIndex + i] = CurrentGets[i];
@@ -179,6 +178,11 @@ export class Reactive<T> {
           // Update our sourceSlots to save the index
           this.sourceSlots[i] = source.observers.length - 1;
         }
+      } else if (this.sources && CurrentGetsIndex < this.sources.length) {
+        // remove all old sources' .observers links to us
+        this.removeParentObservers();
+        this.sources.length = CurrentGetsIndex;
+        this.sourceSlots!.length = CurrentGetsIndex;
       }
     } finally {
       CurrentGets = prevGets;
