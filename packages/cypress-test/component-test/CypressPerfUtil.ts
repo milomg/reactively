@@ -1,7 +1,7 @@
 import { Graph, runGraph } from "../../test/src/util/DependencyGraph";
 import { ReactiveFramework } from "../../test/src/util/ReactiveFramework";
 
-export function withPerf<T>(name: string, fn: () => T): T {
+export function withPerf<T>(name: string, times: number, fn: () => T): T {
   const startName = name + ".start";
   performance.mark(startName);
   const result = fn();
@@ -25,7 +25,7 @@ export function graphPerf(
   framework: ReactiveFramework
 ): GraphTestResult {
   const name = `${graphName} i=${iterations} r=${readNth}`;
-  const sum = withPerf(name, () =>
+  const sum = withPerf(name, 1, () =>
     runGraph(graph, iterations, readNth, framework)
   );
   return { name, sum };

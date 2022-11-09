@@ -8,7 +8,7 @@ import { allTests, TestConfig, TestWithFramework } from "./PerfConfigurations";
 
 /** wrapper for running a performance test on cypresss or jest  */
 export interface TestLib {
-  withPerf: <T>(name: string, fn: () => T) => T;
+  withPerf: <T>(name: string, times:number, fn: () => T) => T;
   collectGarbage: () => void;
   optimizeFunctionOnNextCall: (fn: Function) => void;
 }
@@ -69,8 +69,10 @@ function runTest(
   warmup();
 
   const { graph, counter } = makeGraph(width, totalLayers, staticNth);
-  return testLib.withPerf(name, () => {
+  return testLib.withPerf(name, 10, () => {
+    // resetDebugCounts();
     const sum = runGraph(graph, iterations, readNth, framework);
+    // reportDebugCounts();
     return { sum, count: counter.count };
   });
 }
