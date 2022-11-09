@@ -58,7 +58,7 @@ function runTest(
   const { width, totalLayers, staticNth, readNth, iterations } = config;
 
   function warmup() {
-    const warmupIterations = 10;
+    const warmupIterations = 100;
     const warmupReadNth = 1;
     const { graph } = makeGraph(width, totalLayers, staticNth);
     runGraph(graph, warmupIterations, warmupReadNth, framework);
