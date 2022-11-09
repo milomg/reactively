@@ -16,17 +16,17 @@ const frameworkInfo: FrameworkInfo[] = [
     framework: reactivelyRaw,
     testPullCounts: true,
   },
-  {
-    framework: reactivelyWrap,
-    testPullCounts: true,
-  },
-  { framework: solidFramework },
-  { framework: preactSignalFramework, testPullCounts: true },
-  {
-    framework: reactivelyDecorate,
-    testPullCounts: true,
-    makeGraph: makeDecoratedGraph,
-  },
+  // {
+  //   framework: reactivelyWrap,
+  //   testPullCounts: true,
+  // },
+  // { framework: solidFramework },
+  // { framework: preactSignalFramework, testPullCounts: true },
+  // {
+  //   framework: reactivelyDecorate,
+  //   testPullCounts: true,
+  //   makeGraph: makeDecoratedGraph,
+  // },
 ];
 
 const baseTests: TestConfig[] = [
@@ -41,66 +41,66 @@ const baseTests: TestConfig[] = [
       count: 1995606,
     },
   },
-  {
-    width: 10,
-    totalLayers: 5,
-    staticNth: 1,
-    readNth: 1,
-    iterations: 100000,
-    expected: {
-      sum: 15999840,
-      count: 1400026,
-    },
-  },
-  {
-    width: 10,
-    totalLayers: 5,
-    staticNth: 2,
-    readNth: 1,
-    iterations: 100000,
-    expected: {
-      sum: 11999955,
-      count: 1250027,
-    },
-  },
-  {
-    width: 10,
-    totalLayers: 5,
-    staticNth: 2,
-    readNth: 5,
-    iterations: 100000,
-    expected: {
-      sum: 2399983,
-      count: 520016,
-    },
-  },
-  {
-    width: 1000,
-    totalLayers: 5,
-    staticNth: 2,
-    readNth: 10,
-    iterations: 40000,
-    expected: {
-      sum: 47993100,
-      count: 112996,
-    },
-  },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 1,
+  //   readNth: 1,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 15999840,
+  //     count: 1400026,
+  //   },
+  // },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 1,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 11999955,
+  //     count: 1250027,
+  //   },
+  // },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 5,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 2399983,
+  //     count: 520016,
+  //   },
+  // },
+  // {
+  //   width: 1000,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 10,
+  //   iterations: 40000,
+  //   expected: {
+  //     sum: 47993100,
+  //     count: 112996,
+  //   },
+  // },
 ];
 
 /** The test generator for decorator tests is not as flexible, so we handle
  * it separately */
 const decoratableTests: TestConfig[] = [
-  {
-    width: 10,
-    totalLayers: 10,
-    staticNth: 1,
-    readNth: 5,
-    iterations: 100000,
-    expected: {
-      sum: 102398976,
-      count: 3600036,
-    },
-  },
+  // {
+  //   width: 10,
+  //   totalLayers: 10,
+  //   staticNth: 1,
+  //   readNth: 5,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 102398976,
+  //     count: 3600036,
+  //   },
+  // },
 ];
 
 export interface PerfFramework {
