@@ -3,6 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "emitDeclarationOnly": false,
+    "experimentalDecorators": true,
     "paths": {
       "@reactively/core": ["../core/src/core"]
     }
