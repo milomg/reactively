@@ -6,3 +6,23 @@ export function withPerfLog<T>(name: string, fn: () => T): T {
   console.log(name, "time:", diff);
   return result;
 }
+
+/** run a function n times, logging the minimum time */
+export function withPerfLogN<T>(name: string, times: number, fn: () => T): T {
+  const results = Array.from({ length: times }).map(() => runTimed(fn));
+  const fastest = results.sort((a, b) => a.time - b.time).slice(0, 1)[0];
+  console.log(name, "time:", fastest.time);
+  return fastest.result;
+}
+
+export interface TimedResult<T> {
+  result: T;
+  time: number;
+}
+
+function runTimed<T>(fn: () => T): TimedResult<T> {
+  const start = performance.now();
+  const result = fn();
+  const time = performance.now() - start;
+  return { result, time };
+}

@@ -1,5 +1,5 @@
 import v8 from "v8-natives";
-import { withPerfLog } from "../../test/src/PerfUtil";
+import { withPerfLog, withPerfLogN } from "../../test/src/PerfUtil";
 import { promiseDelay } from "../../test/src/util/AsyncUtil";
 import { PerfTest, perfTests } from "../../test/src/util/PerfTests";
 import { GarbageTrack } from "./GarbageTracking";
@@ -11,8 +11,9 @@ const tests = perfTests({
 });
 
 const gcTrack = new GarbageTrack();
-function withPerf<T>(name: string, fn: () => T): T {
-  return withPerfLog(name, () => {
+
+function withPerf<T>(name: string, times: number, fn: () => T): T {
+  return withPerfLogN(name, times, () => {
     return gcTrack.watch(name, fn);
   });
 }
