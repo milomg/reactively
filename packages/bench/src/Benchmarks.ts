@@ -36,9 +36,15 @@ function runTest(test: PerfTest) {
   const { expected } = config;
 
   if (expected.sum) {
-    console.assert(result.sum == expected.sum);
+    console.assert(
+      result.sum == expected.sum,
+      `sum ${test.name} result:${result.sum} expected:${expected.sum}`
+    );
   }
   if (expected.count && (config.readNth === 1 || testPullCounts)) {
-    console.assert(result.count === expected.count);
+    console.assert(
+      result.count === expected.count,
+      `count ${test.name} result:${result.count} expected:${expected.count}`
+    );
   }
 }

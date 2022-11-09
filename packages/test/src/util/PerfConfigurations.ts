@@ -12,16 +12,9 @@ import { reactivelyWrap } from "./ReactivelyWrapFramework";
 import { solidFramework } from "./SolidFramework";
 
 const frameworkInfo: FrameworkInfo[] = [
-  {
-    framework: reactivelyRaw,
-    testPullCounts: true,
-  },
-  {
-    framework: reactivelyWrap,
-    testPullCounts: true,
-  },
+  { framework: reactivelyRaw, testPullCounts: true },
   { framework: solidFramework },
-  { framework: preactSignalFramework, testPullCounts: true },
+  { framework: preactSignalFramework },
   {
     framework: reactivelyDecorate,
     testPullCounts: true,
@@ -38,7 +31,7 @@ const baseTests: TestConfig[] = [
     iterations: 400,
     expected: {
       sum: 1.0688298356683017e304,
-      count: 1995606,
+      // count: 1995600,
     },
   },
   {
@@ -49,7 +42,7 @@ const baseTests: TestConfig[] = [
     iterations: 100000,
     expected: {
       sum: 15999840,
-      count: 1400026,
+      //     count: 1400026,
     },
   },
   {
@@ -60,7 +53,7 @@ const baseTests: TestConfig[] = [
     iterations: 100000,
     expected: {
       sum: 11999955,
-      count: 1250027,
+      //    count: 1250027,
     },
   },
   {
@@ -71,7 +64,7 @@ const baseTests: TestConfig[] = [
     iterations: 100000,
     expected: {
       sum: 2399983,
-      count: 520016,
+      //    count: 520016,
     },
   },
   {
@@ -82,7 +75,7 @@ const baseTests: TestConfig[] = [
     iterations: 40000,
     expected: {
       sum: 47993100,
-      count: 112996,
+      //    count: 112996,
     },
   },
 ];
@@ -98,7 +91,7 @@ const decoratableTests: TestConfig[] = [
     iterations: 100000,
     expected: {
       sum: 102398976,
-      count: 3600036,
+      // count: 3600036,
     },
   },
 ];
