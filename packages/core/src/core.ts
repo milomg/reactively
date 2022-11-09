@@ -31,7 +31,6 @@
 /** current capture context for identifying @reactive sources (other reactive elements) and cleanups
  * - active while evaluating a reactive function body  */
 let CurrentReaction: Reactive<any> | undefined = undefined;
-let CurrentGets: Reactive<any>[] | null = null;
 let CurrentGetsIndex = 0;
 
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
@@ -115,16 +114,34 @@ export class Reactive<T> {
 
   get(): T {
     if (CurrentReaction) {
-      if (
-        !CurrentGets &&
-        CurrentReaction.sources &&
-        CurrentReaction.sources[CurrentGetsIndex] == this
-      ) {
-        CurrentGetsIndex++;
+      let added = true;
+      // add source link from currently executing reaction to this node unless it's already there
+      const l = this.observers ? this.observers.length : 0;
+      if (!CurrentReaction.sources) {
+        CurrentReaction.sources = [this];
+        CurrentReaction.sourceSlots = [l];
+      } else if (CurrentGetsIndex == CurrentReaction!.sources.length) {
+        CurrentReaction.sources.push(this);
+        CurrentReaction.sourceSlots!.push(l);
+      } else if (CurrentReaction!.sources[CurrentGetsIndex] != this) {
+        CurrentReaction.removeIndexFromParentObservers(CurrentGetsIndex);
+        CurrentReaction.sources[CurrentGetsIndex] = this;
+        CurrentReaction.sourceSlots![CurrentGetsIndex] = l;
       } else {
-        if (!CurrentGets) CurrentGets = [this];
-        else CurrentGets.push(this);
+        added = false;
       }
+
+      // if we added a source link, adjust reverse link from this node to currently reacting node
+      if (added) {
+        if (!this.observers) {
+          this.observers = [CurrentReaction!];
+          this.observerSlots = [CurrentGetsIndex];
+        } else {
+          this.observers.push(CurrentReaction!);
+          this.observerSlots!.push(CurrentGetsIndex);
+        }
+      }
+      CurrentGetsIndex++;
     }
     if (this.fn) this.updateIfNecessary();
     return this._value;
@@ -158,11 +175,9 @@ export class Reactive<T> {
 
     /* Evalute the reactive function body, dynamically capturing any other reactives used */
     const prevReaction = CurrentReaction;
-    const prevGets = CurrentGets;
     const prevIndex = CurrentGetsIndex;
 
     CurrentReaction = this;
-    CurrentGets = null as any; // prevent TS from thinking CurrentGets is null below
     CurrentGetsIndex = 0;
 
     try {
@@ -173,46 +188,15 @@ export class Reactive<T> {
       this._value = this.fn!();
 
       // if the sources have changed, update source & observer links
-      if (CurrentGets) {
+      if (this.sources && CurrentGetsIndex < this.sources.length) {
         // remove all old sources' .observers links to us
-        this.removeParentObservers();
-        // update source up links (we will update the sourceSlots array below)
-        if (this.sources && CurrentGetsIndex > 0) {
-          this.sources.length = CurrentGetsIndex + CurrentGets.length;
-          for (let i = 0; i < CurrentGets.length; i++) {
-            this.sources[CurrentGetsIndex + i] = CurrentGets[i];
-          }
-        } else {
-          this.sources = CurrentGets;
-        }
-
-        // Prepare sourceSlots for filling
-        if (!this.sourceSlots) this.sourceSlots = Array(this.sources.length);
-        else this.sourceSlots.length = this.sources.length;
-
         for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
-          // Add ourselves to the end of the parent .observers array (and observerSlots array).
-          const source = this.sources[i];
-          if (!source.observers) {
-            source.observers = [this];
-            source.observerSlots = [i];
-          } else {
-            source.observers.push(this);
-            source.observerSlots!.push(i);
-          }
-
-          // We are stored in the last element of the parent .observer array.
-          // Update our sourceSlots to save the index
-          this.sourceSlots[i] = source.observers.length - 1;
+          this.removeIndexFromParentObservers(i);
         }
-      } else if (this.sources && CurrentGetsIndex < this.sources.length) {
-        // remove all old sources' .observers links to us
-        this.removeParentObservers();
         this.sources.length = CurrentGetsIndex;
         this.sourceSlots!.length = CurrentGetsIndex;
       }
     } finally {
-      CurrentGets = prevGets;
       CurrentReaction = prevReaction;
       CurrentGetsIndex = prevIndex;
     }
@@ -261,27 +245,22 @@ export class Reactive<T> {
    *  track of the array _index_ in each sources' observers array that holds the reference to our node.
    *  To delete our entry, we pop the last element from the sources observers array and overwrite our entry.
    */
-  private removeParentObservers(): void {
-    if (!this.sources || !this.sourceSlots) return;
-    for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
-      const source: Reactive<any> = this.sources[i]; // We don't actually delete sources here because we're replacing the entire array soon
-      const index = this.sourceSlots[i];
-      const observers = source.observers;
-      if (observers && observers.length) {
-        // remove last element from observers and slot arrays (probably not us, but they can take our position instead)
-        const observersLast = observers.pop()!;
-        const observersLastSlot = source.observerSlots!.pop()!;
+  removeIndexFromParentObservers(i: number): void {
+    const source: Reactive<any> = this.sources![i]; // We don't actually delete sources here because we're replacing the entire array soon
+    const index = this.sourceSlots![i];
 
-        // If we happened to be the last element, hooray we're done. Otherwise, we have to actually swap positions
-        if (index < observers.length) {
-          // place the just removed last element in our position (removing us)
-          observers[index] = observersLast;
-          source.observerSlots![index] = observersLastSlot;
+    // remove last element from observers and slot arrays (probably not us, but they can take our position instead)
+    const observersLast = source.observers!.pop()!;
+    const observersLastSlot = source.observerSlots!.pop()!;
 
-          // Now, we update the sourceSlot of observersLast to its new position in the observers array
-          observersLast.sourceSlots![observersLastSlot] = index;
-        }
-      }
+    // If we happened to be the last element, hooray we're done. Otherwise, we have to actually swap positions
+    if (index < source.observers!.length) {
+      // place the just removed last element in our position (removing us)
+      source.observers![index] = observersLast;
+      source.observerSlots![index] = observersLastSlot;
+
+      // Now, we update the sourceSlot of observersLast to its new position in the observers array
+      observersLast.sourceSlots![observersLastSlot] = index;
     }
   }
 }
