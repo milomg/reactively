@@ -25,7 +25,7 @@ const asyncTests = tests.map(async (test) => {
 
 async function main() {
   await Promise.all(asyncTests);
-  await gcTrack.report();
+  // await gcTrack.report();
 }
 
 main();
