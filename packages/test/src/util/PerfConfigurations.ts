@@ -21,7 +21,7 @@ const frameworkInfo: FrameworkInfo[] = [
   // },
 ];
 
-/** The test generator for decorator tests is not as flexible (always 10 wide), so we handle
+/** The test generator for decorator tests is not as flexible (always 10 wide, no dynamic nodes), so we handle
  * it separately */
 const decoratableTests: TestConfig[] = [
   // {
@@ -44,28 +44,6 @@ const decoratableTests: TestConfig[] = [
   //   expected: {
   //     sum: 15999840,
   //     //     count: 1400026,
-  //   },
-  // },
-  // {
-  //   width: 10,
-  //   totalLayers: 5,
-  //   staticNth: 2,
-  //   readNth: 1,
-  //   iterations: 100000,
-  //   expected: {
-  //     sum: 11999955,
-  //     //    count: 1250027,
-  //   },
-  // },
-  // {
-  //   width: 10,
-  //   totalLayers: 5,
-  //   staticNth: 2,
-  //   readNth: 5,
-  //   iterations: 100000,
-  //   expected: {
-  //     sum: 2399983,
-  //     //    count: 520016,
   //   },
   // },
 ];
@@ -95,6 +73,28 @@ const baseTests: TestConfig[] = [
       //    count: 112996,
     },
   },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 1,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 11999955,
+  //     //    count: 1250027,
+  //   },
+  // },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 5,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 2399983,
+  //     //    count: 520016,
+  //   },
+  // },
 ];
 
 
