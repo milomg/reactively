@@ -12,17 +12,18 @@ import { solidFramework } from "./SolidFramework";
 
 const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
-  { framework: solidFramework },
+  // { framework: solidFramework },
   { framework: preactSignalFramework },
-  {
-    framework: reactivelyDecorate,
-    testPullCounts: true,
-    makeGraph: makeDecoratedGraph,
-  },
+  // {
+  //   framework: reactivelyDecorate,
+  //   testPullCounts: true,
+  //   makeGraph: makeDecoratedGraph,
+  // },
 ];
 
 const baseTests: TestConfig[] = [
-  {
+  { 
+    name: "deep and static",
     width: 5,
     totalLayers: 1000,
     staticNth: 1,
@@ -106,6 +107,7 @@ export interface PerfFramework {
 }
 
 export interface TestConfig {
+  name?: string;
   width: number;
   totalLayers: number;
   staticNth: number;
