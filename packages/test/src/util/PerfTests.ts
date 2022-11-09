@@ -70,6 +70,7 @@ function runTest(
 
   const { graph, counter } = makeGraph(width, totalLayers, staticNth);
   return testLib.withPerf(name, 10, () => {
+    counter.count = 0;
     // resetDebugCounts();
     const sum = runGraph(graph, iterations, readNth, framework);
     // reportDebugCounts();
