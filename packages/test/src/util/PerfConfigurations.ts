@@ -21,6 +21,55 @@ const frameworkInfo: FrameworkInfo[] = [
   // },
 ];
 
+/** The test generator for decorator tests is not as flexible (always 10 wide), so we handle
+ * it separately */
+const decoratableTests: TestConfig[] = [
+  // {
+  //   width: 10,
+  //   totalLayers: 10,
+  //   staticNth: 1,
+  //   readNth: 5,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 102398976,
+  //     // count: 3600036,
+  //   },
+  // },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 1,
+  //   readNth: 1,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 15999840,
+  //     //     count: 1400026,
+  //   },
+  // },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 1,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 11999955,
+  //     //    count: 1250027,
+  //   },
+  // },
+  // {
+  //   width: 10,
+  //   totalLayers: 5,
+  //   staticNth: 2,
+  //   readNth: 5,
+  //   iterations: 100000,
+  //   expected: {
+  //     sum: 2399983,
+  //     //    count: 520016,
+  //   },
+  // },
+];
+
 const baseTests: TestConfig[] = [
   { 
     name: "deep and static",
@@ -35,66 +84,19 @@ const baseTests: TestConfig[] = [
     },
   },
   {
-    width: 10,
+    name: "wide and shallow",
+    width: 1000,
     totalLayers: 5,
     staticNth: 1,
     readNth: 1,
-    iterations: 100000,
+    iterations: 4000,
     expected: {
-      sum: 15999840,
-      //     count: 1400026,
-    },
-  },
-  {
-    width: 10,
-    totalLayers: 5,
-    staticNth: 2,
-    readNth: 1,
-    iterations: 100000,
-    expected: {
-      sum: 11999955,
-      //    count: 1250027,
-    },
-  },
-  {
-    width: 10,
-    totalLayers: 5,
-    staticNth: 2,
-    readNth: 5,
-    iterations: 100000,
-    expected: {
-      sum: 2399983,
-      //    count: 520016,
-    },
-  },
-  {
-    width: 1000,
-    totalLayers: 5,
-    staticNth: 2,
-    readNth: 10,
-    iterations: 40000,
-    expected: {
-      sum: 47993100,
+      // sum: 47993100,
       //    count: 112996,
     },
   },
 ];
 
-/** The test generator for decorator tests is not as flexible, so we handle
- * it separately */
-const decoratableTests: TestConfig[] = [
-  {
-    width: 10,
-    totalLayers: 10,
-    staticNth: 1,
-    readNth: 5,
-    iterations: 100000,
-    expected: {
-      sum: 102398976,
-      // count: 3600036,
-    },
-  },
-];
 
 export interface PerfFramework {
   framework: ReactiveFramework;
