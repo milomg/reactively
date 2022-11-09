@@ -8,7 +8,7 @@ import { allTests, TestConfig, TestWithFramework } from "./PerfConfigurations";
 
 /** wrapper for running a performance test on cypresss or jest  */
 export interface TestLib {
-  withPerf: <T>(name: string, times:number, fn: () => T) => T;
+  withPerf: <T>(name: string, times: number, fn: () => T) => T;
   collectGarbage: () => void;
   optimizeFunctionOnNextCall: (fn: Function) => void;
 }
@@ -43,7 +43,12 @@ function testName(test: TestWithFramework): string {
   const { width, totalLayers: l, staticNth, readNth, iterations } = config;
   const fm = perfFramework.framework.name.padEnd(20);
 
-  return `${fm} | ${width}x${l} s=${staticNth} i=${iterations} r=${readNth}`;
+  const widthStr = `${width}x${l}`.padEnd(8, " ");
+  const iterStr = `i=${iterations}`.padStart(8, " ");
+  const readStr = `r=${readNth}`.padStart(4, " ");
+  const staticStr = `s=${staticNth}`.padStart(4, " ");
+  const nameStr = (test.config.name || "").slice(0, 20).padStart(20, " ");
+  return `${fm} | ${widthStr} ${staticStr} ${readStr} ${iterStr} ${nameStr}`;
 }
 
 function runTest(

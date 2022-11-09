@@ -11,7 +11,8 @@ export function withPerfLog<T>(name: string, fn: () => T): T {
 export function withPerfLogN<T>(name: string, times: number, fn: () => T): T {
   const results = Array.from({ length: times }).map(() => runTimed(fn));
   const fastest = results.sort((a, b) => a.time - b.time).slice(0, 1)[0];
-  console.log(name, "time:", fastest.time);
+  const timeStr = fastest.time.toFixed(2).padStart(8, " ");
+  console.log(`${name} : ${timeStr}`);
   return fastest.result;
 }
 
