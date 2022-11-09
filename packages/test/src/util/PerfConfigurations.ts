@@ -22,7 +22,8 @@ const frameworkInfo: FrameworkInfo[] = [
 ];
 
 const baseTests: TestConfig[] = [
-  {
+  { 
+    name: "deep and static",
     width: 5,
     totalLayers: 1000,
     staticNth: 1,
@@ -106,6 +107,7 @@ export interface PerfFramework {
 }
 
 export interface TestConfig {
+  name?: string;
   width: number;
   totalLayers: number;
   staticNth: number;
