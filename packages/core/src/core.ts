@@ -233,8 +233,8 @@ export class Reactive<T> {
   /** update() if dirty, or a parent turns out to be dirty. */
   private updateIfNecessary(): void {
     // If we are potentially dirty, see if we have a parent who has actually changed value
-    if (this.state === CacheCheck && this.sources) {
-      for (const source of this.sources) {
+    if (this.state === CacheCheck) {
+      for (const source of this.sources!) {
         source.updateIfNecessary(); // updateIfNecessary() can change this.state
         if ((this.state as CacheState) === CacheDirty) {
           // Stop the loop here so we won't trigger updates on other parents unnecessarily
