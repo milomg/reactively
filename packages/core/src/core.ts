@@ -65,10 +65,6 @@ export class Reactive<T> {
   private observers: Reactive<any>[] | null = null; // nodes that have us as sources (down links)
   private sources: Reactive<any>[] | null = null; // sources in reference order, not deduplicated (up links)
 
-  // We use slots to allow for a constant time deletion of an edge connecting a source and an observer (while avoiding sets, which are slow to create)
-  // The scheme is described in removeParentObservers() below
-  private observerSlots: number[] | null = null; // index in the observer's sources array that points to us
-  private sourceSlots: number[] | null = null; // index in the source's observer array that points to us
   private state: CacheState = CacheDirty;
   private effect: boolean;
   cleanups: ((oldValue: T) => void)[] = [];
@@ -149,7 +145,7 @@ export class Reactive<T> {
       if (CurrentGets) {
         // remove all old sources' .observers links to us
         this.removeParentObservers();
-        // update source up links (we will update the sourceSlots array below)
+
         if (this.sources && CurrentGetsIndex > 0) {
           this.sources.length = CurrentGetsIndex + CurrentGets.length;
           for (let i = 0; i < CurrentGets.length; i++) {
@@ -159,30 +155,18 @@ export class Reactive<T> {
           this.sources = CurrentGets;
         }
 
-        // Prepare sourceSlots for filling
-        if (!this.sourceSlots) this.sourceSlots = Array(this.sources.length);
-        else this.sourceSlots.length = this.sources.length;
-
         for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
-          // Add ourselves to the end of the parent .observers array (and observerSlots array).
           const source = this.sources[i];
           if (!source.observers) {
             source.observers = [this];
-            source.observerSlots = [i];
           } else {
             source.observers.push(this);
-            source.observerSlots!.push(i);
           }
-
-          // We are stored in the last element of the parent .observer array.
-          // Update our sourceSlots to save the index
-          this.sourceSlots[i] = source.observers.length - 1;
         }
       } else if (this.sources && CurrentGetsIndex < this.sources.length) {
         // remove all old sources' .observers links to us
         this.removeParentObservers();
         this.sources.length = CurrentGetsIndex;
-        this.sourceSlots!.length = CurrentGetsIndex;
       }
     } finally {
       CurrentGets = prevGets;
@@ -227,34 +211,12 @@ export class Reactive<T> {
     this.state = CacheClean;
   }
 
-  /** (Inspired by https://github.com/solidjs/solid/blob/eb63706ab4fa566478486b2b3b47ec6d39e0d4bc/packages/solid/src/reactive/signal.ts#L1580)
-   *  Remove all sources' links to us by editing each sources' observers array and related slot numbers.
-   *
-   *  To enable quickly deletions of our entry from the observers array, we keep
-   *  track of the array _index_ in each sources' observers array that holds the reference to our node.
-   *  To delete our entry, we pop the last element from the sources observers array and overwrite our entry.
-   */
   private removeParentObservers(): void {
-    if (!this.sources || !this.sourceSlots) return;
-    for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
-      const source: Reactive<any> = this.sources[i]; // We don't actually delete sources here because we're replacing the entire array soon
-      const index = this.sourceSlots[i];
-      const observers = source.observers;
-      if (observers && observers.length) {
-        // remove last element from observers and slot arrays (probably not us, but they can take our position instead)
-        const observersLast = observers.pop()!;
-        const observersLastSlot = source.observerSlots!.pop()!;
-
-        // If we happened to be the last element, hooray we're done. Otherwise, we have to actually swap positions
-        if (index < observers.length) {
-          // place the just removed last element in our position (removing us)
-          observers[index] = observersLast;
-          source.observerSlots![index] = observersLastSlot;
-
-          // Now, we update the sourceSlot of observersLast to its new position in the observers array
-          observersLast.sourceSlots![observersLastSlot] = index;
-        }
-      }
+    if (!this.sources) return;
+    for (let i = CurrentGetsIndex; i < this.sources!.length; i++) {
+      const source: Reactive<any> = this.sources![i]; // We don't actually delete sources here because we're replacing the entire array soon
+      const observersLast = source.observers!.findIndex((v) => v === this);
+      source.observers!.splice(observersLast, 1);
     }
   }
 }
