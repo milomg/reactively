@@ -1,9 +1,9 @@
-import { reactivelyWrap } from "./util/ReactivelyWrapFramework";
+import { reactivelyRaw } from "./util/ReactivelyRaw";
 import { solidFramework } from "./util/SolidFramework";
 import { makeGraph, runGraph } from "./util/DependencyGraph";
 import { ReactiveFramework } from "./util/ReactiveFramework";
 
-const frameworks = [solidFramework, reactivelyWrap];
+const frameworks = [solidFramework, reactivelyRaw];
 
 frameworks.forEach(frameworkTests);
 
