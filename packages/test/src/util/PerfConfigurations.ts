@@ -12,13 +12,13 @@ import { solidFramework } from "./SolidFramework";
 
 const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
-  { framework: solidFramework },
+  // { framework: solidFramework },
   { framework: preactSignalFramework },
-  {
-    framework: reactivelyDecorate,
-    testPullCounts: true,
-    makeGraph: makeDecoratedGraph,
-  },
+  // {
+  //   framework: reactivelyDecorate,
+  //   testPullCounts: true,
+  //   makeGraph: makeDecoratedGraph,
+  // },
 ];
 
 const baseTests: TestConfig[] = [
