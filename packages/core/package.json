@@ -8,7 +8,7 @@
   "scripts": {
     "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
     "build": "esbuild ./src/core.ts --outdir=dist",
-    "sizeCheck": "esbuild ./src/core.ts --drop:console --minify --bundle '--mangle-props=^([^sg]|[sg][^e]|[sg]e[^t]).*$' | gzip | wc -c",
+    "sizeCheck": "esbuild ./src/core.ts --drop:console --minify '--mangle-props=(state|observers|sources|updateIfNecessary|stale|update|cleanups|removeParentObservers|_value|effect)$' | gzip | wc -c",
     "build:types": "tsc --project ./tsconfig.build.json"
   },
   "files": [
