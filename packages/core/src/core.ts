@@ -215,11 +215,8 @@ export class Reactive<T> {
     if (!this.sources) return;
     for (let i = CurrentGetsIndex; i < this.sources!.length; i++) {
       const source: Reactive<any> = this.sources![i]; // We don't actually delete sources here because we're replacing the entire array soon
-      const swap = source.observers!.findIndex((v) => v === this);
-      const last = source.observers!.pop();
-      if (swap < source.observers!.length) {
-        source.observers![swap] = last!;
-      }
+      const observersLast = source.observers!.findIndex((v) => v === this);
+      source.observers!.splice(observersLast, 1);
     }
   }
 }
