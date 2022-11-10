@@ -1,4 +1,5 @@
 import { getConsoleOutput } from "@jest/console";
+import { pseudoRandom } from "./PseudoRandom";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
 
 export interface Graph {
@@ -117,9 +118,10 @@ function makeDependentRows(
   framework: ReactiveFramework
 ): Computed<number>[][] {
   let prevRow = sources;
+  const random = pseudoRandom();
   const rows = [];
   for (let l = 0; l < numRows; l++) {
-    const row = makeRow(prevRow, counter, staticFraction, nSources, framework, l);
+    const row = makeRow(prevRow, counter, staticFraction, nSources, framework, l, random);
     rows.push(row);
     prevRow = row;
   }
@@ -132,7 +134,8 @@ function makeRow(
   staticFraction: number,
   nSources: number,
   framework: ReactiveFramework,
-  layer: number
+  layer: number,
+  random: ()=>number,
 ): Computed<number>[] {
   return sources.map((_, myDex) => {
     const mySourceIndices = [];
@@ -140,7 +143,7 @@ function makeRow(
       mySourceIndices.push((myDex + sourceDex) % sources.length);
     }
     const mySources = mySourceIndices.map((i) => sources[i]);
-    const staticNode = (myDex / sources.length) < staticFraction;
+    const staticNode = random() < staticFraction;
     if (staticNode) {
       // static node, always reference sources
       return framework.computed(() => {
