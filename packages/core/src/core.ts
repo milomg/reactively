@@ -86,7 +86,7 @@ export class Reactive<T> {
   // The scheme is described in removeParentObservers() below
   private observerSlots: number[] | null = null; // index in the observer's sources array that points to us
   private sourceSlots: number[] | null = null; // index in the source's observer array that points to us
-  private state: CacheState = CacheDirty;
+  private state: CacheState;
   private effect: boolean;
   cleanups: ((oldValue: T) => void)[] = [];
 
@@ -95,10 +95,12 @@ export class Reactive<T> {
       this.fn = fnOrValue as () => T;
       this._value = undefined as any;
       this.effect = effect || false;
+      this.state = CacheDirty;
       if (effect) this.update(); // CONSIDER removing this?
     } else {
       this.fn = undefined;
       this._value = fnOrValue;
+      this.state = CacheClean;
       this.effect = false;
     }
   }

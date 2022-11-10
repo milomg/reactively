@@ -45,4 +45,34 @@ function frameworkTests(framework: ReactiveFramework) {
     expect(sum).toEqual(72);
     expect(counter.count).toEqual(22);
   });
+
+  test(`${name} | small dynamic graph with signal grandparents`, () => {
+    const z = framework.signal(3);
+    const x = framework.signal(0);
+
+    const y = framework.signal(0);
+    const i = framework.computed(() => {
+      let a = y.read();
+      z.read();
+      if (!a) {
+        return x.read();
+      } else {
+        return a;
+      }
+    });
+    const j = framework.computed(() => {
+      let a = i.read();
+      z.read();
+      if (!a) {
+        return x.read();
+      } else {
+        return a;
+      }
+    });
+    j.read();
+    x.write(1);
+    j.read();
+    y.write(1);
+    j.read();
+  });
 }
