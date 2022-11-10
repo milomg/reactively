@@ -100,13 +100,13 @@ const baseTests: TestConfig[] = [
   //   expected: {},
   // },
   {
-    name: "verifying",
+    name: "verifying", // seems to take a very long time in preact..
     width: 100,
-    totalLayers: 10,
-    staticFraction: .5,
-    nSources: 5,
+    totalLayers: 15,
+    staticFraction: 3/4,
+    nSources: 6,
     readNth: 1,
-    iterations: 2,
+    iterations: 2000,
     expected: {},
   },
 
