@@ -1,4 +1,4 @@
-import { HasReactive, reactive } from "@reactively/decorate";
+import { HasReactive, reactively } from "@reactively/decorate";
 import { Counter, GraphAndCounter, graphName } from "./DependencyGraph";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
 import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
@@ -20,16 +20,16 @@ interface HasSources {
 class Sources extends HasReactive implements HasSources {
   source: HasSources = this;
   layerNumber = 0;
-  @reactive r0 = 0;
-  @reactive r1 = 1;
-  @reactive r2 = 2;
-  @reactive r3 = 3;
-  @reactive r4 = 4;
-  @reactive r5 = 5;
-  @reactive r6 = 6;
-  @reactive r7 = 7;
-  @reactive r8 = 8;
-  @reactive r9 = 9;
+  @reactively r0 = 0;
+  @reactively r1 = 1;
+  @reactively r2 = 2;
+  @reactively r3 = 3;
+  @reactively r4 = 4;
+  @reactively r5 = 5;
+  @reactively r6 = 6;
+  @reactively r7 = 7;
+  @reactively r8 = 8;
+  @reactively r9 = 9;
 }
 
 class ComputeLayer extends HasReactive implements HasSources {
@@ -37,43 +37,43 @@ class ComputeLayer extends HasReactive implements HasSources {
   layerNumber: number;
   counter: Counter;
 
-  @reactive get r0() {
+  @reactively get r0() {
     this.counter.count++;
     return this.source.r0 + this.source.r1;
   }
-  @reactive get r1() {
+  @reactively get r1() {
     this.counter.count++;
     return this.source.r1 + this.source.r2;
   }
-  @reactive get r2() {
+  @reactively get r2() {
     this.counter.count++;
     return this.source.r2 + this.source.r3;
   }
-  @reactive get r3() {
+  @reactively get r3() {
     this.counter.count++;
     return this.source.r3 + this.source.r4;
   }
-  @reactive get r4() {
+  @reactively get r4() {
     this.counter.count++;
     return this.source.r4 + this.source.r5;
   }
-  @reactive get r5() {
+  @reactively get r5() {
     this.counter.count++;
     return this.source.r5 + this.source.r6;
   }
-  @reactive get r6() {
+  @reactively get r6() {
     this.counter.count++;
     return this.source.r6 + this.source.r7;
   }
-  @reactive get r7() {
+  @reactively get r7() {
     this.counter.count++;
     return this.source.r7 + this.source.r8;
   }
-  @reactive get r8() {
+  @reactively get r8() {
     this.counter.count++;
     return this.source.r8 + this.source.r9;
   }
-  @reactive get r9() {
+  @reactively get r9() {
     this.counter.count++;
     return this.source.r9 + this.source.r0;
   }

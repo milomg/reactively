@@ -28,12 +28,12 @@ as specified in the typescript handbook (Sep 2022). Some differences:
  *
  * The decorated property can be a value, a method, or a get accessor.
  * The class must inherit from HasReactive (or ReactiveLitElement) */
-export function reactive(prototype: HasReactiveInternal, name: string): any;
-export function reactive(): (
+export function reactively(prototype: HasReactiveInternal, name: string): any;
+export function reactively(): (
   prototype: HasReactiveInternal,
   name: string
 ) => any;
-export function reactive(
+export function reactively(
   prototype?: HasReactiveInternal,
   name?: any,
   descriptor?: PropertyDescriptor
