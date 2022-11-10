@@ -150,22 +150,28 @@ function makeRow(
         for (const src of mySources) {
           sum += src.read();
         }
-        // mySources.forEach((s) => s.read()); // causes stack overflow
+        // mySources.forEach((s) => s.read()); // causes stack overflow in large graphs
         return sum;
       });
     } else {
       // dynamic node, drops one of the sources depending on the value of the first element
+      const first = mySources[0];
+      const tail = mySources.slice(1);
       const node = framework.computed(() => {
         counter.count++;
-        const first = mySources[0].read();
+        let sum = first.read();
         let toRead: Computed<number>[];
-        if (first & 0x1) {
-          const drop = first % mySources.length;
-          toRead = mySources.filter((_, i) => i !== drop);
+        if (sum & 0x1) {
+          const dropDex = sum % mySources.length;
+          toRead = tail.filter((_, i) => i !== dropDex);
         } else {
-          toRead = mySources;
+          toRead = tail;
         }
-        const sum = toRead.reduce((total, s) => s.read() + total, 0);
+
+        for (const src of toRead) {
+          sum += src.read();
+        }
+
         return sum;
       });
       (node as any)._dynamic = true; // mark dynamic nodes for logging the graph

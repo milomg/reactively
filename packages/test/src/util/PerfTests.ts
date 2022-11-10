@@ -79,6 +79,7 @@ function runTest(
     counter.count = 0;
     // resetDebugCounts();
     const sum = runGraph(graph, iterations, readNth, framework);
+    // console.log("sum", sum, test.perfFramework.framework.name);
     // reportDebugCounts();
     return { sum, count: counter.count };
   });
