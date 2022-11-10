@@ -1,3 +1,4 @@
+import { getConsoleOutput } from "@jest/console";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
 
 export interface Graph {
@@ -17,13 +18,14 @@ export interface GraphAndCounter {
  *
  * @param width number of source elements and number of computed elements per layer
  * @param totalLayers total number of source and computed layers
- * @param staticNth every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
+ * @param staticFraction every nth computed node is static (1 = all static, 3 = 2/3rd are dynamic)
  * @returns the graph
  */
 export function makeGraph(
   width: number,
   totalLayers: number,
-  staticNth = 1,
+  staticFraction = 1,
+  nSources = 2,
   framework: ReactiveFramework
 ): GraphAndCounter {
   return framework.withBuild(() => {
@@ -33,11 +35,13 @@ export function makeGraph(
       sources,
       totalLayers - 1,
       counter,
-      staticNth,
+      staticFraction,
+      nSources,
       framework
     );
     const graph = { sources, layers: rows };
-    const name = graphName(framework, width, totalLayers, staticNth);
+    const name = graphName(framework, width, totalLayers, staticFraction);
+    // logGraph(graph);
     return { graph, counter, name };
   });
 }
@@ -46,11 +50,11 @@ export function graphName(
   framework: ReactiveFramework,
   width: number,
   totalLayers: number,
-  staticNth: number
+  staticFraction: number
 ): string {
   return `${framework.name.padEnd(
     20
-  )} | ${totalLayers}x${width} s=${staticNth}`;
+  )} | ${totalLayers}x${width} s=${staticFraction}`;
 }
 
 /**
@@ -108,13 +112,14 @@ function makeDependentRows(
   sources: Computed<number>[],
   numRows: number,
   counter: Counter,
-  staticNth: number,
+  staticFraction: number,
+  nSources: number,
   framework: ReactiveFramework
 ): Computed<number>[][] {
   let prevRow = sources;
   const rows = [];
   for (let l = 0; l < numRows; l++) {
-    const row = makeRow(prevRow, counter, staticNth, framework, l);
+    const row = makeRow(prevRow, counter, staticFraction, nSources, framework, l);
     rows.push(row);
     prevRow = row;
   }
@@ -124,28 +129,49 @@ function makeDependentRows(
 function makeRow(
   sources: Computed<number>[],
   counter: Counter,
-  staticNth = 1,
+  staticFraction: number,
+  nSources: number,
   framework: ReactiveFramework,
   layer: number
 ): Computed<number>[] {
-  return sources.map((s, i) => {
-    const sourceA = sources[i];
-    const sourceIndexB = (i + 1) % sources.length;
-    const sourceB = sources[sourceIndexB];
-    if (i % staticNth === 0) {
-      // static node, always reference both sources
+  return sources.map((_, myDex) => {
+    const mySourceIndices = [];
+    for (let sourceDex = 0; sourceDex < nSources; sourceDex++) {
+      mySourceIndices.push((myDex + sourceDex) % sources.length);
+    }
+    const mySources = mySourceIndices.map((i) => sources[i]);
+    const staticNode = (myDex / sources.length) < staticFraction;
+    if (staticNode) {
+      // static node, always reference sources
       return framework.computed(() => {
         counter.count++;
-        return sourceA.read() + sourceB.read();
+
+        let sum = 0;
+        for (const src of mySources) {
+          sum += src.read();
+        }
+        // mySources.forEach((s) => s.read()); // causes stack overflow in large graphs
+        return sum;
       });
     } else {
-      // dynamic node, references 2nd source only if 1st source is even
+      // dynamic node, drops one of the sources depending on the value of the first element
+      const first = mySources[0];
+      const tail = mySources.slice(1);
       const node = framework.computed(() => {
         counter.count++;
-        let sum = sourceA.read() + 1;
+        let sum = first.read();
+        let toRead: Computed<number>[];
         if (sum & 0x1) {
-          sum += sourceB.read();
+          const dropDex = sum % tail.length;
+          toRead = tail.filter((_, i) => i !== dropDex);
+        } else {
+          toRead = tail;
         }
+
+        for (const src of toRead) {
+          sum += src.read();
+        }
+
         return sum;
       });
       (node as any)._dynamic = true; // mark dynamic nodes for logging the graph
