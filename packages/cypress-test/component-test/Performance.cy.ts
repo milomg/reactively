@@ -11,8 +11,11 @@ tests.forEach(({ name, run, config, testPullCounts }) => {
   it(name, () => {
     const result = run();
     const { expected } = config;
-    expect(result.sum).equals(expected.sum);
-    if (config.readNth === 1 || testPullCounts) {
+
+    if (expected.sum) {
+      expect(result.sum).equals(expected.sum);
+    }
+    if (expected.count && (config.readNth === 1 || testPullCounts)) {
       expect(result.count).equals(expected.count);
     }
   });
