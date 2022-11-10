@@ -13,9 +13,9 @@ import { solidFramework } from "./SolidFramework";
 
 const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
-  { framework: reactivelyValue, testPullCounts: true },
+  // { framework: reactivelyValue, testPullCounts: true },
   // { framework: solidFramework },
-  // { framework: preactSignalFramework },
+  { framework: preactSignalFramework },
   // {
   //   framework: reactivelyDecorate,
   //   testPullCounts: true,

@@ -1,4 +1,4 @@
-import { reactive, HasReactive } from "@reactively/decorate";
+import { reactively, HasReactive } from "@reactively/decorate";
 import { logHasReactive } from "./ReactiveLogging";
 
 test("no reactive properties", () => {
@@ -10,7 +10,7 @@ test("no reactive properties", () => {
 
 test("one signal", () => {
   class OneSignal extends HasReactive {
-    @reactive a = 7;
+    @reactively a = 7;
   }
 
   const o = new OneSignal();
@@ -21,7 +21,7 @@ test("one signal", () => {
 
 test("one computed", () => {
   class OneComputed extends HasReactive {
-    @reactive c() {
+    @reactively c() {
       return 7;
     }
   }
@@ -32,7 +32,7 @@ test("one computed", () => {
 
 test("one getter", () => {
   class OneGetter extends HasReactive {
-    @reactive get c() {
+    @reactively get c() {
       return 7;
     }
   }
@@ -48,8 +48,8 @@ test("one getter", () => {
 test("one reaction, getter", () => {
   class OneReaction extends HasReactive {
     callCount1 = 0;
-    @reactive a = 7;
-    @reactive get c() {
+    @reactively a = 7;
+    @reactively get c() {
       this.callCount1++;
       const result = this.a + 10;
       return result;
@@ -80,8 +80,8 @@ test("one reaction, getter", () => {
 test("one reaction, computed method", () => {
   class OneReaction extends HasReactive {
     callCount1 = 0;
-    @reactive a = 7;
-    @reactive c() {
+    @reactively a = 7;
+    @reactively c() {
       this.callCount1++;
       const result = this.a + 10;
       return result;
@@ -105,7 +105,7 @@ test("one reaction, computed method", () => {
 
 test.skip("one computed, destructured", () => {
   class OneComputed extends HasReactive {
-    @reactive c() {
+    @reactively c() {
       return 7;
     }
   }

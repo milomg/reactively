@@ -1,5 +1,5 @@
 import { onCleanup } from "@reactively/core";
-import { HasReactive, reactive } from "@reactively/decorate";
+import { HasReactive, reactively } from "@reactively/decorate";
 
 /* 
         a  b
@@ -8,11 +8,11 @@ import { HasReactive, reactive } from "@reactively/decorate";
 */
 test("two signals", () => {
   class TwoSignals extends HasReactive {
-    @reactive a = 7;
-    @reactive b = 1;
+    @reactively a = 7;
+    @reactively b = 1;
 
     callCount1 = 0;
-    @reactive c(): number {
+    @reactively c(): number {
       this.callCount1++;
       const result = this.a * this.b;
       return result;
@@ -39,18 +39,18 @@ test("two signals", () => {
 */
 test("dependent computed", () => {
   class TwoComputed extends HasReactive {
-    @reactive a = 7;
-    @reactive b = 1;
+    @reactively a = 7;
+    @reactively b = 1;
 
     callCount1 = 0;
-    @reactive c(): number {
+    @reactively c(): number {
       this.callCount1++;
       const result = this.a * this.b;
       return result;
     }
 
     callCount2 = 0;
-    @reactive d(): number {
+    @reactively d(): number {
       this.callCount2++;
       const result = this.c() + 1;
       return result;
@@ -74,8 +74,8 @@ test("dependent computed", () => {
 test("equality check", () => {
   class OneReaction extends HasReactive {
     callCount1 = 0;
-    @reactive a = 7;
-    @reactive c() {
+    @reactively a = 7;
+    @reactively c() {
       this.callCount1++;
       const result = this.a + 10;
       return result;
@@ -101,23 +101,23 @@ test("equality check", () => {
 */
 test("dynamic computed", () => {
   class DyanmicComputed extends HasReactive {
-    @reactive a = 1;
-    @reactive b = 2;
+    @reactively a = 1;
+    @reactively b = 2;
 
     callCountA = 0;
-    @reactive cA() {
+    @reactively cA() {
       this.callCountA++;
       return this.a;
     }
 
     callCountB = 0;
-    @reactive cB() {
+    @reactively cB() {
       this.callCountB++;
       return this.b;
     }
 
     callCountAB = 0;
-    @reactive cAB() {
+    @reactively cAB() {
       this.callCountAB++;
       return this.cA() || this.cB();
     }
@@ -159,9 +159,9 @@ test("onCleanup", () => {
   class Cleanup extends HasReactive {
     counter = new CleanupCounter();
 
-    @reactive a = 1;
+    @reactively a = 1;
 
-    @reactive c() {
+    @reactively c() {
       onCleanup((old) => {
         this.counter.cleanup(old);
       });
@@ -188,15 +188,15 @@ test("onCleanup", () => {
 */
 test("boolean equality check", () => {
   class BooleanCheck extends HasReactive {
-    @reactive a = 0;
+    @reactively a = 0;
 
-    @reactive b() {
+    @reactively b() {
       return this.a > 0;
     }
 
     callCount = 0;
 
-    @reactive c() {
+    @reactively c() {
       this.callCount++;
       return this.b() ? 1 : 0;
     }
@@ -226,19 +226,19 @@ test("boolean equality check", () => {
 */
 test("diamond computeds", () => {
   class DiamondComputeds extends HasReactive {
-    @reactive s = 1;
-    @reactive a() {
+    @reactively s = 1;
+    @reactively a() {
       return this.s;
     }
-    @reactive b() {
+    @reactively b() {
       return this.a() * 2;
     }
-    @reactive c() {
+    @reactively c() {
       return this.a() * 3;
     }
 
     callCount = 0;
-    @reactive d() {
+    @reactively d() {
       this.callCount++;
       return this.b() + this.c();
     }
@@ -261,11 +261,11 @@ test("diamond computeds", () => {
 */
 test("set inside reaction", () => {
   class SetInsideReaction extends HasReactive {
-    @reactive s = 1;
-    @reactive a() {
+    @reactively s = 1;
+    @reactively a() {
       this.s = 2;
     }
-    @reactive l() {
+    @reactively l() {
       return this.s + 100;
     }
   }

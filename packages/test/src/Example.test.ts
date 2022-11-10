@@ -1,4 +1,4 @@
-import { HasReactive, reactive } from "@reactively/decorate";
+import { HasReactive, reactively } from "@reactively/decorate";
 
 function saveToCloud(name: string, buf: number[]): number[] {
   console.log(buf);
@@ -35,16 +35,16 @@ export class PatternMaker {
 }
 
 export class ReactivePatternMaker extends HasReactive {
-  @reactive size = 10e5;
-  @reactive fillOffset = -1;
-  @reactive modulus = 100;
+  @reactively size = 10e5;
+  @reactively fillOffset = -1;
+  @reactively modulus = 100;
 
   publish(name: string): any {
     return saveToCloud(name, this.patternBuffer());
   }
 
   // sum prev 2 array elements into a new array
-  @reactive private patternBuffer() {
+  @reactively private patternBuffer() {
     const buf = this.sequenceBuffer();
     const prev = buf.slice(0, 2);
     return buf.slice(2).map((v) => {
@@ -56,7 +56,7 @@ export class ReactivePatternMaker extends HasReactive {
   }
 
   // allocates an array with sequential values.
-  @reactive private sequenceBuffer() {
+  @reactively private sequenceBuffer() {
     return Array.from({ length: this.size }).map(
       (_v, i) => this.fillOffset + i
     );
