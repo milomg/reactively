@@ -162,7 +162,7 @@ function makeRow(
         let sum = first.read();
         let toRead: Computed<number>[];
         if (sum & 0x1) {
-          const dropDex = sum % mySources.length;
+          const dropDex = sum % tail.length;
           toRead = tail.filter((_, i) => i !== dropDex);
         } else {
           toRead = tail;
