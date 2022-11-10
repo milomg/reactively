@@ -106,7 +106,7 @@ const baseTests: TestConfig[] = [
     staticFraction: 3/4,
     nSources: 6,
     readNth: 1,
-    iterations: 2000,
+    iterations: 20,
     expected: {},
   },
 
