@@ -90,7 +90,7 @@ export const debugLayers: ComputeLayer[] = [];
 export function makeDecoratedGraph(
   width: number,
   totalLayers: number,
-  staticNth: number
+  staticFraction: number
 ): GraphAndCounter {
   const counter = new Counter();
   const sources = new Sources();

@@ -1,9 +1,10 @@
 import { reactivelyRaw } from "./util/ReactivelyRaw";
 import { solidFramework } from "./util/SolidFramework";
-import { makeGraph, runGraph } from "./util/DependencyGraph";
+import { logGraph, makeGraph, runGraph } from "./util/DependencyGraph";
 import { ReactiveFramework } from "./util/ReactiveFramework";
 
-const frameworks = [solidFramework, reactivelyRaw];
+// const frameworks = [solidFramework, reactivelyRaw];
+const frameworks = [reactivelyRaw];
 
 frameworks.forEach(frameworkTests);
 
@@ -21,14 +22,14 @@ function frameworkTests(framework: ReactiveFramework) {
   });
 
   test(`${name} | static graph`, () => {
-    const { graph, counter } = makeGraph(3, 3, 1, framework);
+    const { graph, counter } = makeGraph(3, 3, 1, 2, framework);
     const sum = runGraph(graph, 2, 1, framework);
     expect(sum).toEqual(16);
     expect(counter.count).toEqual(11);
   });
 
   test(`${name} | static graph, read 2/3 of leaves`, () => {
-    const { counter, graph } = makeGraph(3, 3, 1, framework);
+    const { counter, graph } = makeGraph(3, 3, 1, 2, framework);
     const sum = runGraph(graph, 10, 2, framework);
 
     expect(sum).toEqual(71);
@@ -38,10 +39,10 @@ function frameworkTests(framework: ReactiveFramework) {
   });
 
   test(`${name} | dynamic graph`, () => {
-    const { graph, counter } = makeGraph(4, 2, 2, framework);
+    const { graph, counter } = makeGraph(4, 2, 2, 2, framework);
     const sum = runGraph(graph, 10, 1, framework);
 
-    expect(sum).toEqual(74);
+    expect(sum).toEqual(72);
     expect(counter.count).toEqual(22);
   });
 }

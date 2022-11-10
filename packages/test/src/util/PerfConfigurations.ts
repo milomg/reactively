@@ -13,7 +13,7 @@ import { solidFramework } from "./SolidFramework";
 const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
   // { framework: solidFramework },
-  { framework: preactSignalFramework },
+  // { framework: preactSignalFramework },
   // {
   //   framework: reactivelyDecorate,
   //   testPullCounts: true,
@@ -21,89 +21,91 @@ const frameworkInfo: FrameworkInfo[] = [
   // },
 ];
 
-/** The test generator for decorator tests is not as flexible (always 10 wide, no dynamic nodes), so we handle
- * it separately */
+/** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
+ * so only some configrations work for decorator tests too */
 const decoratableTests: TestConfig[] = [
-  // {
-  //   width: 10,
-  //   totalLayers: 10,
-  //   staticNth: 1,
-  //   readNth: 5,
-  //   iterations: 100000,
-  //   expected: {
-  //     sum: 102398976,
-  //     // count: 3600036,
-  //   },
-  // },
-  // {
-  //   width: 10,
-  //   totalLayers: 5,
-  //   staticNth: 1,
-  //   readNth: 1,
-  //   iterations: 100000,
-  //   expected: {
-  //     sum: 15999840,
-  //     //     count: 1400026,
-  //   },
-  // },
+  {
+    name: "read 20%",
+    width: 10, // can't change for decorator tests
+    staticFraction: 1, // can't change for decorator tests
+    nSources: 2, // can't change for decorator tests
+    totalLayers: 10,
+    readNth: 5,
+    iterations: 100000,
+    expected: {},
+  },
 ];
 
 const baseTests: TestConfig[] = [
-  { 
-    name: "deep and static",
+  {
+    name: "deep",
     width: 5,
     totalLayers: 1000,
-    staticNth: 1,
+    staticFraction: 1,
+    nSources: 3,
     readNth: 1,
-    iterations: 400,
-    expected: {
-      sum: 1.0688298356683017e304,
-      // count: 1995600,
-    },
+    iterations: 500,
+    expected: {},
   },
   {
-    name: "wide and shallow",
+    name: "deep and webbed",
+    width: 5,
+    totalLayers: 1000,
+    staticFraction: 1,
+    nSources: 5,
+    readNth: 1,
+    iterations: 500,
+    expected: {},
+  },
+  {
+    name: "wide",
     width: 1000,
     totalLayers: 5,
-    staticNth: 1,
+    staticFraction: 1,
+    nSources: 2,
+    readNth: 1,
+    iterations: 10000,
+    expected: {},
+  },
+  {
+    name: "wide and webbed",
+    width: 1000,
+    totalLayers: 5,
+    staticFraction: 1,
+    nSources: 25,
+    readNth: 1,
+    iterations: 3000,
+    expected: {},
+  },
+  {
+    name: "medium",
+    width: 100,
+    totalLayers: 15,
+    staticFraction: 3 / 4,
+    nSources: 6,
     readNth: 1,
     iterations: 4000,
-    expected: {
-      // sum: 47993100,
-      //    count: 112996,
-    },
+    expected: {},
   },
-  // {
-  //   width: 10,
-  //   totalLayers: 5,
-  //   staticNth: 2,
-  //   readNth: 1,
-  //   iterations: 100000,
-  //   expected: {
-  //     sum: 11999955,
-  //     //    count: 1250027,
-  //   },
-  // },
-  // {
-  //   width: 10,
-  //   totalLayers: 5,
-  //   staticNth: 2,
-  //   readNth: 5,
-  //   iterations: 100000,
-  //   expected: {
-  //     sum: 2399983,
-  //     //    count: 520016,
-  //   },
-  // },
+  {
+    name: "medium read 20%",
+    width: 100,
+    totalLayers: 15,
+    staticFraction: 3 / 4,
+    nSources: 6,
+    readNth: 20,
+    iterations: 4000,
+    expected: {},
+  },
 ];
-
 
 export interface PerfFramework {
   framework: ReactiveFramework;
   makeGraph: (
     width: number,
     totalLayers: number,
-    staticNth: number
+    staticFraction: number,
+    nSources: number
   ) => GraphAndCounter;
   testPullCounts: boolean;
 }
@@ -112,7 +114,8 @@ export interface TestConfig {
   name?: string;
   width: number;
   totalLayers: number;
-  staticNth: number;
+  staticFraction: number;
+  nSources: number;
   readNth: number;
   iterations: number;
   expected: TestResult;
@@ -130,16 +133,28 @@ const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(
 
 type FrameworkInfo = Partial<PerfFramework> & Pick<PerfFramework, "framework">;
 
-function makeFrameworks(info: FrameworkInfo[]): PerfFramework[] {
-  return info.map((i) => {
+function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
+  return infos.map((frameworkInfo) => {
     function defaultMakeG(
       width: number,
       totalLayers: number,
-      staticNth: number
+      staticFraction: number,
+      nSources: number
     ): GraphAndCounter {
-      return genericMakeGraph(width, totalLayers, staticNth, i.framework);
+      return genericMakeGraph(
+        width,
+        totalLayers,
+        staticFraction,
+        nSources,
+        frameworkInfo.framework
+      );
     }
-    const { framework, testPullCounts = false, makeGraph = defaultMakeG } = i;
+
+    const {
+      framework,
+      testPullCounts = false,
+      makeGraph = defaultMakeG,
+    } = frameworkInfo;
     return {
       framework,
       testPullCounts,
