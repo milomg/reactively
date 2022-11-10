@@ -47,6 +47,23 @@ export type CacheState =
   | typeof CacheDirty;
 type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
 
+
+/** A reactive element contains a mutable value that can be observed by other reactive elements.
+ *
+ * The property can be modified externally by calling set().
+ *
+ * Reactive elements may also contain a 0-ary function body that produces a new value using
+ * values from other reactive elements.
+ *
+ * Dependencies on other elements are captured dynamically as the 'reactive' function body executes.
+ *
+ * The reactive function is re-evaluated when any of its dependencies change, and the result is
+ * cached.
+ */
+export function reactive<T>(fnOrValue: T | (() => T)): Reactive<T> {
+  return new Reactive(fnOrValue);
+}
+
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
  * The property can be modified externally by calling set().
