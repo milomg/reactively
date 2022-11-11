@@ -1,49 +1,46 @@
-import { $r as _ } from "@reactively/wrap";
 import { promiseDelay } from "./util/AsyncUtil";
+import { ReactiveFramework } from "./util/ReactiveFramework";
+import { reactivelyValue } from "./util/ReactivelyValue";
 
-test("async modify", async () => {
-  const a = _(1);
-  const b = _(() => a() + 10);
-  await promiseDelay(10).then(() => a.set(2));
-  expect(b()).toEqual(12);
-});
+const frameworks = [reactivelyValue];
 
-test("async modify in reaction before await", async () => {
-  const s = _(1);
-  const a = _(async () => {
-    s.set(2);
-    await promiseDelay(10);
+frameworks.forEach(runTests);
+
+function runTests(f: ReactiveFramework) {
+  test(`${f.name} | async modify`, async () => {
+    return f.withBatch(async () => {
+      const a = f.signal(1);
+      const b = f.computed(() => a.read() + 10);
+      await promiseDelay(10).then(() => a.write(2));
+      expect(b.read()).toEqual(12);
+    });
   });
-  const l = _(() => s() + 100);
 
-  a();
-  expect(l()).toEqual(102);
-});
+  test(`${f.name} | async modify in reaction before await`, async () => {
+    return f.withBatch(async () => {
+      const s = f.signal(1);
+      const a = f.computed(async () => {
+        s.write(2);
+        await promiseDelay(10);
+      });
+      const l = f.computed(() => s.read() + 100);
 
-test("async modify in reaction after await", async () => {
-  const s = _(1);
-  const a = _(async () => {
-    await promiseDelay(10);
-    s.set(2);
+      a.read();
+      expect(l.read()).toEqual(102);
+    });
   });
-  const l = _(() => s() + 100);
 
-  await a();
-  expect(l()).toEqual(102);
-});
+  test(`${f.name} | async modify in reaction after await`, async () => {
+    return f.withBatch(async () => {
+      const s = f.signal(1);
+      const a = f.computed(async () => {
+        await promiseDelay(10);
+        s.write(2);
+      });
+      const l = f.computed(() => s.read() + 100);
 
-// test("async read/write in reaction after await", async () => {
-//   const s = _(1);
-//   const s2 = _(0);
-//   const a = _(async () => {
-//     await promiseDelay(10);
-//     const plus = s() + 10;
-//     s2.set(plus);
-//   });
-
-//   await a();
-//   s.set(2);
-
-//   await a();
-//   expect(l()).toEqual(102);
-// });
+      await a.read();
+      expect(l.read()).toEqual(102);
+    });
+  });
+}
