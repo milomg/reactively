@@ -11,8 +11,7 @@
     "paths": {
       "@reactively/core": ["../core/src/core"],
       "@reactively/decorate": ["../decorate/src/decorate"],
-      "@reactively/lit": ["../lit/src/lit"],
-      "@reactively/wrap": ["../wrap/src/wrap"]
+      "@reactively/lit": ["../lit/src/lit"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "../test/src/util/**/*.ts"]

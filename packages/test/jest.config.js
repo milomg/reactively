@@ -9,10 +9,5 @@ module.exports = {
     "^@reactively/(.*)$": "<rootDir>/../$1/src/$1",
   },
   setupFilesAfterEnv: ["./jestConsole.ts"],
-  projects: [
-    "<rootDir>",
-    "<rootDir>/../decorate",
-    "<rootDir>/../core",
-    "<rootDir>/../wrap",
-  ],
+  projects: ["<rootDir>", "<rootDir>/../decorate", "<rootDir>/../core"],
 };
