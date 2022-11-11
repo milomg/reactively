@@ -1,5 +1,5 @@
 import v8 from "v8-natives";
-import { withPerfLog, withPerfLogN } from "../../test/src/PerfUtil";
+import { withPerfLog, withPerfLogN } from "../../test/src/util/PerfUtil";
 import { promiseDelay } from "../../test/src/util/AsyncUtil";
 import { PerfTest, perfTests } from "../../test/src/util/PerfTests";
 import { GarbageTrack } from "./GarbageTracking";
