@@ -41,7 +41,7 @@ function runTest(test: PerfTest) {
       `sum ${test.name} result:${result.sum} expected:${expected.sum}`
     );
   }
-  if (expected.count && (config.readNth === 1 || testPullCounts)) {
+  if (expected.count && (config.readFraction === 1 || testPullCounts)) {
     console.assert(
       result.count === expected.count,
       `count ${test.name} result:${result.count} expected:${expected.count}`

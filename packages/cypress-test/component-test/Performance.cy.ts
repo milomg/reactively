@@ -15,7 +15,7 @@ tests.forEach(({ name, run, config, testPullCounts }) => {
     if (expected.sum) {
       expect(result.sum).equals(expected.sum);
     }
-    if (expected.count && (config.readNth === 1 || testPullCounts)) {
+    if (expected.count && (config.readFraction === 1 || testPullCounts)) {
       expect(result.count).equals(expected.count);
     }
   });

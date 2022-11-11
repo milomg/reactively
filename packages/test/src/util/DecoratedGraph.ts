@@ -1,7 +1,6 @@
 import { HasReactive, reactively } from "@reactively/decorate";
-import { Counter, GraphAndCounter, graphName } from "./DependencyGraph";
-import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
-import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
+import { Counter, GraphAndCounter } from "./DependencyGraph";
+import { Computed, Signal } from "./ReactiveFramework";
 
 interface HasSources {
   layerNumber: number;
@@ -113,8 +112,7 @@ export function makeDecoratedGraph(
   }
 
   const graph = { sources: signals, layers };
-  const name = graphName(reactivelyDecorate, width, totalLayers, 1);
-  return { graph, counter, name };
+  return { graph, counter };
 }
 
 function signalWrapper(sources: Sources, i: number): Signal<number> {

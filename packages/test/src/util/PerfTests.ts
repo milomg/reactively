@@ -40,15 +40,17 @@ export interface TestResult {
 
 function testName(test: TestWithFramework): string {
   const { config, perfFramework } = test;
-  const { width, totalLayers: l, staticFraction, readNth, iterations } = config;
-  const fm = perfFramework.framework.name.padEnd(20);
+  // prettier-ignore
+  const { width, totalLayers, staticFraction, nSources, readFraction, iterations } = config;
+  const fmName = perfFramework.framework.name.padEnd(20);
 
-  const widthStr = `${width}x${l}`.padEnd(8, " ");
-  const iterStr = `i=${iterations}`.padStart(8, " ");
-  const readStr = `r=${readNth}`.padStart(4, " ");
+  const widthStr = `${width}x${totalLayers}`.padEnd(8, " ");
+  const sourcesStr = `n=${nSources}`.padStart(4, " ");
+  const readStr = `r=${readFraction}`.padStart(6, " ");
   const staticStr = `s=${staticFraction}`.padStart(6, " ");
+  const iterStr = `i=${iterations}`.padStart(8, " ");
   const nameStr = (test.config.name || "").slice(0, 20).padStart(20, " ");
-  return `${fm} | ${widthStr} ${staticStr} ${readStr} ${iterStr} ${nameStr}`;
+  return `${fmName} | ${widthStr} ${sourcesStr} ${staticStr} ${readStr} ${iterStr} ${nameStr}`;
 }
 
 function runTest(
@@ -60,7 +62,8 @@ function runTest(
 
   const { config, perfFramework } = test;
   const { makeGraph, framework } = perfFramework;
-  const { width, totalLayers, staticFraction, readNth, iterations, nSources } = config;
+  // prettier-ignore
+  const { width, totalLayers, staticFraction, readFraction, iterations, nSources } = config;
 
   function warmup() {
     const warmupIterations = 100;
@@ -73,12 +76,13 @@ function runTest(
   testLib.optimizeFunctionOnNextCall(runGraph);
   warmup();
 
+  // prettier-ignore
   const { graph, counter } = makeGraph(width, totalLayers, staticFraction, nSources);
   const testRepeats = 8;
   return testLib.withPerf(name, testRepeats, () => {
     counter.count = 0;
     // resetDebugCounts();
-    const sum = runGraph(graph, iterations, readNth, framework);
+    const sum = runGraph(graph, iterations, readFraction, framework);
     // console.log("sum", sum, test.perfFramework.framework.name);
     // reportDebugCounts();
     return { sum, count: counter.count };

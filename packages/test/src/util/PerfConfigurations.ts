@@ -32,7 +32,7 @@ const decoratableTests: TestConfig[] = [
     staticFraction: 1, // can't change for decorator tests
     nSources: 2, // can't change for decorator tests
     totalLayers: 10,
-    readNth: 5,
+    readFraction: .2,
     iterations: 100000,
     expected: {},
   },
@@ -45,7 +45,7 @@ const baseTests: TestConfig[] = [
     totalLayers: 1000,
     staticFraction: 1,
     nSources: 3,
-    readNth: 1,
+    readFraction: 1,
     iterations: 500,
     expected: {},
   },
@@ -55,7 +55,7 @@ const baseTests: TestConfig[] = [
     totalLayers: 1000,
     staticFraction: 1,
     nSources: 5,
-    readNth: 1,
+    readFraction: 1,
     iterations: 500,
     expected: {},
   },
@@ -65,7 +65,7 @@ const baseTests: TestConfig[] = [
     totalLayers: 5,
     staticFraction: 1,
     nSources: 2,
-    readNth: 1,
+    readFraction: 1,
     iterations: 10000,
     expected: {},
   },
@@ -75,7 +75,7 @@ const baseTests: TestConfig[] = [
     totalLayers: 5,
     staticFraction: 1,
     nSources: 25,
-    readNth: 1,
+    readFraction: 1,
     iterations: 3000,
     expected: {},
   },
@@ -85,7 +85,7 @@ const baseTests: TestConfig[] = [
   //   totalLayers: 15,
   //   staticFraction: 3 / 4,
   //   nSources: 6,
-  //   readNth: 1,
+  //   readFraction: 1,
   //   iterations: 4000,
   //   expected: {},
   // },
@@ -95,17 +95,18 @@ const baseTests: TestConfig[] = [
   //   totalLayers: 15,
   //   staticFraction: 3 / 4,
   //   nSources: 6,
-  //   readNth: 20,
+  //   readFraction: 20,
   //   iterations: 4000,
   //   expected: {},
   // },
+
   // {
   //   name: "verifying", // seems to take a very long time in preact..
   //   width: 100,
   //   totalLayers: 15,
   //   staticFraction: 3/4,
   //   nSources: 6,
-  //   readNth: 1,
+  //   readFraction: 1,
   //   iterations: 20,
   //   expected: {},
   // },
@@ -128,7 +129,7 @@ export interface TestConfig {
   totalLayers: number;
   staticFraction: number;
   nSources: number;
-  readNth: number;
+  readFraction: number;
   iterations: number;
   expected: TestResult;
 }

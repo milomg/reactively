@@ -1,4 +1,4 @@
-import { getConsoleOutput } from "@jest/console";
+import { times } from "./Iterate";
 import { pseudoRandom } from "./PseudoRandom";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
 
@@ -10,7 +10,6 @@ export interface Graph {
 export interface GraphAndCounter {
   graph: Graph;
   counter: Counter;
-  name: string;
 }
 
 /**
@@ -41,21 +40,9 @@ export function makeGraph(
       framework
     );
     const graph = { sources, layers: rows };
-    const name = graphName(framework, width, totalLayers, staticFraction);
     // logGraph(graph);
-    return { graph, counter, name };
+    return { graph, counter };
   });
-}
-
-export function graphName(
-  framework: ReactiveFramework,
-  width: number,
-  totalLayers: number,
-  staticFraction: number
-): string {
-  return `${framework.name.padEnd(
-    20
-  )} | ${totalLayers}x${width} s=${staticFraction}`;
 }
 
 /**
@@ -66,12 +53,15 @@ export function graphName(
 export function runGraph(
   graph: Graph,
   iterations: number,
-  readNth = 1,
+  readFraction: number,
   framework: ReactiveFramework
 ): number {
+  const rand = pseudoRandom();
   const { sources, layers } = graph;
   const leaves = layers[layers.length - 1];
-  const nthLeaves = leaves.filter((_, i) => i % readNth === 0);
+  const skipCount = Math.round(leaves.length * (1 - readFraction));
+  const readLeaves = removeElems(leaves, skipCount, rand);
+
   for (let i = 0; i < iterations; i++) {
     // console.log("writing signals");
     framework.withBatch(() => {
@@ -79,15 +69,24 @@ export function runGraph(
       sources[sourceDex].write(i + sourceDex);
     });
     // console.log("reading nth leaves");
-    nthLeaves.forEach((leaf) => {
+    readLeaves.forEach((leaf) => {
       // console.log("reading leaf", "layer:", leaf.layer.layerNumber);
       leaf.read();
     });
   }
 
   // console.log("summing all leaves");
-  const sum = nthLeaves.reduce((total, leaf) => leaf.read() + total, 0);
+  const sum = readLeaves.reduce((total, leaf) => leaf.read() + total, 0);
   return sum;
+}
+
+function removeElems<T>(src: T[], rmCount: number, rand: () => number): T[] {
+  const copy = src.slice();
+  times(rmCount, () => {
+    const rmDex = Math.floor(rand() * copy.length);
+    copy.splice(rmDex, 1);
+  });
+  return copy;
 }
 
 export function logGraph(graph: Graph): void {
@@ -121,7 +120,15 @@ function makeDependentRows(
   const random = pseudoRandom();
   const rows = [];
   for (let l = 0; l < numRows; l++) {
-    const row = makeRow(prevRow, counter, staticFraction, nSources, framework, l, random);
+    const row = makeRow(
+      prevRow,
+      counter,
+      staticFraction,
+      nSources,
+      framework,
+      l,
+      random
+    );
     rows.push(row);
     prevRow = row;
   }
@@ -135,7 +142,7 @@ function makeRow(
   nSources: number,
   framework: ReactiveFramework,
   layer: number,
-  random: ()=>number,
+  random: () => number
 ): Computed<number>[] {
   return sources.map((_, myDex) => {
     const mySourceIndices = [];

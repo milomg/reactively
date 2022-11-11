@@ -21,12 +21,12 @@ export function graphPerf(
   graph: Graph,
   graphName: string,
   iterations: number,
-  readNth: number,
+  readFraction: number,
   framework: ReactiveFramework
 ): GraphTestResult {
-  const name = `${graphName} i=${iterations} r=${readNth}`;
+  const name = `${graphName} i=${iterations} r=${readFraction}`;
   const sum = withPerf(name, 1, () =>
-    runGraph(graph, iterations, readNth, framework)
+    runGraph(graph, iterations, readFraction, framework)
   );
   return { name, sum };
 }
