@@ -1,13 +1,12 @@
 import { promiseDelay } from "./util/AsyncUtil";
+import { frameworkTest } from "./util/FrameworkTest";
 import { ReactiveFramework } from "./util/ReactiveFramework";
 import { reactivelyValue } from "./util/ReactivelyValue";
 
-const frameworks = [reactivelyValue];
-
-frameworks.forEach(runTests);
+[reactivelyValue].forEach(runTests);
 
 function runTests(f: ReactiveFramework) {
-  test(`${f.name} | async modify`, async () => {
+  frameworkTest(f, "async modify", async () => {
     return f.withBatch(async () => {
       const a = f.signal(1);
       const b = f.computed(() => a.read() + 10);
@@ -16,7 +15,7 @@ function runTests(f: ReactiveFramework) {
     });
   });
 
-  test(`${f.name} | async modify in reaction before await`, async () => {
+  frameworkTest(f, "async modify in reaction before await", async () => {
     return f.withBatch(async () => {
       const s = f.signal(1);
       const a = f.computed(async () => {
@@ -30,7 +29,7 @@ function runTests(f: ReactiveFramework) {
     });
   });
 
-  test(`${f.name} | async modify in reaction after await`, async () => {
+  frameworkTest(f, "async modify in reaction after await", async () => {
     return f.withBatch(async () => {
       const s = f.signal(1);
       const a = f.computed(async () => {
