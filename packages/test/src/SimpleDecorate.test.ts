@@ -1,5 +1,5 @@
 import { reactively, HasReactive } from "@reactively/decorate";
-import { logHasReactive } from "./ReactiveLogging";
+import { logHasReactive } from "./util/ReactiveLogging";
 
 test("no reactive properties", () => {
   class NotMuch extends HasReactive {}
