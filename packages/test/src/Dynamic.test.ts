@@ -1,100 +1,110 @@
-import { $r as _ } from "@reactively/wrap";
+import { frameworkTest } from "./util/FrameworkTest";
+import { ReactiveFramework } from "./util/ReactiveFramework";
+import { reactivelyValue } from "./util/ReactivelyValue";
 
-/*
-a-c
- %
-b
-*/
-test("dynamic sources recalculate correctly", () => {
-  const a = _(false);
-  const b = _(2);
-  let count = 0;
+[reactivelyValue].forEach(runTests);
 
-  const c = _(() => {
-    count++;
-    a() || b();
+function runTests(f: ReactiveFramework): void {
+  /*
+    a  b          a 
+    | /     or    | 
+    c             c
+  */
+  frameworkTest(f, "dynamic sources recalculate correctly", () => {
+    const a = f.signal(false);
+    const b = f.signal(2);
+    let count = 0;
+
+    const c = f.computed(() => {
+      count++;
+      a.read() || b.read();
+    });
+
+    c.read();
+    expect(count).toBe(1);
+    a.write(true);
+    c.read();
+    expect(count).toBe(2);
+
+    b.write(4);
+    c.read();
+    expect(count).toBe(2);
   });
 
-  c();
-  expect(count).toBe(1);
-  a.set(true);
-  c();
-  expect(count).toBe(2);
+  /*
+  dependency is dynamic: sometimes l depends on b, sometimes not.
+     s          s
+    / \        / \
+   a   b  or  a   b
+    \ /        \
+     l          l
+  */
+  frameworkTest(
+    f,
+    "dynamic sources don't re-execute a parent unnecessarily",
+    () => {
+      const s = f.signal(2);
+      const a = f.computed(() => s.read() + 1);
+      let bCount = 0;
+      const b = f.computed(() => {
+        // b depends on s, so b's always dirty when s changes, but b may be unneeded.
+        bCount++;
+        return s.read() + 10;
+      });
+      const l = f.computed(() => {
+        let result = a.read();
+        if (result & 0x1) {
+          result += b.read(); // only execute b if a is odd
+        }
+        return result;
+      });
 
-  b.set(4);
-  c();
-  expect(count).toBe(2);
-});
-
-/*
-dependency is dynamic: sometimes l depends on b, sometimes not.
-  s          s
- / \        / \
-a   b  or  a   b
- \ /        \
-  l          l
-*/
-test("dynamic sources don't re-execute a parent unnecessarily", () => {
-  const s = _(2);
-  const a = _(() => s() + 1);
-  let bCount = 0;
-  const b = _(() => {
-    // b depends on s, so b's always dirty when s changes, but b may be unneeded.
-    bCount++;
-    return s() + 10;
-  });
-  const l = _(() => {
-    let result = a();
-    if (result & 0x1) {
-      result += b(); // only execute b if a is odd
+      expect(l.read()).toEqual(15);
+      expect(bCount).toEqual(1);
+      s.write(3);
+      expect(l.read()).toEqual(4);
+      expect(bCount).toEqual(1);
     }
-    return result;
-  });
+  );
 
-  expect(l()).toEqual(15);
-  expect(bCount).toEqual(1);
-  s.set(3);
-  expect(l()).toEqual(4);
-  expect(bCount).toEqual(1);
-});
+  /*
+    s
+    |
+    l
+  */
+  frameworkTest(f, "dynamic source disappears entirely", () => {
+    const s = f.signal(1);
+    let done = false;
+    let count = 0;
 
-/*
-  s
-  |
-  l
-*/
-test("dynamic source disappears entirely", () => {
-  const s = _(1);
-  let done = false;
-  let count = 0;
+    const c = f.computed(() => {
+      count++;
 
-  const c = _(() => {
-    count++;
-
-    if (done) {
-      return 0;
-    } else {
-      const value = s();
-      if (value > 2) {
-        done = true; // break the link between s and c
+      if (done) {
+        return 0;
+      } else {
+        const value = s.read();
+        if (value > 2) {
+          done = true; // break the link between s and c
+        }
+        return value;
       }
-      return value;
-    }
+    });
+
+    expect(c.read()).toBe(1);
+    expect(count).toBe(1);
+    s.write(3);
+    expect(c.read()).toBe(3);
+    expect(count).toBe(2);
+
+    s.write(1); // we've now locked into 'done' state
+    expect(c.read()).toBe(0);
+    expect(count).toBe(3);
+
+    // we're still locked into 'done' state, and count no longer advances
+    // in fact, c() will never execute again..
+    s.write(0);
+    expect(c.read()).toBe(0);
+    expect(count).toBe(3);
   });
-
-  expect(c()).toBe(1);
-  expect(count).toBe(1);
-  s.set(3);
-  expect(c()).toBe(3);
-  expect(count).toBe(2);
-
-  s.set(1); // we've now locked into 'done' state
-  expect(c()).toBe(0);
-  expect(count).toBe(3);
-
-  // we're still locked into 'done' state, and count no longer advances
-  // in fact, c() will never execute again..
-  s.set(0); 
-  expect(c()).toBe(0);
-  expect(count).toBe(3);
-});
+}
