@@ -13,72 +13,72 @@ import { solidFramework } from "./SolidFramework";
 
 const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
-  // { framework: reactivelyValue, testPullCounts: true },
-  // { framework: solidFramework },
+  { framework: reactivelyValue, testPullCounts: true },
+  { framework: solidFramework },
   { framework: preactSignalFramework },
-  // {
-  //   framework: reactivelyDecorate,
-  //   testPullCounts: true,
-  //   makeGraph: makeDecoratedGraph,
-  // },
+  {
+    framework: reactivelyDecorate,
+    testPullCounts: true,
+    makeGraph: makeDecoratedGraph,
+  },
 ];
 
 /** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
  * so only some configrations work for decorator tests too */
 const decoratableTests: TestConfig[] = [
-  // {
-  //   name: "read 20%",
-  //   width: 10, // can't change for decorator tests
-  //   staticFraction: 1, // can't change for decorator tests
-  //   nSources: 2, // can't change for decorator tests
-  //   totalLayers: 10,
-  //   readNth: 5,
-  //   iterations: 100000,
-  //   expected: {},
-  // },
+  {
+    name: "read 20%",
+    width: 10, // can't change for decorator tests
+    staticFraction: 1, // can't change for decorator tests
+    nSources: 2, // can't change for decorator tests
+    totalLayers: 10,
+    readNth: 5,
+    iterations: 100000,
+    expected: {},
+  },
 ];
 
 const baseTests: TestConfig[] = [
-  // {
-  //   name: "deep",
-  //   width: 5,
-  //   totalLayers: 1000,
-  //   staticFraction: 1,
-  //   nSources: 3,
-  //   readNth: 1,
-  //   iterations: 500,
-  //   expected: {},
-  // },
-  // {
-  //   name: "deep and webbed",
-  //   width: 5,
-  //   totalLayers: 1000,
-  //   staticFraction: 1,
-  //   nSources: 5,
-  //   readNth: 1,
-  //   iterations: 500,
-  //   expected: {},
-  // },
-  // {
-  //   name: "wide",
-  //   width: 1000,
-  //   totalLayers: 5,
-  //   staticFraction: 1,
-  //   nSources: 2,
-  //   readNth: 1,
-  //   iterations: 10000,
-  //   expected: {},
-  // },
-  // {
-  //   name: "wide and webbed",
-  //   width: 1000,
-  //   totalLayers: 5,
-  //   staticFraction: 1,
-  //   nSources: 25,
-  //   readNth: 1,
-  //   iterations: 3000,
-  //   expected: {},
-  // },
+  {
+    name: "deep",
+    width: 5,
+    totalLayers: 1000,
+    staticFraction: 1,
+    nSources: 3,
+    readNth: 1,
+    iterations: 500,
+    expected: {},
+  },
+  {
+    name: "deep and webbed",
+    width: 5,
+    totalLayers: 1000,
+    staticFraction: 1,
+    nSources: 5,
+    readNth: 1,
+    iterations: 500,
+    expected: {},
+  },
+  {
+    name: "wide",
+    width: 1000,
+    totalLayers: 5,
+    staticFraction: 1,
+    nSources: 2,
+    readNth: 1,
+    iterations: 10000,
+    expected: {},
+  },
+  {
+    name: "wide and webbed",
+    width: 1000,
+    totalLayers: 5,
+    staticFraction: 1,
+    nSources: 25,
+    readNth: 1,
+    iterations: 3000,
+    expected: {},
+  },
   // {
   //   name: "medium",
   //   width: 100,
@@ -99,16 +99,16 @@ const baseTests: TestConfig[] = [
   //   iterations: 4000,
   //   expected: {},
   // },
-  {
-    name: "verifying", // seems to take a very long time in preact..
-    width: 100,
-    totalLayers: 15,
-    staticFraction: 3/4,
-    nSources: 6,
-    readNth: 1,
-    iterations: 20,
-    expected: {},
-  },
+  // {
+  //   name: "verifying", // seems to take a very long time in preact..
+  //   width: 100,
+  //   totalLayers: 15,
+  //   staticFraction: 3/4,
+  //   nSources: 6,
+  //   readNth: 1,
+  //   iterations: 20,
+  //   expected: {},
+  // },
 ];
 
 export interface PerfFramework {
