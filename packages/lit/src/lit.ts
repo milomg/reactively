@@ -9,8 +9,8 @@ import { Reactive } from "@reactively/core";
 
 /** An extension to LitElement that enables two additional property decorations (for a total of 3.)
  *  `@property` - lit properties that trigger an update/render when they change, optionally mirrored to html (unchanged from lit)
- *  `@reactive` - reactive properties that update when their @reactive dependencies change
- *                they do not trigger update/render (from @reactively/decorate)
+ *  `@reactively` - reactive properties that update when their @reactively dependencies change
+ *                  they do not trigger update/render (from @reactively/decorate)
  *  `@reactiveProperty` - a combination of the above two, a reactive property that tracks dependencies
  *                        and triggers an update/render when it changes. (from @reactively/decorate)
  */

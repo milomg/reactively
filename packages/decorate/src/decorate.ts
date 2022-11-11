@@ -24,7 +24,7 @@ as specified in the typescript handbook (Sep 2022). Some differences:
   inititialization.  
 */
 
-/** Decorate a `@reactive` property in a class.
+/** Decorate a `@reactively` property in a class.
  *
  * The decorated property can be a value, a method, or a get accessor.
  * The class must inherit from HasReactive (or ReactiveLitElement) */

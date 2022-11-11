@@ -1,5 +1,4 @@
 import "./ReactiveLitExample2";
-import { logHasReactive } from "../../test/src/ReactiveLogging";
 import { withElement } from "./WithElement";
 
 describe("reactive lit element with getter", () => {
