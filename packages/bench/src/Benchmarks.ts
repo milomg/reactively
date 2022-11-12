@@ -1,50 +1,39 @@
-import v8 from "v8-natives";
-import { withPerfLog, withPerfLogN } from "../../test/src/util/PerfUtil";
-import { promiseDelay } from "../../test/src/util/AsyncUtil";
-import { PerfTest, perfTests } from "../../test/src/util/PerfTests";
-import { GarbageTrack } from "./GarbageTracking";
+import { parseArgs, ParseArgsConfig } from "node:util";
+import { makePerfList } from "../../test/src/util/AllPerfTests";
+import { logPerfResultHeaders } from "../../test/src/util/PerfLogging";
+import { benchmarkTest } from "./NodeBenchmark";
 
-const tests = perfTests({
-  withPerf,
-  collectGarbage: v8.collectGarbage,
-  optimizeFunctionOnNextCall: v8.optimizeFunctionOnNextCall,
-});
+const options = {
+  quick: { type: "boolean" },
+  repeats: { type: "string" },
+};
 
-const gcTrack = new GarbageTrack();
-
-function withPerf<T>(name: string, times: number, fn: () => T): T {
-  return withPerfLogN(name, times, () => {
-    return gcTrack.watch(name, fn);
-  });
-}
-
-const asyncTests = tests.map(async (test) => {
-  runTest(test);
-  await promiseDelay(10); // leave time to run deferred items
-});
-
-async function main() {
-  await Promise.all(asyncTests);
-  // await gcTrack.report();
-}
+const { values } = parseArgs({ options } as ParseArgsConfig);
+const testOptions = {
+  quick: values?.quick as boolean,
+};
+const testRepeats = asNaturalNumber(values?.repeats);
 
 main();
 
-function runTest(test: PerfTest) {
-  const { run, config, testPullCounts } = test;
-  const result = run();
-  const { expected } = config;
+async function main() {
+  const tests = makePerfList(testOptions);
 
-  if (expected.sum) {
-    console.assert(
-      result.sum == expected.sum,
-      `sum ${test.name} result:${result.sum} expected:${expected.sum}`
-    );
+  logPerfResultHeaders();
+  for (const t of tests) {
+    await benchmarkTest(t, testRepeats);
   }
-  if (expected.count && (config.readFraction === 1 || testPullCounts)) {
-    console.assert(
-      result.count === expected.count,
-      `count ${test.name} result:${result.count} expected:${expected.count}`
-    );
+}
+
+function asNaturalNumber(value: any): number | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  } else {
+    const int = Math.abs(Number.parseInt(value));
+    if (Number.isFinite(int)) {
+      return int;
+    } else {
+      return undefined;
+    }
   }
 }

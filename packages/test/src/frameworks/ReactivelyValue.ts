@@ -1,16 +1,16 @@
 import { Reactive } from "@reactively/core";
-import { ReactiveFramework, Signal } from "./ReactiveFramework";
+import { ReactiveFramework, Signal } from "../util/ReactiveFramework";
 
 function wrapReactive<T>(initialValue: T): Signal<T> {
   const r = new Reactive(initialValue);
   return {
-    write: (v: T) => r.set(v),
-    read: () => r.get(),
+    write: (v: T) => (r.value = v),
+    read: () => r.value,
   };
 }
 
-export const reactivelyRaw: ReactiveFramework = {
-  name: "@reactively/raw",
+export const reactivelyValue: ReactiveFramework = {
+  name: "@reactively/value",
   signal: wrapReactive,
   computed: wrapReactive as any,
   effect: wrapReactive,

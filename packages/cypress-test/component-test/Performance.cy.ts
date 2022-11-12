@@ -1,22 +1,32 @@
-import { perfTests } from "../../test/src/util/PerfTests";
-import { withPerf } from "./CypressPerfUtil";
+import {
+  makePerfList
+} from "../../test/src/util/AllPerfTests";
+import { runGraph } from "../../test/src/util/DependencyGraph";
+import { logPerfResult } from "../../test/src/util/PerfLogging";
+import { runTimed } from "../../test/src/util/PerfUtil";
+import {
+  TestResult,
+  TimingResult,
+  verifyBenchResult
+} from "./../../test/src/util/PerfTests";
 
-const tests = perfTests({
-  withPerf,
-  collectGarbage: () => {},
-  optimizeFunctionOnNextCall: () => {},
-});
-
-tests.forEach(({ name, run, config, testPullCounts }) => {
+const benchmarks = makePerfList({});
+benchmarks.forEach((frameworkTest) => {
+  const { config, perfFramework } = frameworkTest;
+  const { framework } = perfFramework;
+  const { iterations, readFraction } = config;
+  const name = `${perfFramework.framework.name}: ${config.name || ""}`;
   it(name, () => {
-    const result = run();
-    const { expected } = config;
+    const { graph, counter } = perfFramework.makeGraph(frameworkTest);
 
-    if (expected.sum) {
-      expect(result.sum).equals(expected.sum);
-    }
-    if (expected.count && (config.readFraction === 1 || testPullCounts)) {
-      expect(result.count).equals(expected.count);
-    }
+    const timedResult = runTimed(() =>
+      runGraph(graph, iterations, readFraction, framework)
+    );
+    const timingResult: TimingResult<TestResult> = {
+      result: { sum: timedResult.result, count: counter.count },
+      timing: { time: timedResult.time },
+    };
+    logPerfResult(frameworkTest, timingResult);
+    verifyBenchResult(frameworkTest, timingResult);
   });
 });

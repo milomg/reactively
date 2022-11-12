@@ -1,41 +1,126 @@
-import { makeDecoratedGraph } from "./DecoratedGraph";
-import { GraphAndCounter, makeGraph as doMakeGraph } from "./DependencyGraph";
+import { TestWithFramework } from "./AllPerfTests";
+import { GraphAndCounter } from "./DependencyGraph";
 import { TestResult } from "./PerfTests";
-import { preactSignalFramework } from "./PreactSignalFramework";
 import { ReactiveFramework } from "./ReactiveFramework";
-import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
-import { reactivelyRaw } from "./ReactivelyRaw";
-import { reactivelyValue } from "./ReactivelyValue";
-import { solidFramework } from "./SolidFramework";
+import { solidFramework } from "../frameworks/SolidFramework";
+import { reactivelyFramework } from "../frameworks/ReactivelyFramework";
+import { preactSignalFramework } from "../frameworks/PreactSignalFramework";
+import { reactivelyDecorate } from "../frameworks/ReactivelyDecorateFramework";
+import { makeDecoratedGraph } from "../frameworks/DecoratedGraph";
 
-const frameworkInfo: FrameworkInfo[] = [
-  { framework: reactivelyRaw, testPullCounts: true },
-  { framework: reactivelyValue, testPullCounts: true },
+/** Parameters for a running a performance benchmark test
+ *
+ * The benchmarks create a rectangular grid of reactive elements, with
+ * mutable signals in the first level, computed elements in the middle levels,
+ * and read effect elements in the last level.
+ *
+ * Each test iteration modifies one signal, and then reads specified
+ * fraction of the effect elements.
+ *
+ * Each non-signal node sums values from a specified number of elements
+ * in the preceding layer. Some nodes are dynamic, and read vary
+ * the number of sources the read for the sum.
+ *
+ * Tests may optionally provide result values to verify the sum
+ * of all read effect elements in all iterations, and the total
+ * number of non-signal updated.
+ */
+export interface TestConfig {
+  /** friendly name for the test, should be unique */
+  name?: string;
+
+  /** width of dependency graph to construct */
+  width: number;
+
+  /** depth of dependency graph to construct */
+  totalLayers: number;
+
+  /** fraction of nodes that are static */ // TODO change to dynamicFraction
+  staticFraction: number;
+
+  /** construct a graph with number of sources in each node */
+  nSources: number;
+
+  /** fraction of [0, 1] elements in the last layer from which to read values in each test iteration */
+  readFraction: number;
+
+  /** number of test iterations */
+  iterations: number;
+
+  /** sum and count of all iterations, for verification */
+  expected: Partial<TestResult>;
+}
+
+export interface FrameworkInfo {
+  /** wrapper/adapter for a benchmarking a reactive framework */
+  framework: ReactiveFramework;
+
+  /** list of tests to always skip for this framework (e.g. for bugs) */
+  skipTests?: string[];
+
+  /** verify the number of nodes executed matches the expected number */
+  testPullCounts?: boolean;
+
+  /** Custom function to construct a dependency graph for benchmarking.  */
+  makeGraph?: (testWithFramework: TestWithFramework) => GraphAndCounter;
+}
+
+export const frameworkInfo: FrameworkInfo[] = [
+  { framework: reactivelyFramework, testPullCounts: true },
   { framework: solidFramework },
-  { framework: preactSignalFramework },
   {
-    framework: reactivelyDecorate,
-    testPullCounts: true,
-    makeGraph: makeDecoratedGraph, 
+    framework: preactSignalFramework,
+    skipTests: ["very dynamic"],
   },
+  // { framework: reactivelyValue, testPullCounts: true },
+  // {
+  //   framework: reactivelyDecorate,
+  //   testPullCounts: true,
+  //   makeGraph: makeDecoratedGraph,
+  // },
 ];
 
-/** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
- * so only some configrations work for decorator tests too */
-const decoratableTests: TestConfig[] = [
+export const perfTests: TestConfig[] = [
   {
-    name: "read 20%",
+    name: "simple component",
     width: 10, // can't change for decorator tests
     staticFraction: 1, // can't change for decorator tests
     nSources: 2, // can't change for decorator tests
-    totalLayers: 10,
+    totalLayers: 5,
     readFraction: 0.2,
-    iterations: 100000,
+    iterations: 600000,
     expected: {},
   },
-];
-
-const baseTests: TestConfig[] = [
+  {
+    name: "dynamic component",
+    width: 10,
+    totalLayers: 10,
+    staticFraction: 3 / 4,
+    nSources: 6,
+    readFraction: 0.2,
+    iterations: 15000,
+    expected: {},
+  },
+  {
+    name: "large web app",
+    width: 1000,
+    totalLayers: 12,
+    staticFraction: .95,
+    nSources: 4,
+    readFraction: 1,
+    iterations: 7000,
+    expected: {},
+  },
+  {
+    name: "wide dense",
+    width: 1000,
+    totalLayers: 5,
+    staticFraction: 1,
+    nSources: 25,
+    readFraction: 1,
+    iterations: 3000,
+    expected: {},
+  },
   {
     name: "deep",
     width: 5,
@@ -47,46 +132,25 @@ const baseTests: TestConfig[] = [
     expected: {},
   },
   {
-    name: "wide",
-    width: 1000,
-    totalLayers: 5,
-    staticFraction: 1,
-    nSources: 2,
+    name: "very dynamic",
+    width: 100,
+    totalLayers: 15,
+    staticFraction: .5,
+    nSources: 6,
     readFraction: 1,
-    iterations: 10000,
-    expected: {},
-  },
-  {
-    name: "wide and webbed",
-    width: 1000,
-    totalLayers: 5,
-    staticFraction: 1,
-    nSources: 25,
-    readFraction: 1,
-    iterations: 3000,
+    iterations: 2000,
     expected: {},
   },
   // {
-  //   name: "medium",
-  //   width: 100,
-  //   totalLayers: 15,
+  //   name: "tiny",
+  //   width: 10,
+  //   totalLayers: 5,
   //   staticFraction: 3 / 4,
-  //   nSources: 6,
+  //   nSources: 4,
   //   readFraction: 1,
-  //   iterations: 4000,
+  //   iterations: 100,
   //   expected: {},
   // },
-  // {
-  //   name: "medium read 20%",
-  //   width: 100,
-  //   totalLayers: 15,
-  //   staticFraction: 3 / 4,
-  //   nSources: 6,
-  //   readFraction: 20,
-  //   iterations: 4000,
-  //   expected: {},
-  // },
-
   // {
   //   name: "verifying", // seems to take a very long time in preact..
   //   width: 100,
@@ -98,67 +162,3 @@ const baseTests: TestConfig[] = [
   //   expected: {},
   // },
 ];
-
-export interface PerfFramework {
-  framework: ReactiveFramework;
-  makeGraph: (testWithFramework: TestWithFramework) => GraphAndCounter;
-  testPullCounts: boolean;
-}
-
-export interface TestConfig {
-  name?: string;
-  width: number;
-  totalLayers: number;
-  staticFraction: number;
-  nSources: number;
-  readFraction: number;
-  iterations: number;
-  expected: TestResult;
-}
-
-export interface TestWithFramework {
-  config: TestConfig;
-  perfFramework: PerfFramework;
-}
-
-const allFrameworks: PerfFramework[] = makeFrameworks(frameworkInfo);
-const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(
-  (f) => f.framework !== reactivelyDecorate
-)!;
-
-type FrameworkInfo = Partial<PerfFramework> & Pick<PerfFramework, "framework">;
-
-function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
-  return infos.map((frameworkInfo) => {
-    const {
-      framework,
-      testPullCounts = false,
-      makeGraph = doMakeGraph,
-    } = frameworkInfo;
-
-    return {
-      framework,
-      testPullCounts,
-      makeGraph,
-    };
-  });
-}
-
-export const allTests: TestWithFramework[] = makeTestList();
-
-function makeTestList(): TestWithFramework[] {
-  const decorable = decoratableTests.flatMap((config) => {
-    return allFrameworks.map((perfFramework) => ({
-      config,
-      perfFramework,
-    }));
-  });
-  const main = baseTests.flatMap((config) => {
-    return basePerfFrameworks.map((perfFramework) => ({
-      config,
-      perfFramework,
-    }));
-  });
-
-  return [...decorable, ...main];
-}

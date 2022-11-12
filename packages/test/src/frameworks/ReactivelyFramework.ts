@@ -4,13 +4,13 @@ import { ReactiveFramework, Signal } from "./ReactiveFramework";
 function wrapReactive<T>(initialValue: T): Signal<T> {
   const r = new Reactive(initialValue);
   return {
-    write: (v: T) => (r.value = v),
-    read: () => r.value,
+    write: (v: T) => r.set(v),
+    read: () => r.get(),
   };
 }
 
-export const reactivelyValue: ReactiveFramework = {
-  name: "@reactively/value",
+export const reactivelyFramework: ReactiveFramework = {
+  name: "@reactively",
   signal: wrapReactive,
   computed: wrapReactive as any,
   effect: wrapReactive,

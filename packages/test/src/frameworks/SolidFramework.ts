@@ -1,4 +1,4 @@
-import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
+import { Computed, ReactiveFramework, Signal } from "../util/ReactiveFramework";
 import {
   batch,
   createEffect,
@@ -27,7 +27,7 @@ function solidEffect<T>(fn: () => T): void {
 }
 
 export const solidFramework: ReactiveFramework = {
-  name: "solid",
+  name: "SolidJS",
   signal: solidSignal,
   computed: solidComputed,
   run: () => {},
