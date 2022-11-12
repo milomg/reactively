@@ -107,4 +107,35 @@ function runTests(f: ReactiveFramework): void {
     expect(c.read()).toBe(0);
     expect(count).toBe(3);
   });
+
+  frameworkTest(f, `small dynamic graph with signal grandparents`, () => {
+    const z = f.signal(3);
+    const x = f.signal(0);
+
+    const y = f.signal(0);
+    const i = f.computed(() => {
+      let a = y.read();
+      z.read();
+      if (!a) {
+        return x.read();
+      } else {
+        return a;
+      }
+    });
+    const j = f.computed(() => {
+      let a = i.read();
+      z.read();
+      if (!a) {
+        return x.read();
+      } else {
+        return a;
+      }
+    });
+    j.read();
+    x.write(1);
+    j.read();
+    y.write(1);
+    j.read();
+  });
+
 }
