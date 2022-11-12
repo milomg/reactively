@@ -1,8 +1,5 @@
 import { makeDecoratedGraph } from "./DecoratedGraph";
-import {
-  GraphAndCounter,
-  makeGraph as genericMakeGraph,
-} from "./DependencyGraph";
+import { GraphAndCounter, makeGraph as doMakeGraph } from "./DependencyGraph";
 import { TestResult } from "./PerfTests";
 import { preactSignalFramework } from "./PreactSignalFramework";
 import { ReactiveFramework } from "./ReactiveFramework";
@@ -19,7 +16,7 @@ const frameworkInfo: FrameworkInfo[] = [
   {
     framework: reactivelyDecorate,
     testPullCounts: true,
-    makeGraph: makeDecoratedGraph,
+    makeGraph: makeDecoratedGraph, 
   },
 ];
 
@@ -32,7 +29,7 @@ const decoratableTests: TestConfig[] = [
     staticFraction: 1, // can't change for decorator tests
     nSources: 2, // can't change for decorator tests
     totalLayers: 10,
-    readFraction: .2,
+    readFraction: 0.2,
     iterations: 100000,
     expected: {},
   },
@@ -42,19 +39,9 @@ const baseTests: TestConfig[] = [
   {
     name: "deep",
     width: 5,
-    totalLayers: 1000,
+    totalLayers: 500,
     staticFraction: 1,
     nSources: 3,
-    readFraction: 1,
-    iterations: 500,
-    expected: {},
-  },
-  {
-    name: "deep and webbed",
-    width: 5,
-    totalLayers: 1000,
-    staticFraction: 1,
-    nSources: 5,
     readFraction: 1,
     iterations: 500,
     expected: {},
@@ -114,12 +101,7 @@ const baseTests: TestConfig[] = [
 
 export interface PerfFramework {
   framework: ReactiveFramework;
-  makeGraph: (
-    width: number,
-    totalLayers: number,
-    staticFraction: number,
-    nSources: number
-  ) => GraphAndCounter;
+  makeGraph: (testWithFramework: TestWithFramework) => GraphAndCounter;
   testPullCounts: boolean;
 }
 
@@ -148,26 +130,12 @@ type FrameworkInfo = Partial<PerfFramework> & Pick<PerfFramework, "framework">;
 
 function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
   return infos.map((frameworkInfo) => {
-    function defaultMakeG(
-      width: number,
-      totalLayers: number,
-      staticFraction: number,
-      nSources: number
-    ): GraphAndCounter {
-      return genericMakeGraph(
-        width,
-        totalLayers,
-        staticFraction,
-        nSources,
-        frameworkInfo.framework
-      );
-    }
-
     const {
       framework,
       testPullCounts = false,
-      makeGraph = defaultMakeG,
+      makeGraph = doMakeGraph,
     } = frameworkInfo;
+
     return {
       framework,
       testPullCounts,

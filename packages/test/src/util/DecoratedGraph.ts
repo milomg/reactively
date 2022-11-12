@@ -1,3 +1,4 @@
+import { TestWithFramework } from "./PerfConfigurations";
 import { HasReactive, reactively } from "@reactively/decorate";
 import { Counter, GraphAndCounter } from "./DependencyGraph";
 import { Computed, Signal } from "./ReactiveFramework";
@@ -87,10 +88,9 @@ class ComputeLayer extends HasReactive implements HasSources {
 export const debugLayers: ComputeLayer[] = [];
 
 export function makeDecoratedGraph(
-  width: number,
-  totalLayers: number,
-  staticFraction: number
+  frameworkTest: TestWithFramework
 ): GraphAndCounter {
+  const { width, totalLayers } = frameworkTest.config;
   const counter = new Counter();
   const sources = new Sources();
 

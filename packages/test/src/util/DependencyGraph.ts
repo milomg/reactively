@@ -1,3 +1,4 @@
+import { TestWithFramework } from "./PerfConfigurations";
 import { times } from "./Iterate";
 import { pseudoRandom } from "./PseudoRandom";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
@@ -22,12 +23,12 @@ export interface GraphAndCounter {
  * @returns the graph
  */
 export function makeGraph(
-  width: number,
-  totalLayers: number,
-  staticFraction = 1,
-  nSources = 2,
-  framework: ReactiveFramework
+  testWithFramework: TestWithFramework
 ): GraphAndCounter {
+  const { perfFramework, config } = testWithFramework;
+  const { framework } = perfFramework;
+  const { width, totalLayers, staticFraction, nSources } = config;
+
   return framework.withBuild(() => {
     const sources = new Array(width).fill(0).map((_, i) => framework.signal(i));
     const counter = new Counter();

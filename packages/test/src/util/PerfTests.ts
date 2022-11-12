@@ -55,20 +55,20 @@ function testName(test: TestWithFramework): string {
 
 function runTest(
   name: string,
-  test: TestWithFramework,
+  testWithFramework: TestWithFramework,
   testLib: TestLib
 ): TestResult {
   testLib.collectGarbage();
 
-  const { config, perfFramework } = test;
+  const { config, perfFramework } = testWithFramework;
   const { makeGraph, framework } = perfFramework;
   // prettier-ignore
-  const { width, totalLayers, staticFraction, readFraction, iterations, nSources } = config;
+  const { readFraction, iterations } = config;
 
   function warmup() {
     const warmupIterations = 100;
     const warmupReadNth = 1;
-    const { graph } = makeGraph(width, totalLayers, staticFraction, nSources);
+    const { graph } = makeGraph(testWithFramework);
     runGraph(graph, warmupIterations, warmupReadNth, framework);
   }
   warmup();
@@ -77,7 +77,7 @@ function runTest(
   warmup();
 
   // prettier-ignore
-  const { graph, counter } = makeGraph(width, totalLayers, staticFraction, nSources);
+  const { graph, counter } = makeGraph(testWithFramework);
   const testRepeats = 8;
   return testLib.withPerf(name, testRepeats, () => {
     counter.count = 0;
