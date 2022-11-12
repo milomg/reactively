@@ -21,7 +21,7 @@ export interface TimedResult<T> {
   time: number;
 }
 
-function runTimed<T>(fn: () => T): TimedResult<T> {
+export function runTimed<T>(fn: () => T): TimedResult<T> {
   const start = performance.now();
   const result = fn();
   const time = performance.now() - start;

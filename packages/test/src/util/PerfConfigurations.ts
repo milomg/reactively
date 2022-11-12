@@ -23,16 +23,16 @@ const frameworkInfo: FrameworkInfo[] = [
 /** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
  * so only some configrations work for decorator tests too */
 const decoratableTests: TestConfig[] = [
-  {
-    name: "read 20%",
-    width: 10, // can't change for decorator tests
-    staticFraction: 1, // can't change for decorator tests
-    nSources: 2, // can't change for decorator tests
-    totalLayers: 10,
-    readFraction: 0.2,
-    iterations: 100000,
-    expected: {},
-  },
+  // {
+  //   name: "read 20%",
+  //   width: 10, // can't change for decorator tests
+  //   staticFraction: 1, // can't change for decorator tests
+  //   nSources: 2, // can't change for decorator tests
+  //   totalLayers: 10,
+  //   readFraction: 0.2,
+  //   iterations: 100000,
+  //   expected: {},
+  // },
 ];
 
 const baseTests: TestConfig[] = [
@@ -66,6 +66,17 @@ const baseTests: TestConfig[] = [
     iterations: 3000,
     expected: {},
   },
+  {
+    name: "tiny",
+    width: 10,
+    totalLayers: 5,
+    staticFraction: 3 / 4,
+    nSources: 4,
+    readFraction: 1,
+    iterations: 100,
+    expected: {},
+  },
+
   // {
   //   name: "medium",
   //   width: 100,

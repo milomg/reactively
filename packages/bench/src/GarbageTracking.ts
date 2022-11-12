@@ -33,6 +33,25 @@ export class GarbageTrack {
     this.observer.disconnect();
   }
 
+  async oneResult(name: string): Promise<number> {
+    await promiseDelay(10); // wait one eventloop cycle until the perfEntries are populated
+
+    const period = this.periods.find((period) => period.name === name);
+    if (!period) {
+      return Promise.reject("no period found");
+    }
+
+    const entries = this.perfEntries.filter(
+      (e) => e.startTime >= period.start && e.startTime < period.end
+    );
+    const totalTime = entries.reduce((t, e) => e.duration + t, 0);
+    return totalTime;
+  }
+
+  destroy() {
+    this.observer.disconnect();
+  }
+
   constructor() {
     this.observer.observe({ entryTypes: ["gc"] });
   }
