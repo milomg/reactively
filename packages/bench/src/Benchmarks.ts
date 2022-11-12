@@ -26,6 +26,7 @@ async function fastestTest<T>(
   fn: () => T
 ): Promise<TimedResult<T>> {
   const asyncResults = mapN(times, async () => {
+    v8.collectGarbage();
     const { result, time } = gcTrack.watch(name, () => runTimed(fn));
     const gcTime = await gcTrack.oneResult(name);
     return { result, timing: { time, gcTime } };
@@ -56,13 +57,22 @@ async function runTest(frameworkTest: TestWithFramework): Promise<void> {
   const { framework } = perfFramework;
   const { expected, iterations, readFraction } = config;
 
-  const testRepeats = 2;
+  const testRepeats = 5;
   const { graph, counter } = makeGraph(frameworkTest);
+
+  function runOnce():number {
+    return runGraph(graph, iterations, readFraction, framework);
+  }
+
+  v8.optimizeFunctionOnNextCall(runOnce);
+  runOnce();
+
   const timedResult = await fastestTest(name, testRepeats, () => {
     counter.count = 0;
-    const sum = runGraph(graph, iterations, readFraction, framework);
+    const sum = runOnce();
     return { sum, count: counter.count };
   });
+
   const timeStr = timedResult.timing.time.toFixed(2).padStart(8, " ");
   const gcTime = timedResult.timing.gcTime?.toFixed(2).padStart(8, " ");
   const rate = (timedResult.result.count / timedResult.timing.time).toFixed(0);
