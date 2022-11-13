@@ -1,7 +1,13 @@
 #
-
-I've been learning how different reactivity libraries work as part of the development of
+Intro ideas:
+- I've been working on a new fine grained reactivity libary called
 [Reactively](https://github.com/modderme123/reactively).
+- It's currently the fastest library in its category.
+- It's related to solid?
+- Fine grained reactivity is a useful tool to add to your toolbox.
+- Algorithms for fine grained reactivity libraries are interesting to explore.
+ I'll contrast some algorithms below.
+
 
 Fine-grained reactivity libraries have been growing in popularity recently.
 Examples include new libraries like
@@ -354,4 +360,24 @@ updateIfNecessary() {
 Ryan describes a related algorithm that powers Solid in his video announcing [Solid 1.5](https://youtu.be/jHDzGYHY2ew?t=5291).
 
 # Benchmarks
+- Show chart
+- tool allows benchmarking various dependency graph configurations
+  - vary size, interconnection density, number of dynamic nodes, number of nodes read 
+  - measure how many nodes are re-executed, time and gc time 
+- For performance sensitive users of these frameworks:
+  - all the frameworks are fast enough for moderate sized graphs (modulo some bugs)
+    - 100s of re-executing elements, framework adds < 1ms 
+  - for more demanding uses, reactively is usually the fastest, solid is the most stable (but may over-execute), 
+    and preact/signal has a slight edge for very deep graphs.
+    - expect this to change as the frameworks improve.
+- For developers of these frameworks
+  - useful tool for further study
+  - Ample opportunity to cross-pollinate. In particular some techniques from reactively may be applicable to solid since it uses a similar algorithm.
+- some issues:
+  - solid executes some nodes unnecessarily
+  - preact hangs in certain configurations of dynamic graphs (discussing)
+- reactively does very well on performance across the board 
+- all of the frameworks stack overflow on exceptionally deep graphs. 
+  - solid is the best.
+  - room for improvement for all the frameworks on this.
 
