@@ -10,6 +10,7 @@ I've been working on a new fine grained reactivity libary called
 Below, I want to explore the algorithms and ideas that make fine grained reactivity libraries interesting and fast.
 
 # Introducing Reactively
+
 Fine-grained reactivity libraries have been growing in popularity recently.
 Examples include new libraries like
 [preact/signals](https://github.com/preactjs/signals),
@@ -182,7 +183,7 @@ graph TD
   C --> D
 ```
 
-This quickly solves the diamond problem by separating the execution of the graph into two phases, one to increase a number of updates and another to update and decrease the number of updates left. 
+This quickly solves the diamond problem by separating the execution of the graph into two phases, one to increase a number of updates and another to update and decrease the number of updates left.
 
 To solve the equality check problem MobX just stores an additional field that tells each node whether any of its parents have changed value when they updated
 
@@ -219,7 +220,6 @@ Additionally, Preact stores an extra field that stores whether any of its source
 
 We can also see how Preact solves the equality check problem:
 
-
 ```mermaid
 graph TD
   A(("A (3)")) -- "(3)" --> B
@@ -227,7 +227,6 @@ graph TD
 ```
 
 When `A` updates, `B` will rerun, but not change its version because it will still return 0, so `C` will not update.
-
 
 ```mermaid
 graph TD
@@ -240,7 +239,7 @@ graph TD
 Like Preact, Reactively uses one down phase and one up phase.
 Instead of version numbers, Reactively uses only graph coloring.
 
-When a node changes, we color it red (dirty) and all of its children green (check). 
+When a node changes, we color it red (dirty) and all of its children green (check).
 This is the first down phase.
 
 ```mermaid
@@ -258,15 +257,15 @@ graph TD
   class D,E,F green;
 ```
 
-In the second phase (up) we ask for the value of `F` 
+In the second phase (up) we ask for the value of `F`
 and follow a procedure internally called `updateIfNecessary()` before returning the value of `F`.
 If `F` is uncolored, it's value does not need to be recomputed and we're done.
 If we ask for the value of `F` and it's node is red, we know that it must be re-executed.
-If `F`'s node is green, we then walk up the graph to find the first red node that we depend on. 
+If `F`'s node is green, we then walk up the graph to find the first red node that we depend on.
 If we don't find a red node, then nothing has changed and the visited nodes are set uncolored.
 If we find a red node, we update the red node, and mark its direct children red.
 
-In this example, we walk up from `F` to `E` and discover that C is red. 
+In this example, we walk up from `F` to `E` and discover that C is red.
 So we update `C`, and mark `E` as red.
 
 ```mermaid
@@ -361,14 +360,21 @@ updateIfNecessary() {
 Ryan describes a related algorithm that powers Solid in his video announcing [Solid 1.5](https://youtu.be/jHDzGYHY2ew?t=5291).
 
 # Benchmarks
+
+Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), CellX, Maverick) are focused on creation time, and update time for a static graph. This doesn't tell us anything about how the chart performs for dynamic data.
+
+We've created a new and more flexible benchmark that allows library authors to create a graph with a given number of layers of nodes and connections between each node, with a certain fraction of the graph dynamically changing sources, and record both execution time and GC time.
+
+What we've discovered is that Reactively is generally the fastest (who would've guessed 😉), Solid has the most consistent performance, and Preact is surprisingly fast for deep graphs (although this also caught a performance cliff in the preact implementation that will hopefully be fixed soon).
+
 - Show chart
 - tool allows benchmarking various dependency graph configurations
-  - vary size, interconnection density, number of dynamic nodes, number of nodes read 
-  - measure how many nodes are re-executed, time and gc time 
+  - vary size, interconnection density, number of dynamic nodes, number of nodes read
+  - measure how many nodes are re-executed, time and gc time
 - For performance sensitive users of these frameworks:
   - all the frameworks are fast enough for moderate sized graphs (modulo some bugs)
-    - 100s of re-executing elements, framework adds < 1ms 
-  - for more demanding uses, reactively is usually the fastest, solid is the most stable (but may over-execute), 
+    - 100s of re-executing elements, framework adds < 1ms
+  - for more demanding uses, reactively is usually the fastest, solid is the most stable (but may over-execute),
     and preact/signal has a slight edge for very deep graphs.
     - expect this to change as the frameworks improve.
 - For developers of these frameworks
@@ -377,7 +383,7 @@ Ryan describes a related algorithm that powers Solid in his video announcing [So
 - some issues:
   - solid executes some nodes unnecessarily
   - preact hangs in certain configurations of dynamic graphs (discussing)
-- reactively does very well on performance across the board 
-- all of the frameworks stack overflow on exceptionally deep graphs. 
+- reactively does very well on performance across the board
+- all of the frameworks stack overflow on exceptionally deep graphs.
   - solid is the best.
   - room for improvement for all the frameworks on this.
