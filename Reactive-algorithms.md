@@ -233,8 +233,6 @@ graph TD
 Like Preact, Reactively uses one down phase and one up phase.
 Instead of version numbers, Reactively uses only graph coloring.
 
-Ryan describes how this system that powers both Reactively and now Solid works in his video announcing [Solid 1.5](https://youtu.be/jHDzGYHY2ew?t=5291).
-
 When a node changes, we color it red (dirty) and all of its children green (check). 
 This is the first down phase.
 
@@ -253,16 +251,16 @@ graph TD
   class D,E,F green;
 ```
 
-In the second phase (up) we ask for the value of F 
-and follow a procedure internally called `updateIfNecessary()` before returning the value of F.
-If F is uncolored, it's value does not need to be recomputed and we're done.
-If we ask for the value of F and it's node is red, we know that it must be re-executed.
-If F's node is green, we then walk up the graph to find the first red node that we depend on. 
+In the second phase (up) we ask for the value of `F` 
+and follow a procedure internally called `updateIfNecessary()` before returning the value of `F`.
+If `F` is uncolored, it's value does not need to be recomputed and we're done.
+If we ask for the value of `F` and it's node is red, we know that it must be re-executed.
+If `F`'s node is green, we then walk up the graph to find the first red node that we depend on. 
 If we don't find a red node, then nothing has changed and the visited nodes are set uncolored.
 If we find a red node, we update the red node, and mark its direct children red.
 
-In this example, we walk up from F to E and discover that C is red. 
-So we update C, and mark E as red.
+In this example, we walk up from `F` to `E` and discover that C is red. 
+So we update `C`, and mark `E` as red.
 
 ```mermaid
 graph TD
@@ -280,7 +278,7 @@ graph TD
   class D,F green;
 ```
 
-Then, we can update E, and mark its children red:
+Then, we can update `E`, and mark its children red:
 
 ```mermaid
 graph TD
@@ -297,8 +295,8 @@ graph TD
   class D green;
 ```
 
-Now we know we must update F. F asks for the value of D and so we `updateIfNecessary` on D,
-and repeat a similar traversal this time with D and B.
+Now we know we must update `F`. `F` asks for the value of D and so we `updateIfNecessary` on `D`,
+and repeat a similar traversal this time with `D` and `B`.
 
 ```mermaid
 graph TD
@@ -324,3 +322,36 @@ graph TD
   E --> F
   D --> F
 ```
+
+In code, the `updateIfNecessary` process looks like this:
+
+```ts
+/** update() if dirty, or a parent turns out to be dirty. */
+updateIfNecessary() {
+  // If we are potentially dirty, see if we have a parent who has actually changed value
+  if (this.state === CacheCheck) {
+    for (const source of this.sources) {
+      source.updateIfNecessary(); // Will change this.state if source calls update()
+      if (this.state === CacheDirty) {
+        // Stop the loop here so we won't trigger updates on other parents unnecessarily
+        // If our computation changes to no longer use some sources, we don't
+        // want to update() a source we used last time, but now don't use.
+        break;
+      }
+    }
+  }
+
+  // If we were already dirty or marked dirty by the step above, update.
+  if (this.state === CacheDirty) {
+    this.update();
+  }
+
+  // By now, we're clean
+  this.state = CacheClean;
+}
+```
+
+Ryan describes a related algorithm that powers Solid in his video announcing [Solid 1.5](https://youtu.be/jHDzGYHY2ew?t=5291).
+
+# Benchmarks
+
