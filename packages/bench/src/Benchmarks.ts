@@ -5,8 +5,7 @@ import { allTests } from "../../test/src/util/PerfConfigurations";
 import { PerfTest, testName } from "../../test/src/util/PerfTests";
 import { runTimed } from "../../test/src/util/PerfUtil";
 import { GarbageTrack } from "./GarbageTracking";
-import { makeGraph, runGraph } from "../../test/src/util/DependencyGraph";
-import { ReadableStreamDefaultController } from "stream/web";
+import { runGraph } from "../../test/src/util/DependencyGraph";
 
 const gcTrack = new GarbageTrack();
 
