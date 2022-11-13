@@ -85,7 +85,7 @@ const baseTests: TestConfig[] = [
     totalLayers: 15,
     staticFraction: 3 / 4,
     nSources: 6,
-    readFraction: 20,
+    readFraction: .2,
     iterations: 4000,
     expected: {},
   },

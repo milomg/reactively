@@ -38,7 +38,7 @@ async function fastestTest<T>(
 }
 
 const asyncTests = allTests.map(async (frameworkTest) => {
-  runTest(frameworkTest);
+  await runTest(frameworkTest);
 });
 
 async function main() {
@@ -74,7 +74,7 @@ async function runTest(frameworkTest: TestWithFramework): Promise<void> {
   const timeStr = timedResult.timing.time.toFixed(2).padStart(8, " ");
   const gcTime = timedResult.timing.gcTime?.toFixed(2).padStart(8, " ");
   const rate = (timedResult.result.count / timedResult.timing.time).toFixed(0);
-  console.log(`${name} | ${timeStr} | ${gcTime} | ${rate}`);
+  console.log(`${name} , ${timeStr} , ${gcTime} , ${rate}`);
 
   const { result } = timedResult;
 

@@ -53,7 +53,7 @@ export function testName(test: TestWithFramework): string {
   const staticStr = `s=${staticFraction}`.padStart(6, " ");
   const iterStr = `i=${iterations}`.padStart(8, " ");
   const nameStr = (test.config.name || "").slice(0, 20).padStart(20, " ");
-  return `${fmName} | ${widthStr} ${sourcesStr} ${staticStr} ${readStr} ${iterStr} ${nameStr}`;
+  return `${fmName} , ${widthStr} ${sourcesStr} ${staticStr} ${readStr} ${iterStr} , ${nameStr}`;
 }
 
 // function runTest(
