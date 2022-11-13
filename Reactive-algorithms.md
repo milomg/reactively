@@ -361,17 +361,31 @@ Ryan describes a related algorithm that powers Solid in his video announcing [So
 
 # Benchmarks
 
-Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), CellX, Maverick) are focused on creation time, and update time for a static graph. This doesn't tell us anything about how the chart performs for dynamic data.
+Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), CellX, Maverick) 
+are focused on creation time, and update time for a static graph. 
+The existing benchmarks aren't very configurable, and don't tell us anything about how the chart performs for dynamic data.
 
 We've created a new and more flexible benchmark that allows library authors to create a graph with a given number of layers of nodes and connections between each node, with a certain fraction of the graph dynamically changing sources, and record both execution time and GC time.
 
-In early experiements with the benchmarking tools, what we've discovered so far is that Reactively is the fastest (who would've guessed 😉). 
-The Solid algorithm performs best on wider graphs. 
-Solid is consistent and stable, but generates a small amount of garbage which limits speed under extreme benchmark conditions.
-The Preact Signal implementation is fast and memory efficient, and works especially well on deep dependency graphs,
-though not as well on wide dependency graphs. 
-The benchmarking also caught a performance bug in Signal that will undoubtedly be fixed soon. 
+In early experiements with the benchmarking tool, 
+what we've discovered so far is that Reactively is the fastest (who would've guessed 😉). 
 
+The frameworks are all plenty fast for typical applications.
+The charts report the number of updated reactive elements per millisecond on an M1 laptop.
+Typical applications will do much more work than a framework benchmark, 
+and at these speeds the framework unlikely to bottleneck overall performance.
+Most important is that the framework not run any user code unnecessarily.
+
+That said, there's learning here to improve performance of all the frameworks.
+* The Solid algorithm performs best on wider graphs. 
+ Solid is consistent and stable, but generates a little garbage which limits speed under these extreme benchmark conditions.
+* The Preact Signal implementation is fast and very memory efficient. 
+Signal works especially well on deep dependency graphs,
+and not as well on wide dependency graphs. 
+The benchmarking also caught a performance bug with dynamic graphs that will undoubtedly be fixed soon. 
+
+
+**Wide graphs**
 <table>
   <tr>
     <td>
@@ -381,6 +395,25 @@ The benchmarking also caught a performance bug in Signal that will undoubtedly b
       <img src="https://user-images.githubusercontent.com/63816/201512655-7437764f-ac2f-4cb4-b8bb-5f1e26722240.png" width="554" height="340">
     </td>
   </tr>
+</table>
+
+
+<table>
+  <tr>
+    <td>
+    <b>Deep Graph</b>
+      <img src="https://user-images.githubusercontent.com/63816/201514471-c12276fa-a7da-41a7-b3a2-0b3c69c23498.png" width="554" height="340"> 
+    </td>
+    <td>
+    <b>Square Graph</b>
+      <img src="https://user-images.githubusercontent.com/63816/201512393-8fe73d98-df03-4b9d-9adb-04a3b9d11615.png" width="554" height="340"> 
+    </td>
+  </tr>
+</table>
+
+
+**Dynamic Graphs**
+<table>
   <tr>
     <td>
       <img src="https://user-images.githubusercontent.com/63816/201512629-084a07b3-24c6-4ef7-b8f4-bee278d86aa6.png" width="554" height="340">
@@ -389,35 +422,4 @@ The benchmarking also caught a performance bug in Signal that will undoubtedly b
       <img src="https://user-images.githubusercontent.com/63816/201512635-f274501d-c968-4881-aa52-98c50b0bf110.png" width="554" height="340">
     </td>
   </tr>
-  <tr>
-    <td>
-      <img src="https://user-images.githubusercontent.com/63816/201512626-849c6335-28dc-442c-b359-984f6495ec84.png" width="554" height="340"> 
-    </td>
-    <td>
-      <img src="https://user-images.githubusercontent.com/63816/201512393-8fe73d98-df03-4b9d-9adb-04a3b9d11615.png" width="554" height="340"> 
-    </td>
-  </tr>
 </table>
-![Deep2](https://user-images.githubusercontent.com/63816/201514471-c12276fa-a7da-41a7-b3a2-0b3c69c23498.png)
-
-
-- Show chart
-- tool allows benchmarking various dependency graph configurations
-  - vary size, interconnection density, number of dynamic nodes, number of nodes read
-  - measure how many nodes are re-executed, time and gc time
-- For performance sensitive users of these frameworks:
-  - all the frameworks are fast enough for moderate sized graphs (modulo some bugs)
-    - 100s of re-executing elements, framework adds < 1ms
-  - for more demanding uses, reactively is usually the fastest, solid is the most stable (but may over-execute),
-    and preact/signal has a slight edge for very deep graphs.
-    - expect this to change as the frameworks improve.
-- For developers of these frameworks
-  - useful tool for further study
-  - Ample opportunity to cross-pollinate. In particular some techniques from reactively may be applicable to solid since it uses a similar algorithm.
-- some issues:
-  - solid executes some nodes unnecessarily
-  - preact hangs in certain configurations of dynamic graphs (discussing)
-- reactively does very well on performance across the board
-- all of the frameworks stack overflow on exceptionally deep graphs.
-  - solid is the best.
-  - room for improvement for all the frameworks on this.
