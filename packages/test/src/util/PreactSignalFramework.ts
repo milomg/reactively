@@ -22,7 +22,7 @@ function preactEffect<T>(fn: () => T): void {
 }
 
 export const preactSignalFramework: ReactiveFramework = {
-  name: "preactSignal",
+  name: "Preact Signals",
   signal: preactSignal,
   computed: preactComputed,
   run: () => {},

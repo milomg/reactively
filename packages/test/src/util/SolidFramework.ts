@@ -27,7 +27,7 @@ function solidEffect<T>(fn: () => T): void {
 }
 
 export const solidFramework: ReactiveFramework = {
-  name: "solid",
+  name: "SolidJS",
   signal: solidSignal,
   computed: solidComputed,
   run: () => {},
