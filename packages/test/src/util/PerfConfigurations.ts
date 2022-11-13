@@ -12,17 +12,20 @@ const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
   // { framework: reactivelyValue, testPullCounts: true },
   { framework: solidFramework },
-  { framework: preactSignalFramework },
+  {
+    framework: preactSignalFramework,
+    skipTests: ["medium", "medium read 20%"],
+  },
   // {
   //   framework: reactivelyDecorate,
   //   testPullCounts: true,
-  //   makeGraph: makeDecoratedGraph, 
+  //   makeGraph: makeDecoratedGraph,
   // },
 ];
 
 /** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
  * so only some configrations work for decorator tests too */
-const decoratableTests: TestConfig[] = [
+const decorableTests: TestConfig[] = [
   {
     name: "read 20%",
     width: 10, // can't change for decorator tests
@@ -66,6 +69,26 @@ const baseTests: TestConfig[] = [
     iterations: 3000,
     expected: {},
   },
+  {
+    name: "medium",
+    width: 100,
+    totalLayers: 15,
+    staticFraction: 3 / 4,
+    nSources: 6,
+    readFraction: 1,
+    iterations: 4000,
+    expected: {},
+  },
+  {
+    name: "medium read 20%",
+    width: 100,
+    totalLayers: 15,
+    staticFraction: 3 / 4,
+    nSources: 6,
+    readFraction: 20,
+    iterations: 4000,
+    expected: {},
+  },
   // {
   //   name: "tiny",
   //   width: 10,
@@ -77,23 +100,13 @@ const baseTests: TestConfig[] = [
   //   expected: {},
   // },
   // {
-  //   name: "medium",
-  //   width: 100,
-  //   totalLayers: 15,
+  //   name: "tiny2",
+  //   width: 5,
+  //   totalLayers: 5,
   //   staticFraction: 3 / 4,
-  //   nSources: 6,
+  //   nSources: 4,
   //   readFraction: 1,
-  //   iterations: 4000,
-  //   expected: {},
-  // },
-  // {
-  //   name: "medium read 20%",
-  //   width: 100,
-  //   totalLayers: 15,
-  //   staticFraction: 3 / 4,
-  //   nSources: 6,
-  //   readFraction: 20,
-  //   iterations: 4000,
+  //   iterations: 10,
   //   expected: {},
   // },
 
@@ -113,6 +126,7 @@ export interface PerfFramework {
   framework: ReactiveFramework;
   makeGraph: (testWithFramework: TestWithFramework) => GraphAndCounter;
   testPullCounts: boolean;
+  skipTests?: string[];
 }
 
 export interface TestConfig {
@@ -136,7 +150,10 @@ const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(
   (f) => f.framework !== reactivelyDecorate
 )!;
 
-type FrameworkInfo = Partial<PerfFramework> & Pick<PerfFramework, "framework">;
+interface FrameworkInfo extends Partial<PerfFramework> {
+  framework: PerfFramework["framework"];
+  skipTests?: string[];
+}
 
 function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
   return infos.map((frameworkInfo) => {
@@ -144,12 +161,14 @@ function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
       framework,
       testPullCounts = false,
       makeGraph = doMakeGraph,
+      skipTests,
     } = frameworkInfo;
 
     return {
       framework,
       testPullCounts,
       makeGraph,
+      skipTests,
     };
   });
 }
@@ -157,18 +176,27 @@ function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
 export const allTests: TestWithFramework[] = makeTestList();
 
 function makeTestList(): TestWithFramework[] {
-  const decorable = decoratableTests.flatMap((config) => {
-    return allFrameworks.map((perfFramework) => ({
-      config,
-      perfFramework,
-    }));
+  const decorable = allFrameworks.flatMap((perfFramework) => {
+    return filterTests(decorableTests, perfFramework);
   });
-  const main = baseTests.flatMap((config) => {
-    return basePerfFrameworks.map((perfFramework) => ({
-      config,
-      perfFramework,
-    }));
+  const base = basePerfFrameworks.flatMap((perfFramework) => {
+    return filterTests(baseTests, perfFramework);
   });
+  return [...decorable, ...base];
+}
 
-  return [...decorable, ...main];
+// remove 'skipTests' from the test config for this framework
+function filterTests(
+  tests: TestConfig[],
+  perfFramework: PerfFramework
+): TestWithFramework[] {
+  const unSkipped = tests.filter(
+    (test) => !perfFramework.skipTests?.includes(test.name || "unknown test")
+  );
+  return unSkipped.map((config) => {
+    return {
+      config,
+      perfFramework,
+    };
+  });
 }
