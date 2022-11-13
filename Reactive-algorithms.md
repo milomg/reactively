@@ -1,14 +1,15 @@
 #
-Intro ideas:
-- I've been working on a new fine grained reactivity libary called
-[Reactively](https://github.com/modderme123/reactively).
-- It's currently the fastest library in its category.
-- It's related to solid?
-- Fine grained reactivity is a useful tool to add to your toolbox.
-- Algorithms for fine grained reactivity libraries are interesting to explore.
- I'll contrast some algorithms below.
 
+Reactivity is the future of JS frameworks! Reactivity allows you to write lazy variables that are efficiently cached and updated. If you're looking for a new way to write faster JavaScript, look no further.
 
+But how does reactivity work and how is it so efficient?
+
+I've been working on a new fine grained reactivity libary called
+[Reactively](https://github.com/modderme123/reactively) inspired by my work on the [SolidJS team](https://www.solidjs.com/contributors). Reactively is currently the fastest reactive library in its category (take benchmarks with a grain of salt). The ideas from Reactively will help SolidJS become even faster.
+
+Below, I want to explore the algorithms and ideas that make fine grained reactivity libraries interesting and fast.
+
+# Introducing Reactively
 Fine-grained reactivity libraries have been growing in popularity recently.
 Examples include new libraries like
 [preact/signals](https://github.com/preactjs/signals),
@@ -68,7 +69,7 @@ integration with [Lit](https://github.com/lit/lit).
 with [React](https://reactjs.org/).
 Expect more integrations as these reactivity cores mature.
 
-# Goals
+# Goals of a reactive library
 
 The goal of a reactive library is to run reactive functions when their sources have changed.
 
@@ -77,7 +78,7 @@ We have a few properties that a reactive library should have:
 - **Efficient**: Never overexecute reactive elements (if their sources haven't changed, don't rerun)
 - **Glitch free**: Never allow user code to see intermediate state where only some reactive elements have updated (by the time you run a reactive element, every source should be updated)
 
-# Lazy/Eager Evaluation
+# Lazy vs. Eager Evaluation
 
 Reactive libraries can be divided into two categories: lazy and eager.
 
@@ -380,4 +381,3 @@ Ryan describes a related algorithm that powers Solid in his video announcing [So
 - all of the frameworks stack overflow on exceptionally deep graphs. 
   - solid is the best.
   - room for improvement for all the frameworks on this.
-
