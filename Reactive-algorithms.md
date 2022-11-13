@@ -365,17 +365,39 @@ Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/mai
 
 We've created a new and more flexible benchmark that allows library authors to create a graph with a given number of layers of nodes and connections between each node, with a certain fraction of the graph dynamically changing sources, and record both execution time and GC time.
 
-What we've discovered is that Reactively is generally the fastest (who would've guessed 😉), Solid has the most consistent performance, and Preact is surprisingly fast for deep graphs (although this also caught a performance cliff in the preact implementation that will hopefully be fixed soon).
+In early experiements with the benchmarking tools, what we've discovered so far is that Reactively is the fastest (who would've guessed 😉). 
+The Solid algorithm performs best on wider graphs. 
+Solid is consistent and stable, but generates a small amount of garbage which limits speed under extreme benchmark conditions.
+The Preact Signal implementation is fast and memory efficient, and works especially well on deep dependency graphs,
+though not as well on wide dependency graphs. 
+The benchmarking also caught a performance bug in Signal that will undoubtedly be fixed soon. 
 
-<img src="https://user-images.githubusercontent.com/63816/201512393-8fe73d98-df03-4b9d-9adb-04a3b9d11615.png" width="554" height="340">
-![Deep](https://user-images.githubusercontent.com/63816/201512626-849c6335-28dc-442c-b359-984f6495ec84.png)
-![Medium20](https://user-images.githubusercontent.com/63816/201512629-084a07b3-24c6-4ef7-b8f4-bee278d86aa6.png)
-![Medium](https://user-images.githubusercontent.com/63816/201512635-f274501d-c968-4881-aa52-98c50b0bf110.png)
-![WideWebbed](https://user-images.githubusercontent.com/63816/201512655-7437764f-ac2f-4cb4-b8bb-5f1e26722240.png)
-
-![Wide](https://user-images.githubusercontent.com/63816/201512664-fcf21d78-560b-4287-b658-d2e965dc5a6c.png)
-![Read20](https://user-images.githubusercontent.com/63816/201512670-85774617-7a5c-404e-9788-fd286dba8600.png)
-
+<table>
+  <tr>
+    <td>
+      <img src="https://user-images.githubusercontent.com/63816/201512664-fcf21d78-560b-4287-b658-d2e965dc5a6c.png" width="554" height="340">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/63816/201512655-7437764f-ac2f-4cb4-b8bb-5f1e26722240.png" width="554" height="340">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://user-images.githubusercontent.com/63816/201512629-084a07b3-24c6-4ef7-b8f4-bee278d86aa6.png" width="554" height="340">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/63816/201512635-f274501d-c968-4881-aa52-98c50b0bf110.png" width="554" height="340">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://user-images.githubusercontent.com/63816/201512626-849c6335-28dc-442c-b359-984f6495ec84.png" width="554" height="340"> 
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/63816/201512393-8fe73d98-df03-4b9d-9adb-04a3b9d11615.png" width="554" height="340"> 
+    </td>
+  </tr>
+</table>
 
 - Show chart
 - tool allows benchmarking various dependency graph configurations
