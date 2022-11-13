@@ -50,15 +50,14 @@ main();
 
 async function runTest(frameworkTest: TestWithFramework): Promise<void> {
   const { testPullCounts } = frameworkTest.perfFramework;
-
-  const name = testName(frameworkTest);
-
   const { config, perfFramework } = frameworkTest;
   const { framework } = perfFramework;
   const { expected, iterations, readFraction } = config;
+  const name = testName(frameworkTest);
+
 
   const testRepeats = 5;
-  const { graph, counter } = makeGraph(frameworkTest);
+  const { graph, counter } = perfFramework.makeGraph(frameworkTest);
 
   function runOnce():number {
     return runGraph(graph, iterations, readFraction, framework);
