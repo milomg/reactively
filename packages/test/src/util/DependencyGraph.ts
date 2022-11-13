@@ -1,5 +1,4 @@
 import { TestWithFramework } from "./PerfConfigurations";
-import { times } from "./Iterate";
 import { pseudoRandom } from "./PseudoRandom";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
 
@@ -70,10 +69,10 @@ export function runGraph(
       sources[sourceDex].write(i + sourceDex);
     });
     // console.log("reading nth leaves");
-    readLeaves.forEach((leaf) => {
+    for (const leaf of readLeaves) {
       // console.log("reading leaf", "layer:", leaf.layer.layerNumber);
       leaf.read();
-    });
+    }
   }
 
   // console.log("summing all leaves");
@@ -83,16 +82,15 @@ export function runGraph(
 
 function removeElems<T>(src: T[], rmCount: number, rand: () => number): T[] {
   const copy = src.slice();
-  times(rmCount, () => {
+  for (let i = 0; i < rmCount; i++) {
     const rmDex = Math.floor(rand() * copy.length);
     copy.splice(rmDex, 1);
-  });
+  }
   return copy;
 }
 
 export function logGraph(graph: Graph): void {
-  const rows = [graph.sources, ...graph.layers];
-  rows.forEach((row) => {
+  for (const row of [graph.sources, ...graph.layers]) {
     console.log(
       row
         .map((elem) => {
@@ -102,7 +100,7 @@ export function logGraph(graph: Graph): void {
         })
         .join(" ")
     );
-  });
+  }
 }
 
 export class Counter {
@@ -146,11 +144,11 @@ function makeRow(
   random: () => number
 ): Computed<number>[] {
   return sources.map((_, myDex) => {
-    const mySourceIndices = [];
+    const mySources: Computed<number>[] = [];
     for (let sourceDex = 0; sourceDex < nSources; sourceDex++) {
-      mySourceIndices.push((myDex + sourceDex) % sources.length);
+      mySources.push(sources[(myDex + sourceDex) % sources.length]);
     }
-    const mySources = mySourceIndices.map((i) => sources[i]);
+
     const staticNode = random() < staticFraction;
     if (staticNode) {
       // static node, always reference sources
@@ -171,16 +169,12 @@ function makeRow(
       const node = framework.computed(() => {
         counter.count++;
         let sum = first.read();
-        let toRead: Computed<number>[];
-        if (sum & 0x1) {
-          const dropDex = sum % tail.length;
-          toRead = tail.filter((_, i) => i !== dropDex);
-        } else {
-          toRead = tail;
-        }
+        const shouldDrop = sum & 0x1;
+        const dropDex = sum % tail.length;
 
-        for (const src of toRead) {
-          sum += src.read();
+        for (let i = 0; i < tail.length; i++) {
+          if (shouldDrop && i === dropDex) continue;
+          sum += tail[i].read();
         }
 
         return sum;
