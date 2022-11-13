@@ -235,7 +235,8 @@ Instead of version numbers, Reactively uses only graph coloring.
 
 Ryan describes how this system that powers both Reactively and now Solid works in his video announcing [Solid 1.5](https://youtu.be/jHDzGYHY2ew?t=5291).
 
-When a node changes, we color it red (dirty) and all of its children green (check).
+When a node changes, we color it red (dirty) and all of its children green (check). 
+This is the first down phase.
 
 ```mermaid
 graph TD
@@ -252,11 +253,16 @@ graph TD
   class D,E,F green;
 ```
 
-Then, when we ask for the value of D, we can just check if it is uncolored, then we are done.
+In the second phase (up) we ask for the value of F 
+and follow a procedure internally called `updateIfNecessary()` before returning the value of F.
+If F is uncolored, it's value does not need to be recomputed and we're done.
+If we ask for the value of F and it's node is red, we know that it must be re-executed.
+If F's node is green, we then walk up the graph to find the first red node that we depend on. 
+If we don't find a red node, then nothing has changed and the visited nodes are set uncolored.
+If we find a red node, we update the red node, and mark its direct children red.
 
-Similarly, if we ask for the value of D and it is red, we know that it must be updated immediately.
-
-If it is green, we then walk up the graph to find the first red node that we depend on. If we find one, we update it, and mark only its direct children red:
+In this example, we walk up from F to E and discover that C is red. 
+So we update C, and mark E as red.
 
 ```mermaid
 graph TD
@@ -291,7 +297,8 @@ graph TD
   class D green;
 ```
 
-Finally, we update D, which asks for the value of D and so a mini sub-process happens again to check if any of its grandparents are red and if it needs to update:
+Now we know we must update F. F asks for the value of D and so we `updateIfNecessary` on D,
+and repeat a similar traversal this time with D and B.
 
 ```mermaid
 graph TD
