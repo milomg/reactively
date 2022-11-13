@@ -398,6 +398,8 @@ The benchmarking also caught a performance bug in Signal that will undoubtedly b
     </td>
   </tr>
 </table>
+![Deep2](https://user-images.githubusercontent.com/63816/201514471-c12276fa-a7da-41a7-b3a2-0b3c69c23498.png)
+
 
 - Show chart
 - tool allows benchmarking various dependency graph configurations
