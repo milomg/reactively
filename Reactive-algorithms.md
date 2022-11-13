@@ -1,3 +1,67 @@
+#
+
+I've been learning how different reactivity libraries work as part of the development of
+[Reactively](https://github.com/modderme123/reactively).
+
+Fine-grained reactivity libraries have been growing in popularity recently.
+Examples include new libraries like
+[preact/signals](https://github.com/preactjs/signals),
+[usignal](https://github.com/webreflection/usignal),
+and now [reactively](https://github.com/modderme123/reactively),
+as well as longer-standing libraries like [Solid](https://www.solidjs.com/docs/latest),
+[S.js](https://github.com/adamhaile/S), and [CellX](https://github.com/Riim/cellx).
+Using these libraries, programmers can make individual variables and functions _reactive_.
+_Reactive_ functions run automatically, and re-run 'in reaction' to changes in their sources.
+
+With a library like [Reactively](https://github.com/modderme123/reactively),
+you can easily add lazy variables, caching, and incremental recalculation to your typescript/javascript programs.
+Reactively is tiny (<1 kb) and has a simple API.
+Hopefully, Reactively makes it easy for you to explore the benefits of reactive programming.
+
+Here's an example of using [Reactively](https://github.com/modderme123/reactively) for a lazy variable:
+
+```ts
+import { reactive } from "@reactively/core";
+
+const nthUser = reactive(10);
+
+// fetch call is deferred until needed
+const lazyData = reactive(() =>
+  fetch(`https://data.mysite.io/users?n=${nthUser.value}`)
+);
+
+if (needUsers) {
+  useBuffer(await lazyData.value);
+}
+```
+
+Reactive libraries work by maintaining a graph of dependencies between reactive elements.
+Modern libraries find these dependencies automatically,
+so there's little work for the programmer beyond simply labeling reactive elements.
+The library's job is to efficiently figure out which reactive functions to run in responses
+to changes elsewhere in the graph.
+In this exmaple, our dependency graph is quite simple:
+
+<div align='center'>
+
+```mermaid
+graph TD
+  A((nthUser)) --> lazyData
+```
+
+</div >
+
+Reactivity libraries are at the heart of modern web component frameworks like Solid, Qwik, Vue, and Svelte.
+And in some cases you can add fine-grained reactive state management to other libraries like Lit and React.
+[Reactively](https://github.com/modderme123/reactively) comes with a
+[decorator](https://github.com/modderme123/reactively/tree/main/packages/decorate) for adding reactive properties
+to any class,
+as well as prototype
+integration with [Lit](https://github.com/lit/lit).
+[Preact/signals](https://github.com/preactjs/signals) comes with a prototype integration
+with [React](https://reactjs.org/).
+Expect more integrations as these reactivity cores mature.
+
 # Goals
 
 The goal of a reactive library is to run reactive functions when their sources have changed.
@@ -5,7 +69,7 @@ The goal of a reactive library is to run reactive functions when their sources h
 We have a few properties that a reactive library should have:
 
 - **Efficient**: Never overexecute reactive elements (if their sources haven't changed, don't rerun)
-- **Glitchless**: Never allow user code to see intermediate state where only some reactive elements have updated (by the time you run a reactive element, every source should be updated)
+- **Glitch free**: Never allow user code to see intermediate state where only some reactive elements have updated (by the time you run a reactive element, every source should be updated)
 
 # Lazy/Eager Evaluation
 
@@ -33,7 +97,7 @@ graph TD
 
 The charts below consider how a change being made to `A` updates elements that depend on `A`.
 
-There are two core issues that each algorithm needs to carefully consider. The first is what we call the diamond problem, which can be an issue for eager reactive algorithms. They may accidentally evaluate `A,B,D,C` and then need to evaluate `D` a second time because `C` has updated:
+Here are two core issues that each algorithm needs to carefully consider. The first is what we call the diamond problem, which can be an issue for eager reactive algorithms. They may accidentally evaluate `A,B,D,C` and then need to evaluate `D` a second time because `C` has updated:
 
 ```mermaid
 graph TD
@@ -113,7 +177,7 @@ graph TD
 
 This quickly solves the diamond problem by separating the execution of the graph into two phases, one to increase a number of updates and another to update and decrease the number of updates left. 
 
-To solve the equality check problem we just store an additional field that tells each node whether any of its parents have changed value when they updated
+To solve the equality check problem MobX just stores an additional field that tells each node whether any of its parents have changed value when they updated
 
 ## Preact Signals
 
@@ -122,7 +186,7 @@ Preact started with the MobX algorithm, but they switched to a lazy algorithm.
 
 Preact also has two phases, and the first phase "notifies" down from A (we will explain this in a minute), but the second phase recursively looks up the graph from `D`.
 
-They describe an algorithm to check whether the parents of any signal need to be updated before updating that signal. It does this by storing a version number on each node and on each edge of the reactive dependency graph.
+Preact checks whether the parents of any signal need to be updated before updating that signal. It does this by storing a version number on each node and on each edge of the reactive dependency graph.
 
 On a graph like the following where A has just changed but B and C have not yet seen that update we could have something like this:
 
@@ -172,9 +236,6 @@ Instead of version numbers, Reactively uses only graph coloring.
 Ryan describes how this system that powers both Reactively and now Solid works in his video announcing [Solid 1.5](https://youtu.be/jHDzGYHY2ew?t=5291).
 
 When a node changes, we color it red (dirty) and all of its children green (check).
-
-[huh, I think reactively marks children red, and grandchildren green!
-I think you might need another layer in the graph to show how reactively works..]
 
 ```mermaid
 graph TD
