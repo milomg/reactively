@@ -2,7 +2,7 @@ import { parseArgs, ParseArgsConfig } from "node:util";
 import {
   makeTestList
 } from "../../test/src/util/AllPerfTests";
-import { runTest } from "./NodeBenchmark";
+import { benchmarkTest } from "./NodeBenchmark";
 
 const options = {
   quick: { type: "boolean" },
@@ -21,7 +21,7 @@ async function main() {
   const tests = makeTestList(testOptions);
 
   for (const t of tests) {
-    await runTest(t, testRepeats);
+    await benchmarkTest(t, testRepeats);
   }
 }
 

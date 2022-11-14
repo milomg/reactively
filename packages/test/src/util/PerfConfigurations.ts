@@ -59,7 +59,7 @@ export interface FrameworkInfo {
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
   // { framework: reactivelyValue, testPullCounts: true },
-  { framework: solidFramework },
+  // { framework: solidFramework },
   {
     framework: preactSignalFramework,
     skipTests: ["medium", "medium read 20%"],
@@ -147,17 +147,6 @@ export const baseTests: TestConfig[] = [
   //   iterations: 100,
   //   expected: {},
   // },
-  // {
-  //   name: "tiny2",
-  //   width: 5,
-  //   totalLayers: 5,
-  //   staticFraction: 3 / 4,
-  //   nSources: 4,
-  //   readFraction: 1,
-  //   iterations: 10,
-  //   expected: {},
-  // },
-
   // {
   //   name: "verifying", // seems to take a very long time in preact..
   //   width: 100,
