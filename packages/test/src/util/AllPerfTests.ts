@@ -1,5 +1,5 @@
-import { makeDecoratedGraph } from "./DecoratedGraph";
-import { GraphAndCounter, makeGraph as doMakeGraph } from "./DependencyGraph";
+import { config } from "process";
+import { makeGraph as doMakeGraph } from "./DependencyGraph";
 import {
   baseTests,
   decorableTests,
@@ -7,13 +7,7 @@ import {
   frameworkInfo,
   TestConfig,
 } from "./PerfConfigurations";
-import { TestResult } from "./PerfTests";
-import { preactSignalFramework } from "./PreactSignalFramework";
-import { ReactiveFramework } from "./ReactiveFramework";
 import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
-import { reactivelyRaw } from "./ReactivelyRaw";
-import { reactivelyValue } from "./ReactivelyValue";
-import { solidFramework } from "./SolidFramework";
 
 export interface TestWithFramework {
   config: TestConfig;
@@ -46,16 +40,34 @@ function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
   });
 }
 
-export const allTests: TestWithFramework[] = makeTestList();
+export interface TestOverrides {
+  quick?: boolean;
+}
 
-function makeTestList(): TestWithFramework[] {
+export function makeTestList(overrides: TestOverrides): TestWithFramework[] {
   const decorable = allFrameworks.flatMap((perfFramework) => {
     return filterTests(decorableTests, perfFramework);
   });
   const base = basePerfFrameworks.flatMap((perfFramework) => {
     return filterTests(baseTests, perfFramework);
   });
-  return [...decorable, ...base];
+  const tests = [...decorable, ...base];
+
+  if (overrides?.quick) {
+    return replaceConfig(tests, { iterations: 10 });
+  } else {
+    return tests;
+  }
+}
+
+function replaceConfig(
+  tests: TestWithFramework[],
+  partialConfig: Partial<TestConfig>
+): TestWithFramework[] {
+  return tests.map((t) => ({
+    ...t,
+    config: { ...t.config, ...partialConfig },
+  }));
 }
 
 // remove 'skipTests' from the test config for this framework
