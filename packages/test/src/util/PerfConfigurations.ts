@@ -1,6 +1,8 @@
-import { PerfFramework } from "./AllPerfTests";
+import { PerfFramework, TestWithFramework } from "./AllPerfTests";
+import { GraphAndCounter } from "./DependencyGraph";
 import { TestResult } from "./PerfTests";
 import { preactSignalFramework } from "./PreactSignalFramework";
+import { ReactiveFramework } from "./ReactiveFramework";
 import { reactivelyRaw } from "./ReactivelyRaw";
 import { solidFramework } from "./SolidFramework";
 
@@ -47,9 +49,11 @@ export interface TestConfig {
   expected: TestResult;
 }
 
-export interface FrameworkInfo extends Partial<PerfFramework> {
-  framework: PerfFramework["framework"];
+export interface FrameworkInfo {
+  framework: ReactiveFramework;
   skipTests?: string[];
+  testPullCounts?: boolean;
+  makeGraph?: (testWithFramework: TestWithFramework) => GraphAndCounter;
 }
 
 export const frameworkInfo: FrameworkInfo[] = [

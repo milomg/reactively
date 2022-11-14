@@ -1,6 +1,12 @@
 import { makeDecoratedGraph } from "./DecoratedGraph";
 import { GraphAndCounter, makeGraph as doMakeGraph } from "./DependencyGraph";
-import { baseTests, decorableTests, FrameworkInfo, frameworkInfo, TestConfig } from "./PerfConfigurations";
+import {
+  baseTests,
+  decorableTests,
+  FrameworkInfo,
+  frameworkInfo,
+  TestConfig,
+} from "./PerfConfigurations";
 import { TestResult } from "./PerfTests";
 import { preactSignalFramework } from "./PreactSignalFramework";
 import { ReactiveFramework } from "./ReactiveFramework";
@@ -14,12 +20,8 @@ export interface TestWithFramework {
   perfFramework: PerfFramework;
 }
 
-export interface PerfFramework {
-  framework: ReactiveFramework;
-  makeGraph: (testWithFramework: TestWithFramework) => GraphAndCounter;
-  testPullCounts: boolean;
-  skipTests?: string[];
-}
+export type PerfFramework = FrameworkInfo &
+  Required<Pick<FrameworkInfo, "makeGraph">>;
 
 const allFrameworks: PerfFramework[] = makeFrameworks(frameworkInfo);
 const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(

@@ -1,3 +1,4 @@
+import { PerfFramework } from './../../test/src/util/AllPerfTests';
 import v8 from "v8-natives";
 import { mapN } from "../../test/src/util/Iterate";
 import { PerfTest, testName } from "../../test/src/util/PerfTests";
