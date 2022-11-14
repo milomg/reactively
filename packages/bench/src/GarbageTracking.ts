@@ -25,7 +25,7 @@ export class GarbageTrack {
   }
 
   /** report total duration of gc events during one watched function */
-  async oneResult(trackId: number): Promise<number> {
+  async gcDuration(trackId: number): Promise<number> {
     await promiseDelay(10); // wait one eventloop cycle until the perfEntries are populated
 
     const period = this.periods.find((period) => period.trackId === trackId);
