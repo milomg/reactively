@@ -61,6 +61,32 @@ export function testName(test: TestWithFramework): string {
   return `${fmName} , ${widthStr} ${sourcesStr} ${staticStr} ${readStr} ${iterStr} , ${nameStr}`;
 }
 
+export interface ConfigRowStrings {
+  framework: string;
+  size: string;
+  sourcesPerNode: string;
+  readFraction: string;
+  staticFraction: string;
+  iterations: string;
+  test: string;
+}
+
+export function configRowStrings(test: TestWithFramework): ConfigRowStrings {
+  const { config, perfFramework } = test;
+  // prettier-ignore
+  const { width, totalLayers, staticFraction, nSources, readFraction, iterations } = config;
+
+  return {
+    framework: perfFramework.framework.name.padEnd(20),
+    size: `${width}x${totalLayers}`.padEnd(8, " "),
+    sourcesPerNode: `${nSources}`.padStart(2, " "),
+    readFraction: `${readFraction}`.padStart(4, " "),
+    staticFraction: `${staticFraction}`.padStart(4, " "),
+    iterations: `${iterations}`.padStart(6, " "),
+    test: (test.config.name || "").slice(0, 20).padStart(20, " "),
+  };
+}
+
 // function runTest(
 //   name: string,
 //   testWithFramework: TestWithFramework,

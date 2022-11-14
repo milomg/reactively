@@ -1,7 +1,8 @@
+import { TestResult } from "./../../test/src/util/PerfTests";
 import v8 from "v8-natives";
 import { TestWithFramework } from "../../test/src/util/AllPerfTests";
 import { runGraph } from "../../test/src/util/DependencyGraph";
-import { testName } from "../../test/src/util/PerfTests";
+import { testName, configRowStrings } from "../../test/src/util/PerfTests";
 import { runTimed } from "../../test/src/util/PerfUtil";
 import { GarbageTrack } from "./GarbageTracking";
 
@@ -15,6 +16,9 @@ export interface TestTiming {
   gcTime?: number;
 }
 
+/** benchmark a single test under single framework.
+ * The test is run multiple times and the fastest result is logged to the console.
+ */
 export async function benchmarkTest(
   frameworkTest: TestWithFramework,
   testRepeats = 5
@@ -40,26 +44,47 @@ export async function benchmarkTest(
     return { sum, count: counter.count };
   });
 
-  const name = testName(frameworkTest);
-  const timeStr = timedResult.timing.time.toFixed(2).padStart(8, " ");
-  const gcTime = timedResult.timing.gcTime?.toFixed(2).padStart(8, " ");
-  const rate = (timedResult.result.count / timedResult.timing.time).toFixed(0);
-  console.log(`${name} , ${timeStr} , ${gcTime} , ${rate}`);
+  logTestResult(frameworkTest, timedResult);
 
   const { result } = timedResult;
 
   if (expected.sum) {
     console.assert(
       result.sum == expected.sum,
-      `sum ${name} result:${result.sum} expected:${expected.sum}`
+      `sum ${framework.name} ${config.name} result:${result.sum} expected:${expected.sum}`
     );
   }
   if (expected.count && (config.readFraction === 1 || testPullCounts)) {
     console.assert(
       result.count === expected.count,
-      `count ${name} result:${result.count} expected:${expected.count}`
+      `count ${framework.name} ${config.name} result:${result.count} expected:${expected.count}`
     );
   }
+}
+
+function logTestResult(
+  test: TestWithFramework,
+  timedResult: TimedResult<TestResult>
+): void {
+  const configRow = configRowStrings(test);
+  const timingRow = timingRowStrings(timedResult);
+  const row = {...configRow, ...timingRow};
+  const line = Object.values(row).join(" , ");
+  console.log(line);
+}
+
+export interface TimingRowStrings {
+  time: string;
+  gcTime: string;
+  updateRate: string;
+}
+
+function timingRowStrings(timed: TimedResult<TestResult>): TimingRowStrings {
+  const time = timed.timing.time.toFixed(2).padStart(8, " ");
+  const gcTime = timed.timing.gcTime!.toFixed(2).padStart(8, " ");
+  const updateRate = (timed.result.count! / timed.timing.time).toFixed(0);
+
+  return { time, gcTime, updateRate };
 }
 
 /** benchmark a function n times, returning the fastest result and associated timing */
