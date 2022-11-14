@@ -5,8 +5,6 @@ import { testName } from "../../test/src/util/PerfTests";
 import { runTimed } from "../../test/src/util/PerfUtil";
 import { GarbageTrack } from "./GarbageTracking";
 
-const gcTrack = new GarbageTrack();
-
 export interface TimedResult<T> {
   result: T;
   timing: TestTiming;
@@ -84,9 +82,11 @@ async function fastestTest<T>(
 /** run a function, reporting the wall clock time and garbage collection time. */
 async function runTracked<T>(fn: () => T): Promise<TimedResult<T>> {
   v8.collectGarbage();
+  const gcTrack = new GarbageTrack();
   const { result: wrappedResult, trackId } = gcTrack.watch(() => runTimed(fn));
   const gcTime = await gcTrack.gcDuration(trackId);
   const { result, time } = wrappedResult;
   // console.log("trackId", trackId, " gcTime", gcTime, " time:", time);
+  gcTrack.destroy();
   return { result, timing: { time, gcTime } };
 }
