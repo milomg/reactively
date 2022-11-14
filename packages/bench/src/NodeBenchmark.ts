@@ -71,13 +71,18 @@ async function fastestTest<T>(
 ): Promise<TimedResult<T>> {
   const asyncResults = mapN(times, async () => {
     v8.collectGarbage();
-    const { result, time } = gcTrack.watch(name, () => runTimed(fn));
-    const gcTime = await gcTrack.oneResult(name);
+    const { result: wrappedResult, trackId } = gcTrack.watch(() =>
+      runTimed(fn)
+    );
+    const gcTime = await gcTrack.oneResult(trackId);
+    const { result, time } = wrappedResult;
     return { result, timing: { time, gcTime } };
   });
+
   const results = await Promise.all(asyncResults);
   const fastest = results
     .slice(1)
     .reduce((a, b) => (a.timing.time < b.timing.time ? a : b), results[0]);
+
   return fastest;
 }

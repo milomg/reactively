@@ -4,6 +4,7 @@ import { promiseDelay } from "../../test/src/util/AsyncUtil";
 /** Track garbage collection time and report
  * garbage collections that happened during watched function execution.  */
 export class GarbageTrack {
+  private trackId = 0;
   private observer = new PerformanceObserver((list) =>
     this.perfEntries.push(...list.getEntries())
   );
@@ -11,19 +12,20 @@ export class GarbageTrack {
   private periods: WatchPeriod[] = [];
 
   /** look for gc events during the time this function is executing */
-  watch<T>(name: string, fn: () => T): T {
+  watch<T>(fn: () => T): { result: T; trackId: number } {
+    this.trackId++;
     const start = performance.now();
     const result = fn();
     const end = performance.now();
-    this.periods.push({ name, start, end });
+    this.periods.push({ trackId: this.trackId, start, end });
 
-    return result;
+    return { result, trackId: this.trackId };
   }
 
-  async oneResult(name: string): Promise<number> {
+  async oneResult(trackId: number): Promise<number> {
     await promiseDelay(10); // wait one eventloop cycle until the perfEntries are populated
 
-    const period = this.periods.find((period) => period.name === name);
+    const period = this.periods.find((period) => (period.trackId === trackId));
     if (!period) {
       return Promise.reject("no period found");
     }
@@ -45,7 +47,7 @@ export class GarbageTrack {
 }
 
 interface WatchPeriod {
-  name: string;
+  trackId: number;
   start: number;
   end: number;
 }
