@@ -20,19 +20,6 @@ export class GarbageTrack {
     return result;
   }
 
-  /** report collected gc time for each watched function */
-  async report(): Promise<void> {
-    await promiseDelay(10); // wait one eventloop cycle until the perfEntries are populated
-    this.periods.forEach((period) => {
-      const entries = this.perfEntries.filter(
-        (e) => e.startTime >= period.start && e.startTime < period.end
-      );
-      const totalTime = entries.reduce((t, e) => e.duration + t, 0);
-      console.log(`${period.name} >> gcTime: ${totalTime}ms`);
-    });
-    this.observer.disconnect();
-  }
-
   async oneResult(name: string): Promise<number> {
     await promiseDelay(10); // wait one eventloop cycle until the perfEntries are populated
 
