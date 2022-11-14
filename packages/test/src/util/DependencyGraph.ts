@@ -1,4 +1,4 @@
-import { TestWithFramework } from "./PerfConfigurations";
+import { TestWithFramework } from "./AllPerfTests";
 import { pseudoRandom } from "./PseudoRandom";
 import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
 

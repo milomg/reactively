@@ -2,7 +2,8 @@ import { reactivelyRaw } from "./util/ReactivelyRaw";
 import { solidFramework } from "./util/SolidFramework";
 import { logGraph, makeGraph, runGraph } from "./util/DependencyGraph";
 import { ReactiveFramework } from "./util/ReactiveFramework";
-import { TestConfig, TestWithFramework } from "./util/PerfConfigurations";
+import { TestConfig } from "./util/PerfConfigurations";
+import { TestWithFramework } from "./util/AllPerfTests";
 
 // const frameworks = [solidFramework, reactivelyRaw];
 const frameworks = [reactivelyRaw];

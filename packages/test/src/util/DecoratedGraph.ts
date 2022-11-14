@@ -1,5 +1,5 @@
-import { TestWithFramework } from "./PerfConfigurations";
 import { HasReactive, reactively } from "@reactively/decorate";
+import { TestWithFramework } from "./AllPerfTests";
 import { Counter, GraphAndCounter } from "./DependencyGraph";
 import { Computed, Signal } from "./ReactiveFramework";
 
