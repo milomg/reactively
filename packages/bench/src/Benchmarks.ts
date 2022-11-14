@@ -1,6 +1,6 @@
 import { parseArgs, ParseArgsConfig } from "node:util";
 import {
-  makeTestList
+  makePerfList
 } from "../../test/src/util/AllPerfTests";
 import { benchmarkTest } from "./NodeBenchmark";
 
@@ -18,7 +18,7 @@ const testRepeats = asNaturalNumber(values?.repeats);
 main();
 
 async function main() {
-  const tests = makeTestList(testOptions);
+  const tests = makePerfList(testOptions);
 
   for (const t of tests) {
     await benchmarkTest(t, testRepeats);

@@ -1,10 +1,8 @@
-import { config } from "process";
 import { makeGraph as doMakeGraph } from "./DependencyGraph";
 import {
-  baseTests,
-  decorableTests,
   FrameworkInfo,
   frameworkInfo,
+  perfTests,
   TestConfig,
 } from "./PerfConfigurations";
 import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
@@ -44,12 +42,14 @@ export interface TestOverrides {
   quick?: boolean;
 }
 
-export function makeTestList(overrides: TestOverrides): TestWithFramework[] {
+/** return a list of all benchmarks  */
+export function makePerfList(overrides: TestOverrides): TestWithFramework[] {
+  const { decorableConfigs, baseConfigs } = decorableTestConfigs(perfTests);
   const decorable = allFrameworks.flatMap((perfFramework) => {
-    return filterTests(decorableTests, perfFramework);
+    return filterTests(decorableConfigs, perfFramework);
   });
   const base = basePerfFrameworks.flatMap((perfFramework) => {
-    return filterTests(baseTests, perfFramework);
+    return filterTests(baseConfigs, perfFramework);
   });
   const tests = [...decorable, ...base];
 
@@ -58,6 +58,24 @@ export function makeTestList(overrides: TestOverrides): TestWithFramework[] {
   } else {
     return tests;
   }
+}
+
+/** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
+ * so only some configrations work for decorator tests too */
+
+function decorableTestConfigs(configs: TestConfig[]): {
+  decorableConfigs: TestConfig[];
+  baseConfigs: TestConfig[];
+} {
+  const decorableConfigs = configs.filter(isDecorableTest);
+  const baseConfigs = configs.filter((c) => !isDecorableTest(c));
+  return { decorableConfigs, baseConfigs };
+}
+
+function isDecorableTest(config: TestConfig): boolean {
+  return (
+    config.width === 10 && config.staticFraction === 1 && config.nSources === 2
+  );
 }
 
 function replaceConfig(

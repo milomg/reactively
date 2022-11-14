@@ -6,23 +6,23 @@ import { ReactiveFramework } from "./ReactiveFramework";
 import { reactivelyRaw } from "./ReactivelyRaw";
 import { solidFramework } from "./SolidFramework";
 
-/** Parameters for a running a performance benchmark test 
- * 
+/** Parameters for a running a performance benchmark test
+ *
  * The benchmarks create a rectangular grid of reactive elements, with
  * mutable signals in the first level, computed elements in the middle levels,
  * and read effect elements in the last level.
- * 
+ *
  * Each test iteration modifies one signal, and then reads specified
  * fraction of the effect elements.
- * 
- * Each non-signal node sums values from a specified number of elements 
+ *
+ * Each non-signal node sums values from a specified number of elements
  * in the preceding layer. Some nodes are dynamic, and read vary
  * the number of sources the read for the sum.
- * 
+ *
  * Tests may optionally provide result values to verify the sum
  * of all read effect elements in all iterations, and the total
  * number of non-signal updated.
-*/
+ */
 export interface TestConfig {
   /** friendly name for the test, should be unique */
   name?: string;
@@ -50,9 +50,16 @@ export interface TestConfig {
 }
 
 export interface FrameworkInfo {
+  /** wrapper/adapter for a benchmarking a reactive framework */
   framework: ReactiveFramework;
+
+  /** list of tests to always skip for this framework (e.g. for bugs) */
   skipTests?: string[];
+
+  /** verify the number of nodes executed matches the expected number */
   testPullCounts?: boolean;
+
+  /** Custom function to construct a dependency graph for benchmarking.  */
   makeGraph?: (testWithFramework: TestWithFramework) => GraphAndCounter;
 }
 
@@ -71,9 +78,7 @@ export const frameworkInfo: FrameworkInfo[] = [
   // },
 ];
 
-/** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
- * so only some configrations work for decorator tests too */
-export const decorableTests: TestConfig[] = [
+export const perfTests: TestConfig[] = [
   {
     name: "read 20%",
     width: 10, // can't change for decorator tests
@@ -84,9 +89,6 @@ export const decorableTests: TestConfig[] = [
     iterations: 100000,
     expected: {},
   },
-];
-
-export const baseTests: TestConfig[] = [
   {
     name: "deep",
     width: 5,
@@ -133,7 +135,7 @@ export const baseTests: TestConfig[] = [
     totalLayers: 15,
     staticFraction: 3 / 4,
     nSources: 6,
-    readFraction: .2,
+    readFraction: 0.2,
     iterations: 4000,
     expected: {},
   },
@@ -158,4 +160,3 @@ export const baseTests: TestConfig[] = [
   //   expected: {},
   // },
 ];
-
