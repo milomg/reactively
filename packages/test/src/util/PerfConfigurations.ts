@@ -1,14 +1,27 @@
-import { makeDecoratedGraph } from "./DecoratedGraph";
-import { GraphAndCounter, makeGraph as doMakeGraph } from "./DependencyGraph";
+import { PerfFramework } from "./AllPerfTests";
 import { TestResult } from "./PerfTests";
 import { preactSignalFramework } from "./PreactSignalFramework";
-import { ReactiveFramework } from "./ReactiveFramework";
-import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
 import { reactivelyRaw } from "./ReactivelyRaw";
-import { reactivelyValue } from "./ReactivelyValue";
 import { solidFramework } from "./SolidFramework";
 
-const frameworkInfo: FrameworkInfo[] = [
+/** parameters for a running a performance benchmark test */
+export interface TestConfig {
+  name?: string;
+  width: number;
+  totalLayers: number;
+  staticFraction: number;
+  nSources: number;
+  readFraction: number;
+  iterations: number;
+  expected: TestResult;
+}
+
+export interface FrameworkInfo extends Partial<PerfFramework> {
+  framework: PerfFramework["framework"];
+  skipTests?: string[];
+}
+
+export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
   // { framework: reactivelyValue, testPullCounts: true },
   { framework: solidFramework },
@@ -25,7 +38,7 @@ const frameworkInfo: FrameworkInfo[] = [
 
 /** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
  * so only some configrations work for decorator tests too */
-const decorableTests: TestConfig[] = [
+export const decorableTests: TestConfig[] = [
   {
     name: "read 20%",
     width: 10, // can't change for decorator tests
@@ -38,7 +51,7 @@ const decorableTests: TestConfig[] = [
   },
 ];
 
-const baseTests: TestConfig[] = [
+export const baseTests: TestConfig[] = [
   {
     name: "deep",
     width: 5,
@@ -122,81 +135,3 @@ const baseTests: TestConfig[] = [
   // },
 ];
 
-export interface PerfFramework {
-  framework: ReactiveFramework;
-  makeGraph: (testWithFramework: TestWithFramework) => GraphAndCounter;
-  testPullCounts: boolean;
-  skipTests?: string[];
-}
-
-export interface TestConfig {
-  name?: string;
-  width: number;
-  totalLayers: number;
-  staticFraction: number;
-  nSources: number;
-  readFraction: number;
-  iterations: number;
-  expected: TestResult;
-}
-
-export interface TestWithFramework {
-  config: TestConfig;
-  perfFramework: PerfFramework;
-}
-
-const allFrameworks: PerfFramework[] = makeFrameworks(frameworkInfo);
-const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(
-  (f) => f.framework !== reactivelyDecorate
-)!;
-
-interface FrameworkInfo extends Partial<PerfFramework> {
-  framework: PerfFramework["framework"];
-  skipTests?: string[];
-}
-
-function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
-  return infos.map((frameworkInfo) => {
-    const {
-      framework,
-      testPullCounts = false,
-      makeGraph = doMakeGraph,
-      skipTests,
-    } = frameworkInfo;
-
-    return {
-      framework,
-      testPullCounts,
-      makeGraph,
-      skipTests,
-    };
-  });
-}
-
-export const allTests: TestWithFramework[] = makeTestList();
-
-function makeTestList(): TestWithFramework[] {
-  const decorable = allFrameworks.flatMap((perfFramework) => {
-    return filterTests(decorableTests, perfFramework);
-  });
-  const base = basePerfFrameworks.flatMap((perfFramework) => {
-    return filterTests(baseTests, perfFramework);
-  });
-  return [...decorable, ...base];
-}
-
-// remove 'skipTests' from the test config for this framework
-function filterTests(
-  tests: TestConfig[],
-  perfFramework: PerfFramework
-): TestWithFramework[] {
-  const unSkipped = tests.filter(
-    (test) => !perfFramework.skipTests?.includes(test.name || "unknown test")
-  );
-  return unSkipped.map((config) => {
-    return {
-      config,
-      perfFramework,
-    };
-  });
-}

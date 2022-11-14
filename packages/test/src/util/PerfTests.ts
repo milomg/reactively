@@ -1,5 +1,6 @@
+import { TestWithFramework } from "./AllPerfTests";
 import { runGraph } from "./DependencyGraph";
-import { allTests, TestConfig, TestWithFramework } from "./PerfConfigurations";
+import { TestConfig } from "./PerfConfigurations";
 import { TimedResult } from "./PerfUtil";
 
 /* A table driven set of performance tests:
@@ -9,7 +10,11 @@ import { TimedResult } from "./PerfUtil";
 
 /** wrapper for running a performance test on cypresss or jest  */
 export interface TestLib {
-  withPerf: <T>(name: string, times: number, fn: () => T) => Promise<TimedResult<T>>;
+  withPerf: <T>(
+    name: string,
+    times: number,
+    fn: () => T
+  ) => Promise<TimedResult<T>>;
   collectGarbage: () => void;
   optimizeFunctionOnNextCall: (fn: Function) => void;
 }
@@ -34,7 +39,7 @@ export interface PerfTest {
 //   });
 // }
 
-export type TimedTestResult = TimedResult<TestResult> 
+export type TimedTestResult = TimedResult<TestResult>;
 
 export interface TestResult {
   sum?: number;

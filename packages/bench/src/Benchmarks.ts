@@ -1,11 +1,10 @@
-import { TestWithFramework } from "./../../test/src/util/PerfConfigurations";
 import v8 from "v8-natives";
 import { mapN } from "../../test/src/util/Iterate";
-import { allTests } from "../../test/src/util/PerfConfigurations";
 import { PerfTest, testName } from "../../test/src/util/PerfTests";
 import { runTimed } from "../../test/src/util/PerfUtil";
 import { GarbageTrack } from "./GarbageTracking";
 import { runGraph } from "../../test/src/util/DependencyGraph";
+import { allTests, TestWithFramework } from "../../test/src/util/AllPerfTests";
 
 const gcTrack = new GarbageTrack();
 
@@ -54,11 +53,10 @@ async function runTest(frameworkTest: TestWithFramework): Promise<void> {
   const { expected, iterations, readFraction } = config;
   const name = testName(frameworkTest);
 
-
   const testRepeats = 5;
   const { graph, counter } = perfFramework.makeGraph(frameworkTest);
 
-  function runOnce():number {
+  function runOnce(): number {
     return runGraph(graph, iterations, readFraction, framework);
   }
 
