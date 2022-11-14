@@ -1,8 +1,10 @@
 import { performance, PerformanceEntry, PerformanceObserver } from "perf_hooks";
 import { promiseDelay } from "../../test/src/util/AsyncUtil";
 
-/** Track garbage collection time and report
- * garbage collections that happened during watched function execution.  */
+/** Track garbage collection via the PerformanceObserver api.
+ * Watch user provided benchmark functions, and report
+ * execution duration of gc events during the benchmarked function.
+ */
 export class GarbageTrack {
   private trackId = 0;
   private observer = new PerformanceObserver((list) =>
@@ -22,10 +24,11 @@ export class GarbageTrack {
     return { result, trackId: this.trackId };
   }
 
+  /** report total duration of gc events during one watched function */
   async oneResult(trackId: number): Promise<number> {
     await promiseDelay(10); // wait one eventloop cycle until the perfEntries are populated
 
-    const period = this.periods.find((period) => (period.trackId === trackId));
+    const period = this.periods.find((period) => period.trackId === trackId);
     if (!period) {
       return Promise.reject("no period found");
     }
