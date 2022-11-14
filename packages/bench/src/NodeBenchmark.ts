@@ -25,7 +25,6 @@ export async function benchmarkTest(
   const { config, perfFramework } = frameworkTest;
   const { framework } = perfFramework;
   const { expected, iterations, readFraction } = config;
-  const name = testName(frameworkTest);
 
   const { graph, counter } = perfFramework.makeGraph(frameworkTest);
 
@@ -43,6 +42,7 @@ export async function benchmarkTest(
     return { sum, count: counter.count };
   });
 
+  const name = testName(frameworkTest);
   const timeStr = timedResult.timing.time.toFixed(2).padStart(8, " ");
   const gcTime = timedResult.timing.gcTime?.toFixed(2).padStart(8, " ");
   const rate = (timedResult.result.count / timedResult.timing.time).toFixed(0);
@@ -74,9 +74,9 @@ async function fastestTest<T>(
     const run = await runTracked(fn);
     results.push(run);
   }
-  const fastest = results
-    .slice(1)
-    .reduce((a, b) => (a.timing.time < b.timing.time ? a : b), results[0]);
+  const fastest = results.reduce((a, b) =>
+    a.timing.time < b.timing.time ? a : b
+  );
 
   return fastest;
 }
