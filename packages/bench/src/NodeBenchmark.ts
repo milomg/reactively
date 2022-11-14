@@ -1,20 +1,9 @@
-import { TestResult } from "./../../test/src/util/PerfTests";
 import v8 from "v8-natives";
 import { TestWithFramework } from "../../test/src/util/AllPerfTests";
 import { runGraph } from "../../test/src/util/DependencyGraph";
-import { testName, configRowStrings } from "../../test/src/util/PerfTests";
 import { runTimed } from "../../test/src/util/PerfUtil";
+import { logTestResult, TestResult, TimingResult } from "./../../test/src/util/PerfTests";
 import { GarbageTrack } from "./GarbageTracking";
-
-export interface TimedResult<T> {
-  result: T;
-  timing: TestTiming;
-}
-
-export interface TestTiming {
-  time: number;
-  gcTime?: number;
-}
 
 /** benchmark a single test under single framework.
  * The test is run multiple times and the fastest result is logged to the console.
@@ -38,7 +27,7 @@ export async function benchmarkTest(
   v8.optimizeFunctionOnNextCall(runOnce);
   runOnce();
 
-  const timedResult = await fastestTest(testRepeats, () => {
+  const timedResult:TimingResult<TestResult> = await fastestTest(testRepeats, () => {
     counter.count = 0;
     const sum = runOnce();
     return { sum, count: counter.count };
@@ -62,37 +51,12 @@ export async function benchmarkTest(
   }
 }
 
-function logTestResult(
-  test: TestWithFramework,
-  timedResult: TimedResult<TestResult>
-): void {
-  const configRow = configRowStrings(test);
-  const timingRow = timingRowStrings(timedResult);
-  const row = {...configRow, ...timingRow};
-  const line = Object.values(row).join(" , ");
-  console.log(line);
-}
-
-export interface TimingRowStrings {
-  time: string;
-  gcTime: string;
-  updateRate: string;
-}
-
-function timingRowStrings(timed: TimedResult<TestResult>): TimingRowStrings {
-  const time = timed.timing.time.toFixed(2).padStart(8, " ");
-  const gcTime = timed.timing.gcTime!.toFixed(2).padStart(8, " ");
-  const updateRate = (timed.result.count! / timed.timing.time).toFixed(0);
-
-  return { time, gcTime, updateRate };
-}
-
 /** benchmark a function n times, returning the fastest result and associated timing */
 async function fastestTest<T>(
   times: number,
   fn: () => T
-): Promise<TimedResult<T>> {
-  const results: TimedResult<T>[] = [];
+): Promise<TimingResult<T>> {
+  const results: TimingResult<T>[] = [];
   for (let i = 0; i < times; i++) {
     const run = await runTracked(fn);
     results.push(run);
@@ -105,7 +69,7 @@ async function fastestTest<T>(
 }
 
 /** run a function, reporting the wall clock time and garbage collection time. */
-async function runTracked<T>(fn: () => T): Promise<TimedResult<T>> {
+async function runTracked<T>(fn: () => T): Promise<TimingResult<T>> {
   v8.collectGarbage();
   const gcTrack = new GarbageTrack();
   const { result: wrappedResult, trackId } = gcTrack.watch(() => runTimed(fn));

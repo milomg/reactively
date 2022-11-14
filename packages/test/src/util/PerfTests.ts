@@ -1,5 +1,4 @@
 import { TestWithFramework } from "./AllPerfTests";
-import { runGraph } from "./DependencyGraph";
 import { TestConfig } from "./PerfConfigurations";
 import { TimedResult } from "./PerfUtil";
 
@@ -39,11 +38,9 @@ export interface PerfTest {
 //   });
 // }
 
-export type TimedTestResult = TimedResult<TestResult>;
-
 export interface TestResult {
-  sum?: number;
-  count?: number;
+  sum: number;
+  count: number;
 }
 
 export function testName(test: TestWithFramework): string {
@@ -61,30 +58,100 @@ export function testName(test: TestWithFramework): string {
   return `${fmName} , ${widthStr} ${sourcesStr} ${staticStr} ${readStr} ${iterStr} , ${nameStr}`;
 }
 
-export interface ConfigRowStrings {
-  framework: string;
-  size: string;
-  sourcesPerNode: string;
-  readFraction: string;
-  staticFraction: string;
-  iterations: string;
-  test: string;
+export interface TimingResult<T> {
+  result: T;
+  timing: TestTiming;
 }
 
-export function configRowStrings(test: TestWithFramework): ConfigRowStrings {
+export interface TestTiming {
+  time: number;
+  gcTime?: number;
+}
+
+export function logTestResult(
+  test: TestWithFramework,
+  timedResult: TimingResult<TestResult>
+): void {
+  const row = testRowStrings(test, timedResult);
+  const line = Object.values(row).join(" , ");
+  console.log(line);
+}
+
+export function logTestResultHeaders(): void {
+  const row = testReportHeaders();
+  const line = Object.values(row).join(" , ");
+  console.log(line);
+}
+
+export interface PerfRowStrings {
+  framework: string;
+  size: string;
+  nSources: string;
+  "read%": string;
+  "static%": string;
+  nTimes: string;
+  test: string;
+  time: string;
+  gcTime: string;
+  updateRate: string;
+}
+
+const columnWidth = {
+  framework: 20,
+  size: 8,
+  nSources: 8,
+  "read%": 5,
+  "static%": 6,
+  nTimes: 6,
+  test: 20,
+  time: 8,
+  gcTime: 6,
+  updateRate: 10,
+};
+
+function testReportHeaders(): PerfRowStrings {
+  const keys: (keyof PerfRowStrings)[] = Object.keys(columnWidth) as any;
+  const kv = keys.map((key) => [key, key]);
+  const untrimmed = Object.fromEntries(kv);
+  return trimColumns(untrimmed);
+}
+
+function testRowStrings(
+  test: TestWithFramework,
+  timed: TimingResult<TestResult>
+): PerfRowStrings {
   const { config, perfFramework } = test;
   // prettier-ignore
   const { width, totalLayers, staticFraction, nSources, readFraction, iterations } = config;
+  const time = timed.timing.time.toFixed(2);
+  const rawGC = timed.timing.gcTime || 0;
+  const gcTime = rawGC.toFixed(2);
+  const updateRate = (timed.result.count! / timed.timing.time).toFixed(0);
 
-  return {
-    framework: perfFramework.framework.name.padEnd(20),
-    size: `${width}x${totalLayers}`.padEnd(8, " "),
-    sourcesPerNode: `${nSources}`.padStart(2, " "),
-    readFraction: `${readFraction}`.padStart(4, " "),
-    staticFraction: `${staticFraction}`.padStart(4, " "),
-    iterations: `${iterations}`.padStart(6, " "),
-    test: (test.config.name || "").slice(0, 20).padStart(20, " "),
+  const untrimmed = {
+    framework: perfFramework.framework.name,
+    size: `${width}x${totalLayers}`,
+    nSources: `${nSources}`,
+    "read%": `${readFraction}`,
+    "static%": `${staticFraction}`,
+    nTimes: `${iterations}`,
+    test: test.config.name || "",
+    time,
+    gcTime,
+    updateRate,
   };
+  return trimColumns(untrimmed);
+}
+
+function trimColumns(row: PerfRowStrings): PerfRowStrings {
+  const keys: (keyof PerfRowStrings)[] = Object.keys(row) as any;
+  const trimmed = { ...row };
+  const e = keys.map((key) => {
+    const length = columnWidth[key];
+    const value = row[key].slice(0, length).padEnd(length);
+    trimmed[key] = value;
+  });
+  return trimmed;
 }
 
 // function runTest(

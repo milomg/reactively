@@ -46,7 +46,7 @@ export interface TestConfig {
   iterations: number;
 
   /** sum and count of all iterations, for verification */
-  expected: TestResult;
+  expected: Partial<TestResult>;
 }
 
 export interface FrameworkInfo {

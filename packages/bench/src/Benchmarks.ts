@@ -2,6 +2,7 @@ import { parseArgs, ParseArgsConfig } from "node:util";
 import {
   makePerfList
 } from "../../test/src/util/AllPerfTests";
+import { logTestResultHeaders } from "../../test/src/util/PerfTests";
 import { benchmarkTest } from "./NodeBenchmark";
 
 const options = {
@@ -20,6 +21,7 @@ main();
 async function main() {
   const tests = makePerfList(testOptions);
 
+  logTestResultHeaders();
   for (const t of tests) {
     await benchmarkTest(t, testRepeats);
   }
