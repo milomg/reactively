@@ -20,6 +20,28 @@ const basePerfFrameworks: PerfFramework[] = allFrameworks.filter(
   (f) => f.framework !== reactivelyDecorate
 )!;
 
+export interface TestOverrides {
+  quick?: boolean;
+}
+
+/** return a list of all benchmarks  */
+export function makePerfList(overrides: TestOverrides): TestWithFramework[] {
+  const { decorableConfigs, baseConfigs } = decorableTestConfigs(perfTests);
+  const decorable = allFrameworks.flatMap((perfFramework) => {
+    return testsForFramework(decorableConfigs, perfFramework);
+  });
+  const base = basePerfFrameworks.flatMap((perfFramework) => {
+    return testsForFramework(baseConfigs, perfFramework);
+  });
+  const tests = [...decorable, ...base];
+
+  if (overrides?.quick) {
+    return replaceConfig(tests, { iterations: 10 });
+  } else {
+    return tests;
+  }
+}
+
 function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
   return infos.map((frameworkInfo) => {
     const {
@@ -38,27 +60,6 @@ function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
   });
 }
 
-export interface TestOverrides {
-  quick?: boolean;
-}
-
-/** return a list of all benchmarks  */
-export function makePerfList(overrides: TestOverrides): TestWithFramework[] {
-  const { decorableConfigs, baseConfigs } = decorableTestConfigs(perfTests);
-  const decorable = allFrameworks.flatMap((perfFramework) => {
-    return filterTests(decorableConfigs, perfFramework);
-  });
-  const base = basePerfFrameworks.flatMap((perfFramework) => {
-    return filterTests(baseConfigs, perfFramework);
-  });
-  const tests = [...decorable, ...base];
-
-  if (overrides?.quick) {
-    return replaceConfig(tests, { iterations: 10 });
-  } else {
-    return tests;
-  }
-}
 
 /** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
  * so only some configrations work for decorator tests too */
@@ -89,7 +90,7 @@ function replaceConfig(
 }
 
 // remove 'skipTests' from the test config for this framework
-function filterTests(
+function testsForFramework(
   tests: TestConfig[],
   perfFramework: PerfFramework
 ): TestWithFramework[] {
