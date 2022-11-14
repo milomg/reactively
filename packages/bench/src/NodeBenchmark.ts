@@ -37,7 +37,7 @@ export async function runTest(
   v8.optimizeFunctionOnNextCall(runOnce);
   runOnce();
 
-  const timedResult = await fastestTest(name, testRepeats, () => {
+  const timedResult = await fastestTest(testRepeats, () => {
     counter.count = 0;
     const sum = runOnce();
     return { sum, count: counter.count };
@@ -65,7 +65,6 @@ export async function runTest(
 }
 
 async function fastestTest<T>(
-  name: string,
   times: number,
   fn: () => T
 ): Promise<TimedResult<T>> {
