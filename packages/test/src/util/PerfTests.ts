@@ -72,13 +72,13 @@ export function logTestResult(
   test: TestWithFramework,
   timedResult: TimingResult<TestResult>
 ): void {
-  const row = testRowStrings(test, timedResult);
+  const row = perfRowStrings(test, timedResult);
   const line = Object.values(row).join(" , ");
   console.log(line);
 }
 
 export function logTestResultHeaders(): void {
-  const row = testReportHeaders();
+  const row = perfReportHeaders();
   const line = Object.values(row).join(" , ");
   console.log(line);
 }
@@ -94,6 +94,7 @@ export interface PerfRowStrings {
   time: string;
   gcTime: string;
   updateRate: string;
+  title: string;
 }
 
 const columnWidth = {
@@ -101,32 +102,30 @@ const columnWidth = {
   size: 8,
   nSources: 8,
   "read%": 5,
-  "static%": 6,
+  "static%": 7,
   nTimes: 6,
   test: 20,
   time: 8,
   gcTime: 6,
   updateRate: 10,
+  title: 40,
 };
 
-function testReportHeaders(): PerfRowStrings {
+function perfReportHeaders(): PerfRowStrings {
   const keys: (keyof PerfRowStrings)[] = Object.keys(columnWidth) as any;
   const kv = keys.map((key) => [key, key]);
   const untrimmed = Object.fromEntries(kv);
   return trimColumns(untrimmed);
 }
 
-function testRowStrings(
+function perfRowStrings(
   test: TestWithFramework,
   timed: TimingResult<TestResult>
 ): PerfRowStrings {
   const { config, perfFramework } = test;
   // prettier-ignore
   const { width, totalLayers, staticFraction, nSources, readFraction, iterations } = config;
-  const time = timed.timing.time.toFixed(2);
-  const rawGC = timed.timing.gcTime || 0;
-  const gcTime = rawGC.toFixed(2);
-  const updateRate = (timed.result.count! / timed.timing.time).toFixed(0);
+  const { timing } = timed;
 
   const untrimmed = {
     framework: perfFramework.framework.name,
@@ -136,21 +135,35 @@ function testRowStrings(
     "static%": `${staticFraction}`,
     nTimes: `${iterations}`,
     test: test.config.name || "",
-    time,
-    gcTime,
-    updateRate,
+    time: timing.time.toFixed(2),
+    gcTime: (timing.gcTime || 0).toFixed(2),
+    updateRate: (timed.result.count! / timed.timing.time).toFixed(0),
+    title: makeTitle(config),
   };
+
   return trimColumns(untrimmed);
+}
+
+function makeTitle(config: TestConfig): string {
+  const { width, totalLayers, staticFraction, nSources, readFraction } = config;
+  const dyn = staticFraction < 1 ? " dynamic" : "";
+  const read = readFraction < 1 ? `, read ${percent(readFraction)}` : "";
+  const sources = `${nSources} sources`;
+  return `${width}x${totalLayers}${dyn}, ${sources}${read}`;
+}
+
+function percent(n: number): string {
+  return Math.round(n * 100) + "%";
 }
 
 function trimColumns(row: PerfRowStrings): PerfRowStrings {
   const keys: (keyof PerfRowStrings)[] = Object.keys(row) as any;
   const trimmed = { ...row };
-  const e = keys.map((key) => {
+  for (const key of keys) {
     const length = columnWidth[key];
     const value = row[key].slice(0, length).padEnd(length);
     trimmed[key] = value;
-  });
+  }
   return trimmed;
 }
 

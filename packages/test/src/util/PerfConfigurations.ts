@@ -1,8 +1,10 @@
 import { PerfFramework, TestWithFramework } from "./AllPerfTests";
+import { makeDecoratedGraph } from "./DecoratedGraph";
 import { GraphAndCounter } from "./DependencyGraph";
 import { TestResult } from "./PerfTests";
 import { preactSignalFramework } from "./PreactSignalFramework";
 import { ReactiveFramework } from "./ReactiveFramework";
+import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
 import { reactivelyRaw } from "./ReactivelyRaw";
 import { solidFramework } from "./SolidFramework";
 
@@ -66,7 +68,7 @@ export interface FrameworkInfo {
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyRaw, testPullCounts: true },
   // { framework: reactivelyValue, testPullCounts: true },
-  // { framework: solidFramework },
+  { framework: solidFramework },
   {
     framework: preactSignalFramework,
     skipTests: ["medium", "medium read 20%"],
