@@ -115,7 +115,7 @@ graph TD
   C --> D
 ```
 
-The second challenge is the equality check problem, which can be an issue for lazy reactive algorithms. If some node `B` returns the same value as the last time we called it, then the node below it `C` doesn't need to update. (But a naive lazy algorithms might immediately try to update `C` instead of checking if `B` has updated first)
+The second challenge is the equality check problem, which can be an issue for lazy reactive algorithms. If some node `B` returns the same value as the last time we called it, then the node below it `C` doesn't need to update. (But a naive lazy algorithm might immediately try to update `C` instead of checking if `B` has updated first)
 
 ```mermaid
 graph TD
