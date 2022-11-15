@@ -1,4 +1,4 @@
-#
+# What's a Reactive Library?
 
 Reactivity is the future of JS frameworks! 
 Reactivity allows you to write lazy variables that are efficiently cached and updated, making it easier to write clean and fast code. 
