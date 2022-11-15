@@ -361,7 +361,7 @@ Ryan describes a related algorithm that powers Solid in his video announcing [So
 
 # Benchmarks
 
-Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), CellX, Maverick) 
+Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), [CellX](https://github.com/Riim/cellx#benchmark), [Maverick](https://github.com/maverick-js/observables#benchmarks)) 
 are focused on creation time, and update time for a static graph. 
 The existing benchmarks aren't very configurable, and don't tell us anything about how the chart performs for dynamic data.
 
