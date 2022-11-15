@@ -1,8 +1,9 @@
 import v8 from "v8-natives";
 import { TestWithFramework } from "../../test/src/util/AllPerfTests";
 import { runGraph } from "../../test/src/util/DependencyGraph";
+import { logPerfResult } from "../../test/src/util/PerfLogging";
 import { runTimed } from "../../test/src/util/PerfUtil";
-import { logTestResult, TestResult, TimingResult } from "./../../test/src/util/PerfTests";
+import { TestResult, TimingResult } from "./../../test/src/util/PerfTests";
 import { GarbageTrack } from "./GarbageTracking";
 
 /** benchmark a single test under single framework.
@@ -27,13 +28,16 @@ export async function benchmarkTest(
   v8.optimizeFunctionOnNextCall(runOnce);
   runOnce();
 
-  const timedResult:TimingResult<TestResult> = await fastestTest(testRepeats, () => {
-    counter.count = 0;
-    const sum = runOnce();
-    return { sum, count: counter.count };
-  });
+  const timedResult: TimingResult<TestResult> = await fastestTest(
+    testRepeats,
+    () => {
+      counter.count = 0;
+      const sum = runOnce();
+      return { sum, count: counter.count };
+    }
+  );
 
-  logTestResult(frameworkTest, timedResult);
+  logPerfResult(frameworkTest, timedResult);
 
   const { result } = timedResult;
 

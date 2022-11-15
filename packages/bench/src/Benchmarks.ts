@@ -1,8 +1,6 @@
 import { parseArgs, ParseArgsConfig } from "node:util";
-import {
-  makePerfList
-} from "../../test/src/util/AllPerfTests";
-import { logTestResultHeaders } from "../../test/src/util/PerfTests";
+import { makePerfList } from "../../test/src/util/AllPerfTests";
+import { logPerfResultHeaders } from "../../test/src/util/PerfLogging";
 import { benchmarkTest } from "./NodeBenchmark";
 
 const options = {
@@ -21,7 +19,7 @@ main();
 async function main() {
   const tests = makePerfList(testOptions);
 
-  logTestResultHeaders();
+  logPerfResultHeaders();
   for (const t of tests) {
     await benchmarkTest(t, testRepeats);
   }
@@ -34,7 +32,7 @@ function asNaturalNumber(value: any): number | undefined {
     const int = Math.abs(Number.parseInt(value));
     if (Number.isFinite(int)) {
       return int;
-    } else  {
+    } else {
       return undefined;
     }
   }
