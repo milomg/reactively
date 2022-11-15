@@ -3,7 +3,7 @@ import { TestWithFramework } from "../../test/src/util/AllPerfTests";
 import { runGraph } from "../../test/src/util/DependencyGraph";
 import { logPerfResult } from "../../test/src/util/PerfLogging";
 import { runTimed } from "../../test/src/util/PerfUtil";
-import { TestResult, TimingResult } from "./../../test/src/util/PerfTests";
+import { TestResult, TimingResult, verifyBenchResult } from "./../../test/src/util/PerfTests";
 import { GarbageTrack } from "./GarbageTracking";
 
 /** benchmark a single test under single framework.
@@ -13,10 +13,9 @@ export async function benchmarkTest(
   frameworkTest: TestWithFramework,
   testRepeats = 5
 ): Promise<void> {
-  const { testPullCounts } = frameworkTest.perfFramework;
   const { config, perfFramework } = frameworkTest;
   const { framework } = perfFramework;
-  const { expected, iterations, readFraction } = config;
+  const { iterations, readFraction } = config;
 
   const { graph, counter } = perfFramework.makeGraph(frameworkTest);
 
@@ -28,31 +27,14 @@ export async function benchmarkTest(
   v8.optimizeFunctionOnNextCall(runOnce);
   runOnce();
 
-  const timedResult: TimingResult<TestResult> = await fastestTest(
-    testRepeats,
-    () => {
-      counter.count = 0;
-      const sum = runOnce();
-      return { sum, count: counter.count };
-    }
-  );
+  const timedResult = await fastestTest(testRepeats, () => {
+    counter.count = 0;
+    const sum = runOnce();
+    return { sum, count: counter.count };
+  });
 
   logPerfResult(frameworkTest, timedResult);
-
-  const { result } = timedResult;
-
-  if (expected.sum) {
-    console.assert(
-      result.sum == expected.sum,
-      `sum ${framework.name} ${config.name} result:${result.sum} expected:${expected.sum}`
-    );
-  }
-  if (expected.count && (config.readFraction === 1 || testPullCounts)) {
-    console.assert(
-      result.count === expected.count,
-      `count ${framework.name} ${config.name} result:${result.count} expected:${expected.count}`
-    );
-  }
+  verifyBenchResult(frameworkTest, timedResult);
 }
 
 /** benchmark a function n times, returning the fastest result and associated timing */

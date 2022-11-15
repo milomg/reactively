@@ -78,7 +78,7 @@ function perfRowStrings(
   return trimColumns(untrimmed);
 }
 
-function makeTitle(config: TestConfig): string {
+export function makeTitle(config: TestConfig): string {
   const { width, totalLayers, staticFraction, nSources, readFraction } = config;
   const dyn = staticFraction < 1 ? "  dynamic" : "";
   const read = readFraction < 1 ? `  read ${percent(readFraction)}` : "";

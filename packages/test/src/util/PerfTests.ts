@@ -91,3 +91,27 @@ export interface TestTiming {
 //     return { sum, count: counter.count };
 //   });
 // }
+
+export function verifyBenchResult(
+  frameworkTest: TestWithFramework,
+  timedResult: TimingResult<TestResult>
+): void {
+  const { perfFramework } = frameworkTest;
+  const { testPullCounts, framework } = perfFramework;
+  const { config } = frameworkTest;
+  const { expected } = config;
+  const { result } = timedResult;
+
+  if (expected.sum) {
+    console.assert(
+      result.sum == expected.sum,
+      `sum ${framework.name} ${config.name} result:${result.sum} expected:${expected.sum}`
+    );
+  }
+  if (expected.count && (config.readFraction === 1 || testPullCounts)) {
+    console.assert(
+      result.count === expected.count,
+      `count ${framework.name} ${config.name} result:${result.count} expected:${expected.count}`
+    );
+  }
+}
