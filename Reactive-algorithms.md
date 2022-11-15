@@ -7,7 +7,7 @@ I've been working on a new fine grained reactivity libary called
 [Reactively](https://github.com/modderme123/reactively) 
 inspired by my work on the [SolidJS team](https://www.solidjs.com/contributors). 
 Reactively is currently the fastest reactive library in its category. 
-You can use Reactively on its own, and the ideas from Reactively will help SolidJS become even faster.
+You can use Reactively on its own right now, and in the future the ideas from Reactively will help SolidJS become even faster.
 
 Let's explore some of the different algorithmic approaches to fine grained reactivity,
 I'll introduce you to my new reactivity library, 
