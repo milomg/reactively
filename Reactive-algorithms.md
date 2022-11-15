@@ -193,8 +193,9 @@ An implementation of this might look like the following ([code](https://github.c
 set = (value) => {
   this.value = valueNext;
 
-  // First recursively increment all the
+  // First recursively increment the counts
   this.stale(1, true);
+  // Then recursively update the values and decrement the counts
   this.stale(-1, true);
 };
 stale = (change: 1 | -1, fresh: boolean): void => {
