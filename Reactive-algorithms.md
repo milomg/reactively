@@ -2,7 +2,6 @@
 
 Reactivity is the future of JS frameworks! 
 Reactivity allows you to write lazy variables that are efficiently cached and updated. 
-Reactivity libraries are catching on for good reason.
 If you're looking for a new way to write faster JavaScript, consider reactivity.
 
 I've been working on a new fine grained reactivity libary called
