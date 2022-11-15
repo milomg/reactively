@@ -17,9 +17,9 @@ and we'll benchmark three of the libraries to compare.
 
 Fine-grained reactivity libraries have been growing in popularity recently.
 Examples include new libraries like
-[preact/signals](https://github.com/preactjs/signals),
-[usignal](https://github.com/webreflection/usignal),
-and now [reactively](https://github.com/modderme123/reactively),
+[Preact Signals](https://github.com/preactjs/signals),
+[µsignal](https://github.com/webreflection/usignal),
+and now [Reactively](https://github.com/modderme123/reactively),
 as well as longer-standing libraries like [Solid](https://www.solidjs.com/docs/latest),
 [S.js](https://github.com/adamhaile/S), and [CellX](https://github.com/Riim/cellx).
 Using these libraries, programmers can make individual variables and functions _reactive_.
@@ -70,7 +70,7 @@ And in some cases you can add fine-grained reactive state management to other li
 to any class,
 as well as prototype
 integration with [Lit](https://github.com/lit/lit).
-[Preact/signals](https://github.com/preactjs/signals) comes with a prototype integration
+[Preact Signals](https://github.com/preactjs/signals) comes with a prototype integration
 with [React](https://reactjs.org/).
 Expect more integrations as these reactivity cores mature.
 
