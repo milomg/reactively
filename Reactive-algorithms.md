@@ -1,13 +1,19 @@
 #
 
-Reactivity is the future of JS frameworks! Reactivity allows you to write lazy variables that are efficiently cached and updated. If you're looking for a new way to write faster JavaScript, look no further.
-
-But how does reactivity work and how is it so efficient?
+Reactivity is the future of JS frameworks! 
+Reactivity allows you to write lazy variables that are efficiently cached and updated. 
+Reactivity libraries are catching on for good reason.
+If you're looking for a new way to write faster JavaScript, consider reactivity.
 
 I've been working on a new fine grained reactivity libary called
-[Reactively](https://github.com/modderme123/reactively) inspired by my work on the [SolidJS team](https://www.solidjs.com/contributors). Reactively is currently the fastest reactive library in its category (take benchmarks with a grain of salt). The ideas from Reactively will help SolidJS become even faster.
+[Reactively](https://github.com/modderme123/reactively) 
+inspired by my work on the [SolidJS team](https://www.solidjs.com/contributors). 
+Reactively is currently the fastest reactive library in its category. 
+You can use Reactively on its own, and the ideas from Reactively will help SolidJS become even faster.
 
-Below, I want to explore the algorithms and ideas that make fine grained reactivity libraries interesting and fast.
+Let's explore some of the different algorithmic approaches to fine grained reactivity,
+I'll introduce you to my new reactivity library, 
+and we'll benchmark three of the libraries to compare.
 
 # Introducing Reactively
 
@@ -48,7 +54,7 @@ Modern libraries find these dependencies automatically,
 so there's little work for the programmer beyond simply labeling reactive elements.
 The library's job is to efficiently figure out which reactive functions to run in responses
 to changes elsewhere in the graph.
-In this exmaple, our dependency graph is quite simple:
+In this example, our dependency graph is quite simple:
 
 <div align='center'>
 
@@ -74,7 +80,7 @@ Expect more integrations as these reactivity cores mature.
 
 The goal of a reactive library is to run reactive functions when their sources have changed.
 
-We have a few properties that a reactive library should have:
+Additionally, a reactive library should also be:
 
 - **Efficient**: Never overexecute reactive elements (if their sources haven't changed, don't rerun)
 - **Glitch free**: Never allow user code to see intermediate state where only some reactive elements have updated (by the time you run a reactive element, every source should be updated)
@@ -84,8 +90,10 @@ We have a few properties that a reactive library should have:
 Reactive libraries can be divided into two categories: lazy and eager.
 
 In an eager reactive library, reactive elements are evaluated as soon as one of their sources changes.
+(In practice, most eager libraries defer and batch evaluations for performance reasons).
 
-In a lazy reactive library, reactive elements are only evaluated when they are needed. (In practice, most lazy libraries also have an eager phase for performance reasons).
+In a lazy reactive library, reactive elements are only evaluated when they are needed. 
+(In practice, most lazy libraries also have an eager phase for performance reasons).
 
 We can compare how a lazy vs eager library will evaluate a graph like this:
 
@@ -105,7 +113,8 @@ graph TD
 
 The charts below consider how a change being made to `A` updates elements that depend on `A`.
 
-Here are two core issues that each algorithm needs to carefully consider. The first is what we call the diamond problem, which can be an issue for eager reactive algorithms. They may accidentally evaluate `A,B,D,C` and then need to evaluate `D` a second time because `C` has updated:
+Let's consider two core challenges that each algorithm needs to address. The first challenge is what we call the diamond problem, which can be an issue for eager reactive algorithms. The challege is to not accidentally evaluate `A,B,D,C` and then evaluate `D` a second time because `C` has updated. 
+Evaluating `D` twice is inefficient and may cause a user visible glitch.
 
 ```mermaid
 graph TD
@@ -396,7 +405,7 @@ Ryan describes a related algorithm that powers Solid in his video announcing [So
 
 Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), [CellX](https://github.com/Riim/cellx#benchmark), [Maverick](https://github.com/maverick-js/observables#benchmarks))
 are focused on creation time, and update time for a static graph.
-The existing benchmarks aren't very configurable, and don't tell us anything about how the chart performs for dynamic data.
+The existing benchmarks aren't very configurable, and don't test for dynamic dependencies.
 
 We've created a new and more flexible benchmark that allows library authors to create a graph with a given number of layers of nodes and connections between each node, with a certain fraction of the graph dynamically changing sources, and record both execution time and GC time.
 
@@ -406,7 +415,7 @@ what we've discovered so far is that Reactively is the fastest (who would've gue
 The frameworks are all plenty fast for typical applications.
 The charts report the number of updated reactive elements per millisecond on an M1 laptop.
 Typical applications will do much more work than a framework benchmark,
-and at these speeds the framework unlikely to bottleneck overall performance.
+and at these speeds the frameworks are unlikely to bottleneck overall performance.
 Most important is that the framework not run any user code unnecessarily.
 
 That said, there's learning here to improve performance of all the frameworks.
