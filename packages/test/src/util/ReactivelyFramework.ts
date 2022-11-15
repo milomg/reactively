@@ -9,7 +9,7 @@ function wrapReactive<T>(initialValue: T): Signal<T> {
   };
 }
 
-export const reactivelyRaw: ReactiveFramework = {
+export const reactivelyFramework: ReactiveFramework = {
   name: "@reactively",
   signal: wrapReactive,
   computed: wrapReactive as any,

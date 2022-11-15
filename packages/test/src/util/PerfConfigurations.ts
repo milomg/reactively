@@ -5,7 +5,7 @@ import { TestResult } from "./PerfTests";
 import { preactSignalFramework } from "./PreactSignalFramework";
 import { ReactiveFramework } from "./ReactiveFramework";
 import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
-import { reactivelyRaw } from "./ReactivelyRaw";
+import { reactivelyFramework } from "./ReactivelyFramework";
 import { solidFramework } from "./SolidFramework";
 
 /** Parameters for a running a performance benchmark test
@@ -66,12 +66,12 @@ export interface FrameworkInfo {
 }
 
 export const frameworkInfo: FrameworkInfo[] = [
-  { framework: reactivelyRaw, testPullCounts: true },
+  { framework: reactivelyFramework, testPullCounts: true },
   // { framework: reactivelyValue, testPullCounts: true },
   { framework: solidFramework },
   {
     framework: preactSignalFramework,
-    skipTests: ["medium", "medium read 20%"],
+    skipTests: ["very dynamic"],
   },
   // {
   //   framework: reactivelyDecorate,
@@ -82,13 +82,43 @@ export const frameworkInfo: FrameworkInfo[] = [
 
 export const perfTests: TestConfig[] = [
   {
-    name: "read 20%",
+    name: "simple component",
     width: 10, // can't change for decorator tests
     staticFraction: 1, // can't change for decorator tests
     nSources: 2, // can't change for decorator tests
-    totalLayers: 10,
+    totalLayers: 5,
     readFraction: 0.2,
-    iterations: 100000,
+    iterations: 600000,
+    expected: {},
+  },
+  {
+    name: "dynamic component",
+    width: 10,
+    totalLayers: 10,
+    staticFraction: 3 / 4,
+    nSources: 6,
+    readFraction: 0.2,
+    iterations: 15000,
+    expected: {},
+  },
+  {
+    name: "large web app",
+    width: 1000,
+    totalLayers: 12,
+    staticFraction: .95,
+    nSources: 4,
+    readFraction: 1,
+    iterations: 7000,
+    expected: {},
+  },
+  {
+    name: "wide dense",
+    width: 1000,
+    totalLayers: 5,
+    staticFraction: 1,
+    nSources: 25,
+    readFraction: 1,
+    iterations: 3000,
     expected: {},
   },
   {
@@ -102,43 +132,13 @@ export const perfTests: TestConfig[] = [
     expected: {},
   },
   {
-    name: "wide",
-    width: 1000,
-    totalLayers: 5,
-    staticFraction: 1,
-    nSources: 2,
-    readFraction: 1,
-    iterations: 10000,
-    expected: {},
-  },
-  {
-    name: "wide and webbed",
-    width: 1000,
-    totalLayers: 5,
-    staticFraction: 1,
-    nSources: 25,
-    readFraction: 1,
-    iterations: 3000,
-    expected: {},
-  },
-  {
-    name: "medium",
+    name: "very dynamic",
     width: 100,
     totalLayers: 15,
-    staticFraction: 3 / 4,
+    staticFraction: .5,
     nSources: 6,
     readFraction: 1,
-    iterations: 4000,
-    expected: {},
-  },
-  {
-    name: "medium read 20%",
-    width: 100,
-    totalLayers: 15,
-    staticFraction: 3 / 4,
-    nSources: 6,
-    readFraction: 0.2,
-    iterations: 4000,
+    iterations: 2000,
     expected: {},
   },
   // {

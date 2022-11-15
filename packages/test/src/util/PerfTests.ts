@@ -146,10 +146,10 @@ function perfRowStrings(
 
 function makeTitle(config: TestConfig): string {
   const { width, totalLayers, staticFraction, nSources, readFraction } = config;
-  const dyn = staticFraction < 1 ? " dynamic" : "";
-  const read = readFraction < 1 ? `, read ${percent(readFraction)}` : "";
-  const sources = `${nSources} sources`;
-  return `${width}x${totalLayers}${dyn}, ${sources}${read}`;
+  const dyn = staticFraction < 1 ? "  dynamic" : "";
+  const read = readFraction < 1 ? `  read ${percent(readFraction)}` : "";
+  const sources = ` ${nSources} sources`;
+  return `${width}x${totalLayers} ${sources}${dyn}${read}`;
 }
 
 function percent(n: number): string {
