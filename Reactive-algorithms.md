@@ -187,6 +187,38 @@ This quickly solves the diamond problem by separating the execution of the graph
 
 To solve the equality check problem MobX just stores an additional field that tells each node whether any of its parents have changed value when they updated
 
+An implementation of this might look like the following ([code](https://github.com/fabiospampinato/flimsy/blob/master/src/flimsy.ts) by Fabio Spampinato):
+
+```js
+set = (value) => {
+  this.value = valueNext;
+
+  // First recursively increment all the
+  this.stale(1, true);
+  this.stale(-1, true);
+};
+stale = (change: 1 | -1, fresh: boolean): void => {
+  if (!this.waiting && change < 0) return;
+
+  if (!this.waiting && change > 0) {
+    this.signal.stale(1, false);
+  }
+
+  this.waiting += change;
+  this.fresh ||= fresh;
+
+  if (!this.waiting) {
+    this.waiting = 0;
+
+    if (this.fresh) {
+      this.update();
+    }
+
+    this.signal.stale(-1, false);
+  }
+};
+```
+
 ## Preact Signals
 
 Preact's solution is described [on their blog](https://preactjs.com/blog/signal-boosting).
@@ -361,31 +393,34 @@ Ryan describes a related algorithm that powers Solid in his video announcing [So
 
 # Benchmarks
 
-Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), [CellX](https://github.com/Riim/cellx#benchmark), [Maverick](https://github.com/maverick-js/observables#benchmarks)) 
-are focused on creation time, and update time for a static graph. 
+Current reactivity benchmarks ([Solid](https://github.com/solidjs/solid/tree/main/packages/solid/bench), [CellX](https://github.com/Riim/cellx#benchmark), [Maverick](https://github.com/maverick-js/observables#benchmarks))
+are focused on creation time, and update time for a static graph.
 The existing benchmarks aren't very configurable, and don't tell us anything about how the chart performs for dynamic data.
 
 We've created a new and more flexible benchmark that allows library authors to create a graph with a given number of layers of nodes and connections between each node, with a certain fraction of the graph dynamically changing sources, and record both execution time and GC time.
 
-In early experiements with the benchmarking tool, 
-what we've discovered so far is that Reactively is the fastest (who would've guessed 😉). 
+In early experiements with the benchmarking tool,
+what we've discovered so far is that Reactively is the fastest (who would've guessed 😉).
 
 The frameworks are all plenty fast for typical applications.
 The charts report the number of updated reactive elements per millisecond on an M1 laptop.
-Typical applications will do much more work than a framework benchmark, 
+Typical applications will do much more work than a framework benchmark,
 and at these speeds the framework unlikely to bottleneck overall performance.
 Most important is that the framework not run any user code unnecessarily.
 
 That said, there's learning here to improve performance of all the frameworks.
-* The Solid algorithm performs best on wider graphs. 
- Solid is consistent and stable, but generates a little garbage which limits speed under these extreme benchmark conditions.
-* The Preact Signal implementation is fast and very memory efficient. 
-Signal works especially well on deep dependency graphs,
-and not as well on wide dependency graphs. 
-The benchmarking also caught a performance bug with dynamic graphs that will undoubtedly be fixed soon. 
 
+- The Solid algorithm performs best on wider graphs.
+  Solid is consistent and stable, but generates a little garbage which limits speed under these extreme benchmark conditions.
+- The Preact Signal implementation is fast and very memory efficient.
+  Signal works especially well on deep dependency graphs,
+  and not as well on wide dependency graphs.
+  The benchmarking also caught a performance bug with dynamic graphs that will undoubtedly be fixed soon.
+
+> It should be noted that there is a second part of the implementation of each framework that makes a big difference in performance: memory management & data structures. Different data structures have different characteristics for insert and delete, as well as very different cache locality in JavaScript (which can drastically change iteration times). In a future blog post we'll look at the data structures and optimizations used in each framework (such as S.js's slots optimization, or Preact's hybrid linked list nodes).
 
 **Wide graphs**
+
 <table>
   <tr>
     <td>
@@ -396,7 +431,6 @@ The benchmarking also caught a performance bug with dynamic graphs that will und
     </td>
   </tr>
 </table>
-
 
 <table>
   <tr>
@@ -411,8 +445,8 @@ The benchmarking also caught a performance bug with dynamic graphs that will und
   </tr>
 </table>
 
-
 **Dynamic Graphs**
+
 <table>
   <tr>
     <td>
