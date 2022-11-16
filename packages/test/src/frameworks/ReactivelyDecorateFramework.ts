@@ -1,4 +1,4 @@
-import { ReactiveFramework } from "./ReactiveFramework";
+import { ReactiveFramework } from "../util/ReactiveFramework";
 
 export const reactivelyDecorate: ReactiveFramework = {
   name: "@reactively/decorate",
