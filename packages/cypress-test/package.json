@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cypress open --component"
+    "component-test": "cypress open --component"
   },
   "keywords": [],
   "author": "",

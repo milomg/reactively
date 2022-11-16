@@ -7,10 +7,10 @@
   "scripts": {
     "bench-shallow": "node --allow-natives-syntax benches/bench.js",
     "bench-grid": "node --allow-natives-syntax benches/grid.js",
-    "bench-graph": "pnpm --filter \"reactively-bench\" bench",
+    "bench": "pnpm --filter \"reactively-bench\" bench",
     "build:types": "pnpm --filter core --filter decorate build:types",
     "test": "pnpm --filter \"reactively-test\" test",
-    "component-test": "pnpm --filter \"cypress-test\" test"
+    "component-test": "pnpm --filter \"cypress-test\" component-test"
   },
   "keywords": [],
   "author": "",
