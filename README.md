@@ -7,29 +7,29 @@ Reactively provides fine grained reactivity and nothing more.
 `@reactively/core` is currently less than 1K bytes gzipped.
 
 ```ts
-import { $r } from "@reactively/wrap";
+import { reactive } from "@reactively/core";
 
 // declare some reactive variables.
-const counter = $r(0);
-const isEven = $r(() => (counter() & 1) == 0);
-const render = $r(() => {
-  document.body.textContent = isEven() ? "even" : "odd";
+const counter = reactive(0);
+const isEven = reactive(() => (counter.value & 1) == 0);
+const render = reactive(() => {
+  document.body.textContent = isEven.value ? "even" : "odd";
 });
 
 /* modify reactive variables.
-   dependent reactives are recalculated but only if necessary
-     (and note that dependencies do not need to be declared,
-      they are tracked automatically: counter -> isEven -> render) */
+  dependent reactives are recalculated but only if necessary
+    (and note that dependencies do not need to be declared,
+    they are tracked automatically: counter -> isEven -> render) */
 
-counter.set(1);
-render(); // "odd"
+counter.value = 1;
+render.get(); // "odd"
 
-counter.set(3);
-counter.set(5); // still odd
-render(); // no-op!
+counter.value = 3; // still odd
+counter.set(5);    // still odd
+render.get(); // no-op!
 
 counter.set(2);
-render(); // "even"
+render.get(); // "even"
 ```
 
 Reactively caches the results of the render() function automatically
@@ -50,14 +50,13 @@ Traditionally, if you want to memoize a function in JavaScript, you have to manu
 Reactively eschews that in favor of automatically detecting what variables you use in a reactive expression.
 
 ```ts
-import { $r } from "@reactively/wrap";
+import { reactive } from "@reactively/core";
+const a = reactive(0);
+const b = reactive(0);
 
-const a = $r(0);
-const b = $r(0);
-
-const sum = $r(() => {
-  let currentA = a(); // tells sum to subscribe to a, and only rerun once a has changed
-  let currentB = b(); // tells sum to subscribe to b, and so only rerun once a or b have changed
+const sum = reactive(() => {
+  let currentA = a.value; // tells sum to subscribe to a, and only rerun once a has changed
+  let currentB = b.value; // tells sum to subscribe to b, and so only rerun once a or b have changed
   return currentA + currentB;
 });
 ```
@@ -67,42 +66,42 @@ This allows you to structure your code differently than memoization allows you t
 Additionally, Reactively allows you to dynamically change which variables you depend on at runtime. If you are are waiting for a single variable `x` to be true before the rest of your code runs, your code won't execute as those other variables change.
 
 ```ts
-import { $r } from "@reactively/wrap";
+import { reactive } from "@reactively/core";
 
-const x = $r(false);
-const count = $r(0);
+const x = reactive(false);
+const count = reactive(0);
 
-const waitForX = $r(() => {
-  if (!x()) return "Waiting for x...";
+const waitForX = reactive(() => {
+  if (!x.value) return "Waiting for x...";
 
-  return `The current count is ${count()}`;
+  return `The current count is ${count.value}`;
 });
 
-waitForX(); // "Waiting for x"
-count.set(1);
-waitForX(); // no-op, immediately returns last value of "Waiting for x"
-x.set(true);
-waitForX(); // "The current count is 1"
+waitForX.get(); // "Waiting for x"
+count.value = 1;
+waitForX.get(); // no-op, immediately returns last value of "Waiting for x"
+x.value = true;
+waitForX.get(); // "The current count is 1"
 ```
 
 Reactively has one final trick up its sleeve for running your code less often.
 Reactive elements run an equality check, and dependent reactive elements are only rerun if the equality check fails.
 
 ```ts
-import { $r } from "@reactively/wrap";
+import { reactive } from "@reactively/core";
 
-const a = $r(0);
-const big = $r(() => a() > 0);
+const a = reactive(0);
+const big = reactive(() => a.value > 0);
 
-const isABig = $r(() => {
-  return big() ? "A is big" : "A is not big";
+const isABig = reactive(() => {
+  return big.value ? "A is big" : "A is not big";
 });
 
-isABig(); // "A is not big"
-a.set(1);
-isABig(); // "A is big"
-a.set(3);
-isABig(); // no-op, still returns "A is big"
+isABig.get(); // "A is not big"
+a.value = 1;
+isABig.get(); // "A is big"
+a.value = 3;
+isABig.get(); // no-op, still returns "A is big"
 ```
 
 ---
@@ -132,42 +131,6 @@ That's not always necessary. Any given segment of user code is probably cheap to
 But Reactively is willing to trade off some time thinking about what not to re-execute
 so the user can put expensive computations/allocations inside reactive elements
 without extra protection.
-
-```jsx
-/* A lightweight reactive program can look almost like regular javascript programming.
- *
- * This example uses a class, with a few @reactive annotations added.
- * (Reactively can be used without classes too)
- *
- * Here's the dataflow relationship between the reactive parts:
- *    size -> bufferBlocks -> buffer
- */
-import { hasReactive, reactive } from "@reactively/decorate";
-
-@hasReactive()
-class ResizeableBuffer {
-  @reactive size = 0;
-  @reactive blocks = () => Math.ceil(this.size / 2 ** 12);
-  @reactive buffer = () => {
-    const newBuf = Buffer.allocUnsafe(this.blocks * 2 ** 12);
-    this._buf && newBuf.copy(this.buf);
-    return (this._buf = newBuf);
-  };
-}
-
-b = new ResizeableBuffer();
-b.size = 10 ** 5;
-
-/* Here we call buffer() twice. In an imperative system we'd allocate twice
- * which is inefficient. A reactive system will allocate only once.  */
-b.buffer().fill(-1);
-b.buffer().setAt(0, 100);
-
-/* A reactive system can find other efficiencies. Here's one example: */
-
-b.size += 1; // grow the number of elements, but blocks doesn't change
-b.buffer(); // no new buffer allocated here!
-```
 
 **Reactive terminology**
 

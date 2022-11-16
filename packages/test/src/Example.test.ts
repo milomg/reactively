@@ -92,3 +92,71 @@ test.skip("classy reactive pattern maker", () => {
   pushPattern("mod: 99, offset: 1, size: 2m");
   pushPattern("the answer", 42);
 });
+
+import { reactive } from "@reactively/core";
+test.skip("readme example1", () => {
+  // declare some reactive variables.
+  const counter = reactive(0);
+  const isEven = reactive(() => (counter.value & 1) == 0);
+  const render = reactive(() => {
+    document.body.textContent = isEven.value ? "even" : "odd";
+  });
+
+  /* modify reactive variables.
+   dependent reactives are recalculated but only if necessary
+     (and note that dependencies do not need to be declared,
+      they are tracked automatically: counter -> isEven -> render) */
+
+  counter.value = 1;
+  render.get(); // "odd"
+
+  counter.value = 3; // still odd
+  counter.set(5); // still odd
+  render.get(); // no-op!
+
+  counter.set(2);
+  render.get(); // "even"
+});
+
+test("readme example 2", () => {
+  const a = reactive(0);
+  const b = reactive(0);
+
+  const sum = reactive(() => {
+    let currentA = a.value; // tells sum to subscribe to a, and only rerun once a has changed
+    let currentB = b.value; // tells sum to subscribe to b, and so only rerun once a or b have changed
+    return currentA + currentB;
+  });
+});
+
+test("readme example 3", () => {
+  const x = reactive(false);
+  const count = reactive(0);
+
+  const waitForX = reactive(() => {
+    if (!x.value) return "Waiting for x...";
+
+    return `The current count is ${count.value}`;
+  });
+
+  waitForX.get(); // "Waiting for x"
+  count.value = 1;
+  waitForX.get(); // no-op, immediately returns last value of "Waiting for x"
+  x.value = true;
+  waitForX.get(); // "The current count is 1"
+});
+
+test("readme example 4", () => {
+  const a = reactive(0);
+  const big = reactive(() => a.value > 0);
+
+  const isABig = reactive(() => {
+    return big.value ? "A is big" : "A is not big";
+  });
+
+  isABig.get(); // "A is not big"
+  a.value = 1;
+  isABig.get(); // "A is big"
+  a.value = 3;
+  isABig.get(); // no-op, still returns "A is big"
+});
