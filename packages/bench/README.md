@@ -3,7 +3,7 @@ A tool for benchmarking fine grained reactive frameworks.
 ```
 $ pnpm bench
 ```
-output is a csv file which you can read manually, 
+The output is in formatted csv format which you can read in the console
 or feed into your favorite spreadsheet or dataviz tool.
 
 
@@ -30,9 +30,7 @@ or feed into your favorite spreadsheet or dataviz tool.
 # Usage
 Run benchmarks in node:
 ```
-$ pnpm bench 
-
-# run each benchmark 8 times, report the fastest time
+# warm up and then run each benchmark 8 times, reporting the fastest time. (default 5)
 $ pnpm bench - --repeats 8
 
 ```
@@ -43,7 +41,8 @@ Run benchmarks in browser:
 $ cd ../cypress
 $ pnpm component-test
 ```
-Note that browser tests currently run once.
+Note that benchmarks in the browser currently run once with no warmup, so the results are not
+as stable.
 
 # Creating new test configurations
 1. Add an entry to the `TestConfig` list in `PerfConfigurations.ts`.
