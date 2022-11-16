@@ -1,3 +1,4 @@
+import { reactivelyDecorate } from "../frameworks/ReactivelyDecorateFramework";
 import { makeGraph as doMakeGraph } from "./DependencyGraph";
 import {
   FrameworkInfo,
@@ -5,7 +6,6 @@ import {
   perfTests,
   TestConfig,
 } from "./PerfConfigurations";
-import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
 
 export interface TestWithFramework {
   config: TestConfig;

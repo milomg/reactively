@@ -1,6 +1,6 @@
 import { frameworkTest } from "./util/FrameworkTest";
 import { ReactiveFramework } from "./util/ReactiveFramework";
-import { reactivelyValue } from "./util/ReactivelyValue";
+import { reactivelyValue } from "./frameworks/ReactivelyValue";
 
 [reactivelyValue].forEach(runTests);
 

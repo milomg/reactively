@@ -1,7 +1,7 @@
 import { HasReactive, reactively } from "@reactively/decorate";
-import { TestWithFramework } from "./AllPerfTests";
-import { Counter, GraphAndCounter } from "./DependencyGraph";
-import { Computed, Signal } from "./ReactiveFramework";
+import { TestWithFramework } from "../util/AllPerfTests";
+import { Counter, GraphAndCounter } from "../util/DependencyGraph";
+import { Computed, Signal } from "../util/ReactiveFramework";
 
 interface HasSources {
   layerNumber: number;

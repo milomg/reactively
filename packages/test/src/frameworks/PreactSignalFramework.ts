@@ -1,4 +1,4 @@
-import { Computed, ReactiveFramework, Signal } from "./ReactiveFramework";
+import { Computed, ReactiveFramework, Signal } from "../util/ReactiveFramework";
 import { batch, computed, effect, signal } from "@preact/signals";
 
 function preactSignal<T>(initialValue: T): Signal<T> {

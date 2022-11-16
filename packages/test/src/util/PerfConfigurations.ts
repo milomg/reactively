@@ -1,12 +1,12 @@
-import { PerfFramework, TestWithFramework } from "./AllPerfTests";
-import { makeDecoratedGraph } from "./DecoratedGraph";
+import { TestWithFramework } from "./AllPerfTests";
 import { GraphAndCounter } from "./DependencyGraph";
 import { TestResult } from "./PerfTests";
-import { preactSignalFramework } from "./PreactSignalFramework";
 import { ReactiveFramework } from "./ReactiveFramework";
-import { reactivelyDecorate } from "./ReactivelyDecorateFramework";
-import { reactivelyFramework } from "./ReactivelyFramework";
-import { solidFramework } from "./SolidFramework";
+import { solidFramework } from "../frameworks/SolidFramework";
+import { reactivelyFramework } from "../frameworks/ReactivelyFramework";
+import { preactSignalFramework } from "../frameworks/PreactSignalFramework";
+import { reactivelyDecorate } from "../frameworks/ReactivelyDecorateFramework";
+import { makeDecoratedGraph } from "../frameworks/DecoratedGraph";
 
 /** Parameters for a running a performance benchmark test
  *
@@ -67,12 +67,12 @@ export interface FrameworkInfo {
 
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
-  // { framework: reactivelyValue, testPullCounts: true },
   { framework: solidFramework },
   {
     framework: preactSignalFramework,
     skipTests: ["very dynamic"],
   },
+  // { framework: reactivelyValue, testPullCounts: true },
   // {
   //   framework: reactivelyDecorate,
   //   testPullCounts: true,

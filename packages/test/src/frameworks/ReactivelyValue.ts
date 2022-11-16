@@ -1,5 +1,5 @@
 import { Reactive } from "@reactively/core";
-import { ReactiveFramework, Signal } from "./ReactiveFramework";
+import { ReactiveFramework, Signal } from "../util/ReactiveFramework";
 
 function wrapReactive<T>(initialValue: T): Signal<T> {
   const r = new Reactive(initialValue);
