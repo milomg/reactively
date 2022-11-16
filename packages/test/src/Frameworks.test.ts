@@ -1,11 +1,11 @@
-import { reactivelyFramework } from "./util/ReactivelyFramework";
-import { solidFramework } from "./util/SolidFramework";
 import { logGraph, makeGraph, runGraph } from "./util/DependencyGraph";
 import { ReactiveFramework } from "./util/ReactiveFramework";
 import { TestConfig } from "./util/PerfConfigurations";
 import { TestWithFramework } from "./util/AllPerfTests";
+import { reactivelyFramework } from "./frameworks/ReactivelyFramework";
+import { solidFramework } from "./frameworks/SolidFramework";
 
-// const frameworks = [solidFramework, reactivelyRaw];
+// const frameworks = [solidFramework, reactivelyFramework];
 const frameworks = [reactivelyFramework];
 
 frameworks.forEach(frameworkTests);
