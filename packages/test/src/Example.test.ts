@@ -161,7 +161,7 @@ test("readme example 4", () => {
   isABig.get(); // no-op, still returns "A is big"
 });
 
-test("decorate example", () => {
+test.skip("decorate example", () => {
   class ResizeableBuffer extends HasReactive {
     @reactively size = 0;
     @reactively get blocks() { return Math.ceil(this.size / 2 ** 12); }
