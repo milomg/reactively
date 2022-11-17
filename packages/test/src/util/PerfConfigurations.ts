@@ -7,6 +7,7 @@ import { reactivelyFramework } from "../frameworks/ReactivelyFramework";
 import { preactSignalFramework } from "../frameworks/PreactSignalFramework";
 import { reactivelyDecorate } from "../frameworks/ReactivelyDecorateFramework";
 import { makeDecoratedGraph } from "../frameworks/DecoratedGraph";
+import { reactivelyValue } from "../frameworks/ReactivelyValue";
 
 /** Parameters for a running a performance benchmark test
  *
@@ -67,10 +68,11 @@ export interface FrameworkInfo {
 
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
-  { framework: solidFramework },
+  { framework: solidFramework}, // solid can't testPullCounts because batch executes all leaf nodes even if unread 
   {
     framework: preactSignalFramework,
-    skipTests: ["very dynamic"],
+    skipTests: ["very dynamic"], // preact-signal seems to have a performance bug with dynamic nodes
+    testPullCounts: true
   },
   // { framework: reactivelyValue, testPullCounts: true },
   // {
@@ -89,7 +91,10 @@ export const perfTests: TestConfig[] = [
     totalLayers: 5,
     readFraction: 0.2,
     iterations: 600000,
-    expected: {},
+    expected: {
+      sum: 19199968,
+      count: 3480000,
+    },
   },
   {
     name: "dynamic component",
@@ -99,17 +104,23 @@ export const perfTests: TestConfig[] = [
     nSources: 6,
     readFraction: 0.2,
     iterations: 15000,
-    expected: {},
+    expected: {
+      sum: 302310782860,
+      count: 1155000,
+    },
   },
   {
     name: "large web app",
     width: 1000,
     totalLayers: 12,
-    staticFraction: .95,
+    staticFraction: 0.95,
     nSources: 4,
     readFraction: 1,
     iterations: 7000,
-    expected: {},
+    expected: {
+      sum: 29355933696000,
+      count: 1463000,
+    },
   },
   {
     name: "wide dense",
@@ -119,7 +130,10 @@ export const perfTests: TestConfig[] = [
     nSources: 25,
     readFraction: 1,
     iterations: 3000,
-    expected: {},
+    expected: {
+      sum: 1171484375000,
+      count: 732000,
+    },
   },
   {
     name: "deep",
@@ -129,17 +143,23 @@ export const perfTests: TestConfig[] = [
     nSources: 3,
     readFraction: 1,
     iterations: 500,
-    expected: {},
+    expected: {
+      sum: 3.0239642676898464e241,
+      count: 1246500,
+    },
   },
   {
     name: "very dynamic",
     width: 100,
     totalLayers: 15,
-    staticFraction: .5,
+    staticFraction: 0.5,
     nSources: 6,
     readFraction: 1,
     iterations: 2000,
-    expected: {},
+    expected: {
+      sum: 15664996402790400,
+      count: 1078000,
+    },
   },
   // {
   //   name: "tiny",
