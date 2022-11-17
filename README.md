@@ -2,10 +2,10 @@
 
 Reactively is a library for fine grained reactive programming.
 Use Reactively to add smart recalculation and caching almost anywhere.
-Reactively provides fine grained reactivity and nothing more.
-
+The reactively core provides fine grained reactivity and nothing more.
 `@reactively/core` is currently less than 1K bytes gzipped.
 
+Here's an example of using reactively
 ```ts
 import { reactive } from "@reactively/core";
 
@@ -41,6 +41,11 @@ Reactively is useful to avoid unnecessarily repeating expensive operations
 While you can manually write your own caching and dependency checking,
 a declarative approach is easier, and the result is more maintainable.
 
+## Related Packages
+In addition to `@reactively/core`, note these related packages:
+* [@reactively/decorate](https://github.com/modderme123/reactively/tree/main/packages/decorate) - `@reactively` annotations for use in Typescript classes.
+* [@reactively/lit](https://github.com/modderme123/reactively/tree/main/packages/lit) - Web Components with Reactively and lit.dev. 
+* [bench](https://github.com/modderme123/reactively/tree/main/packages/bench) - A performance analysis tool for testing and comparing reactive libraries.
 ---
 
 ## Discovering Reactively
