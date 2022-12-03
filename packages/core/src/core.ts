@@ -136,6 +136,9 @@ export class Reactive<T> {
 
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
+      // If we were previously clean, then we know that we may need to update to get the new value
+      if (this.state === CacheClean && this.effect) EffectQueue.push(this);
+      
       this.state = state;
       if (this.observers) {
         for (let i = 0; i < this.observers.length; i++) {
@@ -143,8 +146,6 @@ export class Reactive<T> {
         }
       }
     }
-    // If we were previously clean, then we know that we may need to update to get the new value
-    if (this.state === CacheClean && this.effect) EffectQueue.push(this);
   }
 
   /** run the computation fn, updating the cached value */
