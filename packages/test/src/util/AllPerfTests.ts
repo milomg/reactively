@@ -60,7 +60,6 @@ function makeFrameworks(infos: FrameworkInfo[]): PerfFramework[] {
   });
 }
 
-
 /** The test generator for decorator tests is not as flexible (must be 10 wide, no dynamic nodes),
  * so only some configrations work for decorator tests too */
 

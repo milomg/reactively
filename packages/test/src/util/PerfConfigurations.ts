@@ -70,11 +70,11 @@ export interface FrameworkInfo {
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
   { framework: molWireFramework, testPullCounts: true },
-  { framework: solidFramework}, // solid can't testPullCounts because batch executes all leaf nodes even if unread 
+  { framework: solidFramework }, // solid can't testPullCounts because batch executes all leaf nodes even if unread
   {
     framework: preactSignalFramework,
     skipTests: ["very dynamic"], // preact-signal seems to have a performance bug with dynamic nodes
-    testPullCounts: true
+    testPullCounts: true,
   },
   // { framework: reactivelyValue, testPullCounts: true },
   // {

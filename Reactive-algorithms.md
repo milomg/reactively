@@ -1,16 +1,16 @@
 # What's a Reactive Library?
 
-Reactivity is the future of JS frameworks! 
-Reactivity allows you to write lazy variables that are efficiently cached and updated, making it easier to write clean and fast code. 
+Reactivity is the future of JS frameworks!
+Reactivity allows you to write lazy variables that are efficiently cached and updated, making it easier to write clean and fast code.
 
 I've been working on a new fine grained reactivity libary called
-[Reactively](https://github.com/modderme123/reactively) 
-inspired by my work on the [SolidJS team](https://www.solidjs.com/contributors). 
-Reactively is currently the fastest reactive library in its category. 
+[Reactively](https://github.com/modderme123/reactively)
+inspired by my work on the [SolidJS team](https://www.solidjs.com/contributors).
+Reactively is currently the fastest reactive library in its category.
 You can use Reactively on its own right now, and in the future the ideas from Reactively will help SolidJS become even faster.
 
 Let's explore some of the different algorithmic approaches to fine grained reactivity,
-I'll introduce you to my new reactivity library, 
+I'll introduce you to my new reactivity library,
 and we'll benchmark three of the libraries to compare.
 
 # Introducing Reactively
@@ -90,7 +90,7 @@ Reactive libraries can be divided into two categories: lazy and eager.
 In an eager reactive library, reactive elements are evaluated as soon as one of their sources changes.
 (In practice, most eager libraries defer and batch evaluations for performance reasons).
 
-In a lazy reactive library, reactive elements are only evaluated when they are needed. 
+In a lazy reactive library, reactive elements are only evaluated when they are needed.
 (In practice, most lazy libraries also have an eager phase for performance reasons).
 
 We can compare how a lazy vs eager library will evaluate a graph like this:
@@ -111,7 +111,7 @@ graph TD
 
 The charts below consider how a change being made to `A` updates elements that depend on `A`.
 
-Let's consider two core challenges that each algorithm needs to address. The first challenge is what we call the diamond problem, which can be an issue for eager reactive algorithms. The challege is to not accidentally evaluate `A,B,D,C` and then evaluate `D` a second time because `C` has updated. 
+Let's consider two core challenges that each algorithm needs to address. The first challenge is what we call the diamond problem, which can be an issue for eager reactive algorithms. The challege is to not accidentally evaluate `A,B,D,C` and then evaluate `D` a second time because `C` has updated.
 Evaluating `D` twice is inefficient and may cause a user visible glitch.
 
 ```mermaid

@@ -47,7 +47,6 @@ export type CacheState =
   | typeof CacheDirty;
 type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
 
-
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
  * The property can be modified externally by calling set().

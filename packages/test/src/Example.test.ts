@@ -171,7 +171,6 @@ test.skip("decorate example", () => {
       return (this._buf = newBuf);
     }
     private _buf: any;
-
   }
 
   const b = new ResizeableBuffer();

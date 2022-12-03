@@ -1,5 +1,5 @@
 /** interface for a reactive framework.
- * 
+ *
  * Implement this interface to add a new reactive framework to the test and performance test suite.
  */
 export interface ReactiveFramework {

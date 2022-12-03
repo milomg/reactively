@@ -1,13 +1,11 @@
-import {
-  makePerfList
-} from "../../test/src/util/AllPerfTests";
+import { makePerfList } from "../../test/src/util/AllPerfTests";
 import { runGraph } from "../../test/src/util/DependencyGraph";
 import { logPerfResult } from "../../test/src/util/PerfLogging";
 import { runTimed } from "../../test/src/util/PerfUtil";
 import {
   TestResult,
   TimingResult,
-  verifyBenchResult
+  verifyBenchResult,
 } from "./../../test/src/util/PerfTests";
 
 const benchmarks = makePerfList({});

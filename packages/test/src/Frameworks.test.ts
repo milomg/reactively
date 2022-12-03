@@ -36,7 +36,7 @@ function frameworkTests(framework: ReactiveFramework) {
     frameworkTest.config.readFraction = 2 / 3;
     frameworkTest.config.iterations = 10;
     const { counter, graph } = makeGraph(frameworkTest);
-    const sum = runGraph(graph, 10, 2/3, framework);
+    const sum = runGraph(graph, 10, 2 / 3, framework);
 
     expect(sum).toEqual(72);
     if (framework !== solidFramework) {
@@ -46,8 +46,8 @@ function frameworkTests(framework: ReactiveFramework) {
 
   test(`${name} | dynamic graph`, () => {
     const frameworkTest = baseTestConfig(framework);
-    const {config} = frameworkTest;
-    config.staticFraction = .5;
+    const { config } = frameworkTest;
+    config.staticFraction = 0.5;
     config.width = 4;
     config.totalLayers = 2;
     const { graph, counter } = makeGraph(frameworkTest);
@@ -56,7 +56,6 @@ function frameworkTests(framework: ReactiveFramework) {
     expect(sum).toEqual(72);
     expect(counter.count).toEqual(22);
   });
-
 }
 
 function baseTestConfig(framework: ReactiveFramework): TestWithFramework {

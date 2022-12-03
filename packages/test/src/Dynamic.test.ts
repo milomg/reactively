@@ -137,5 +137,4 @@ function runTests(f: ReactiveFramework): void {
     y.write(1);
     j.read();
   });
-
 }
