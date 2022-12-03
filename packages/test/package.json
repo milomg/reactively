@@ -21,6 +21,7 @@
     "@types/node": "^18.11.9",
     "babel-jest": "^29.3.1",
     "jest": "^29.3.1",
+    "mol_wire_lib": "^1.0.389",
     "preact": "^10.11.2",
     "solid-js": "^1.6.1"
   },

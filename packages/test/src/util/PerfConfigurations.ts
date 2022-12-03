@@ -5,6 +5,7 @@ import { ReactiveFramework } from "./ReactiveFramework";
 import { solidFramework } from "../frameworks/SolidFramework";
 import { reactivelyFramework } from "../frameworks/ReactivelyFramework";
 import { preactSignalFramework } from "../frameworks/PreactSignalFramework";
+import { molWireFramework } from "../frameworks/MolWireFramework";
 import { reactivelyDecorate } from "../frameworks/ReactivelyDecorateFramework";
 import { makeDecoratedGraph } from "../frameworks/DecoratedGraph";
 import { reactivelyValue } from "../frameworks/ReactivelyValue";
@@ -68,6 +69,7 @@ export interface FrameworkInfo {
 
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
+  { framework: molWireFramework, testPullCounts: true },
   { framework: solidFramework}, // solid can't testPullCounts because batch executes all leaf nodes even if unread 
   {
     framework: preactSignalFramework,
