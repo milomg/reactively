@@ -54,7 +54,7 @@ export class HasReactive implements HasReactiveInternal {
 }
 
 /** Properties added to the instance and prototype as the instance is constructed. */
-export interface DecoratedInternal {
+interface DecoratedInternal {
   /* list of reactive properties to setup per instance. stored on the prototype */
   __toInstall?: [string, PropertyDescriptor | undefined][];
 }
