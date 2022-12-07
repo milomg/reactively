@@ -8,7 +8,8 @@
     "bench-shallow": "node --allow-natives-syntax benches/bench.js",
     "bench-grid": "node --allow-natives-syntax benches/grid.js",
     "bench": "pnpm --filter \"reactively-bench\" bench",
-    "build:types": "pnpm --filter core --filter decorate build:types",
+    "build:types": "pnpm --filter core --filter decorate --filter lit build:types",
+    "build": "pnpm --filter core --filter decorate --filter lit build",
     "test": "pnpm --filter \"reactively-test\" test",
     "component-test": "pnpm --filter \"cypress-test\" component-test"
   },
