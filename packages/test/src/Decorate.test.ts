@@ -1,4 +1,4 @@
-import { onCleanup } from "@reactively/core";
+import { onCleanup, Reactive } from "@reactively/core";
 import { HasReactive, reactively } from "@reactively/decorate";
 
 /* 
@@ -273,4 +273,19 @@ test("set inside reaction", () => {
   const o = new SetInsideReaction();
   o.a();
   expect(o.l()).toEqual(102);
+});
+
+test("mix decorate with core", () => {
+  class Read extends HasReactive {
+    @reactively value = 0
+  }
+  
+  const a = new Read()
+  
+  const log = new Reactive(() => a.value);
+  
+  a.value = 1
+  expect(log.get()).toEqual(1);
+  a.value = 4
+  expect(log.get()).toEqual(4);
 });
