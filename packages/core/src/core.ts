@@ -128,11 +128,14 @@ export class Reactive<T> {
   set(fnOrValue: T | (() => T)): void {
     if (typeof fnOrValue === "function") {
       const fn = fnOrValue as () => T;
-      this.removeParentObservers(0);
-      this.sources = null;
       this.fn = fn;
       this.stale(CacheDirty);
     } else {
+      if (this.fn) {
+        this.removeParentObservers(0);
+        this.sources = null;
+        this.fn = undefined;
+      }
       const value = fnOrValue as T;
       if (this._value !== value && this.observers) {
         for (let i = 0; i < this.observers.length; i++) {
