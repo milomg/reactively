@@ -125,20 +125,29 @@ export class Reactive<T> {
     return this._value;
   }
 
-  set(value: T): void {
-    if (this._value !== value && this.observers) {
-      for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].stale(CacheDirty);
+  set(fnOrValue: T | (() => T)): void {
+    if (typeof fnOrValue === "function") {
+      const fn = fnOrValue as () => T;
+      this.removeParentObservers(0);
+      this.sources = null;
+      this.fn = fn;
+      this.stale(CacheDirty);
+    } else {
+      const value = fnOrValue as T;
+      if (this._value !== value && this.observers) {
+        for (let i = 0; i < this.observers.length; i++) {
+          this.observers[i].stale(CacheDirty);
+        }
       }
+      this._value = value;
     }
-    this._value = value;
   }
 
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
       // If we were previously clean, then we know that we may need to update to get the new value
       if (this.state === CacheClean && this.effect) EffectQueue.push(this);
-      
+
       this.state = state;
       if (this.observers) {
         for (let i = 0; i < this.observers.length; i++) {
@@ -171,7 +180,7 @@ export class Reactive<T> {
       // if the sources have changed, update source & observer links
       if (CurrentGets) {
         // remove all old sources' .observers links to us
-        this.removeParentObservers();
+        this.removeParentObservers(CurrentGetsIndex);
         // update source up links
         if (this.sources && CurrentGetsIndex > 0) {
           this.sources.length = CurrentGetsIndex + CurrentGets.length;
@@ -193,7 +202,7 @@ export class Reactive<T> {
         }
       } else if (this.sources && CurrentGetsIndex < this.sources.length) {
         // remove all old sources' .observers links to us
-        this.removeParentObservers();
+        this.removeParentObservers(CurrentGetsIndex);
         this.sources.length = CurrentGetsIndex;
       }
     } finally {
@@ -239,10 +248,10 @@ export class Reactive<T> {
     this.state = CacheClean;
   }
 
-  private removeParentObservers(): void {
+  private removeParentObservers(index: number): void {
     if (!this.sources) return;
-    for (let i = CurrentGetsIndex; i < this.sources!.length; i++) {
-      const source: Reactive<any> = this.sources![i]; // We don't actually delete sources here because we're replacing the entire array soon
+    for (let i = index; i < this.sources.length; i++) {
+      const source: Reactive<any> = this.sources[i]; // We don't actually delete sources here because we're replacing the entire array soon
       const swap = source.observers!.findIndex((v) => v === this);
       source.observers![swap] = source.observers![source.observers!.length - 1];
       source.observers!.pop();
