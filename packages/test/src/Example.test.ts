@@ -186,13 +186,3 @@ test.skip("decorate example", () => {
   b.size += 1; // grow the number of elements, but blocks doesn't change
   b.buffer; // no new buffer allocated here!
 });
-
-test("setting a memo", () => {
-  const a = reactive(1);
-  const b = reactive(() => a.value * 2);
-  const c = reactive(() => b.value);
-
-  expect(c.value).toBe(2);
-  b.set(() => a.value * 3);
-  expect(c.value).toBe(3);
-});
