@@ -16,9 +16,6 @@ export function logHasReactive(o: HasReactive & { c?: any }): void {
   console.log("instance", Object.getOwnPropertyDescriptors(o));
   console.log("proto", Object.getOwnPropertyDescriptors(proto));
   console.log("protoProto", ppD);
-  if (o.c) {
-    console.log("o.c", o.c.toString());
-  }
 }
 
 /** log all of the reactive elements in a HasReactive instance */
