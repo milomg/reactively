@@ -289,3 +289,38 @@ test("mix decorate with core", () => {
   a.value = 4;
   expect(log.get()).toEqual(4);
 });
+
+test("shared HasReactive superclass", () => {
+  class A extends HasReactive {
+    @reactively a = "a";
+  }
+  class B extends A {
+    @reactively b = "b";
+  }
+  class C extends A {
+    @reactively c = "c";
+  }
+
+  const b = new B();
+  const c = new C();
+  const a = new A();
+
+  // verify properties
+  expect(c.a).toEqual("a");
+  expect((c as any).b).toBeUndefined();
+  expect(c.c).toEqual("c");
+
+  // verify reactive nodes
+  const cKeys = Object.keys(c.__reactive as any);
+  const bKeys = Object.keys(b.__reactive as any);
+  const aKeys = Object.keys(a.__reactive as any);
+  expect(aKeys).toEqual(["a"]);
+
+  expect(bKeys.length).toEqual(2);
+  expect(bKeys).toContain("a");
+  expect(bKeys).toContain("b");
+
+  expect(cKeys.length).toEqual(2);
+  expect(cKeys).toContain("a");
+  expect(cKeys).toContain("c");
+});

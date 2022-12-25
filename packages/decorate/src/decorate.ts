@@ -73,7 +73,7 @@ export interface HasReactiveInternal {
  */
 export function createReactives(r: HasReactiveInternal) {
   const reactives = r.__reactive || (r.__reactive = {});
-  for (const [key, descriptor] of (r as DecoratedInternal).__toInstall || []) {
+  for (const [key, descriptor] of installList(r as DecoratedInternal)) {
     if (descriptor?.get) {
       // getter
       reactives[key] = new Reactive(descriptor.get.bind(r));
@@ -94,9 +94,26 @@ export function createReactives(r: HasReactiveInternal) {
     }
   }
 }
+type InstallEntry = [string, PropertyDescriptor | undefined];
+
+/** collect the list of reactive properties to install up the prototype chain */
+function installList(d: DecoratedInternal): InstallEntry[] {
+  const installEntries: InstallEntry[] = [];
+
+  for (
+    let proto = d;
+    proto !== Object.prototype;
+    proto = Object.getPrototypeOf(proto)
+  ) {
+    if (proto.hasOwnProperty("__toInstall")) {
+      installEntries.push(...proto.__toInstall!);
+    }
+  }
+  return installEntries;
+}
 
 /** Save a list of reactive properties that will be installed on each object instance
- * and the prototype of the class. */
+ * on the prototype for the class. */
 function addReactive(
   proto: HasReactiveInternal,
   key: string,
@@ -107,14 +124,21 @@ function addReactive(
   return {}; // so babel builds don't create a property on the instance
 }
 
-/** save info about a reactive property for installation on every instance */
+/** Save info about a reactive property for installation on every instance */
 export function queueReactiveToInstall(
   proto: DecoratedInternal,
   key: string,
   descriptor?: PropertyDescriptor
 ) {
-  const toInstall = proto.__toInstall || (proto.__toInstall = []);
-  toInstall.push([key, descriptor]);
+  if (!proto.hasOwnProperty("__toInstall")) { 
+    // Accumulate entries onto our class's prototype. 
+    // (We don't want to mix our entries with a superclass.  Our properties don't 
+    //  belong on other subclasses of that superclass.)
+    Object.defineProperty(proto, "__toInstall", {
+      value: [],
+    });
+  }
+  proto.__toInstall!.push([key, descriptor]);
 }
 
 /** Install get and set accessor functions for reactive propertes on the prototype
