@@ -277,15 +277,15 @@ test("set inside reaction", () => {
 
 test("mix decorate with core", () => {
   class Read extends HasReactive {
-    @reactively value = 0
+    @reactively value = 0;
   }
-  
-  const a = new Read()
-  
+
+  const a = new Read();
+
   const log = new Reactive(() => a.value);
-  
-  a.value = 1
+
+  a.value = 1;
   expect(log.get()).toEqual(1);
-  a.value = 4
+  a.value = 4;
   expect(log.get()).toEqual(4);
 });
