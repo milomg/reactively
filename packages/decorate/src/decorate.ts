@@ -98,7 +98,8 @@ type InstallEntry = [string, PropertyDescriptor | undefined];
 
 /** collect the list of reactive properties to install up the prototype chain */
 function installList(d: DecoratedInternal): InstallEntry[] {
-  const installEntries: InstallEntry[] = [];
+  const installEntries: InstallEntry[] = []; // entries in lexical order within each class
+  const installKeys = new Set<string>();
 
   for (
     let proto = d;
@@ -106,7 +107,13 @@ function installList(d: DecoratedInternal): InstallEntry[] {
     proto = Object.getPrototypeOf(proto)
   ) {
     if (proto.hasOwnProperty("__toInstall")) {
-      installEntries.push(...proto.__toInstall!);
+      proto.__toInstall!.forEach(([key, descriptor]) => {
+        // if class and subclass have like named property, use the subclass's property 
+        if (!installKeys.has(key)) {
+          installKeys.add(key);
+          installEntries.push([key, descriptor]);
+        }
+      });
     }
   }
   return installEntries;
@@ -130,9 +137,9 @@ export function queueReactiveToInstall(
   key: string,
   descriptor?: PropertyDescriptor
 ) {
-  if (!proto.hasOwnProperty("__toInstall")) { 
-    // Accumulate entries onto our class's prototype. 
-    // (We don't want to mix our entries with a superclass.  Our properties don't 
+  if (!proto.hasOwnProperty("__toInstall")) {
+    // Accumulate entries onto our class's prototype.
+    // (We don't want to mix our entries with a superclass.  Our properties don't
     //  belong on other subclasses of that superclass.)
     Object.defineProperty(proto, "__toInstall", {
       value: [],

@@ -324,3 +324,16 @@ test("shared HasReactive superclass", () => {
   expect(cKeys).toContain("a");
   expect(cKeys).toContain("c");
 });
+
+test("override reactive property", () => {
+  class A extends HasReactive {
+    @reactively a = "a";
+  } 
+
+  class B extends A {
+    @reactively override a = "ba";
+  }
+
+  const b = new B();
+  expect(b.a).toEqual("ba");
+})
