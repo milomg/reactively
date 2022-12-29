@@ -20,6 +20,7 @@ importers:
       mol_wire_lib: ^1.0.389
       solid-js: ^1.6.1
       typescript: ^4.8.4
+      usignal: ^0.8.9
       v8-natives: ^1.2.5
     devDependencies:
       '@types/node': 18.11.9
@@ -28,6 +29,7 @@ importers:
       mol_wire_lib: 1.0.392
       solid-js: 1.6.1
       typescript: 4.8.4
+      usignal: 0.8.9
       v8-natives: 1.2.5
 
   packages/core:
@@ -85,6 +87,7 @@ importers:
       mol_wire_lib: ^1.0.389
       preact: ^10.11.2
       solid-js: ^1.6.1
+      usignal: ^0.8.9
     dependencies:
       '@reactively/core': link:../core
       '@reactively/decorate': link:../decorate
@@ -103,6 +106,7 @@ importers:
       mol_wire_lib: 1.0.392
       preact: 10.11.2
       solid-js: 1.6.1
+      usignal: 0.8.9
 
 packages:
 
@@ -4713,6 +4717,10 @@ packages:
       browserslist: 4.21.4
       escalade: 3.1.1
       picocolors: 1.0.0
+    dev: true
+
+  /usignal/0.8.9:
+    resolution: {integrity: sha512-jI8+NVOb5AZIx5JzKcCfQzdwbL/E5oOmRciFAKlU9ZV3jeBbaBh9FpwG2Jr1AYsHOxBLNA5GwaQATdjzGydA2Q==}
     dev: true
 
   /uuid/8.3.2:

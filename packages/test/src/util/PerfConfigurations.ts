@@ -9,6 +9,7 @@ import { molWireFramework } from "../frameworks/MolWireFramework";
 import { reactivelyDecorate } from "../frameworks/ReactivelyDecorateFramework";
 import { makeDecoratedGraph } from "../frameworks/DecoratedGraph";
 import { reactivelyValue } from "../frameworks/ReactivelyValue";
+import { usignalFramework } from "../frameworks/UsignalFramework";
 
 /** Parameters for a running a performance benchmark test
  *
@@ -69,7 +70,8 @@ export interface FrameworkInfo {
 
 export const frameworkInfo: FrameworkInfo[] = [
   { framework: reactivelyFramework, testPullCounts: true },
-  { framework: molWireFramework, testPullCounts: true },
+  // { framework: molWireFramework, testPullCounts: true },
+  { framework: usignalFramework, testPullCounts: true },
   { framework: solidFramework }, // solid can't testPullCounts because batch executes all leaf nodes even if unread
   {
     framework: preactSignalFramework,
