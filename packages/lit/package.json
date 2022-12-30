@@ -21,7 +21,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "lit": "^2.4.1"
+    "lit": "^2.5.0"
   },
   "dependencies": {
     "@reactively/core": "workspace:*",
