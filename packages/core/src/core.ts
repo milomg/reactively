@@ -63,6 +63,10 @@ export function reactive<T>(fnOrValue: T | (() => T)): Reactive<T> {
   return new Reactive(fnOrValue);
 }
 
+function defaultEquality(a: any, b: any) {
+  return a === b;
+}
+
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
  * The property can be modified externally by calling set().
@@ -84,6 +88,7 @@ export class Reactive<T> {
   private state: CacheState;
   private effect: boolean;
   cleanups: ((oldValue: T) => void)[] = [];
+  equals = defaultEquality;
 
   constructor(fnOrValue: (() => T) | T, effect?: boolean) {
     if (typeof fnOrValue === "function") {
@@ -128,8 +133,8 @@ export class Reactive<T> {
   set(fnOrValue: T | (() => T)): void {
     if (typeof fnOrValue === "function") {
       const fn = fnOrValue as () => T;
+      if (fn !== this.fn) this.stale(CacheDirty);
       this.fn = fn;
-      this.stale(CacheDirty);
     } else {
       if (this.fn) {
         this.removeParentObservers(0);
@@ -137,7 +142,7 @@ export class Reactive<T> {
         this.fn = undefined;
       }
       const value = fnOrValue as T;
-      if (this._value !== value && this.observers) {
+      if (!this.equals(this._value, value) && this.observers) {
         for (let i = 0; i < this.observers.length; i++) {
           this.observers[i].stale(CacheDirty);
         }
@@ -215,7 +220,7 @@ export class Reactive<T> {
     }
 
     // handle diamond depenendencies if we're the parent of a diamond.
-    if (oldValue !== this._value && this.observers) {
+    if (!this.equals(oldValue, this._value) && this.observers) {
       // We've changed value, so mark our children as dirty so they'll reevaluate
       for (let i = 0; i < this.observers.length; i++) {
         this.observers[i].state = CacheDirty;
