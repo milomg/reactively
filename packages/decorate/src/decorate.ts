@@ -24,6 +24,10 @@ as specified in the typescript handbook (Sep 2022). Some differences:
   inititialization.  
 */
 
+interface ReactivelyParams {
+  equals?: (a: any, b: any) => boolean;
+}
+
 /** Decorate a `@reactively` property in a class.
  *
  * The decorated property can be a value, a method, or a get accessor.
@@ -34,12 +38,29 @@ export function reactively(): (
   name: string
 ) => any;
 export function reactively(
-  prototype?: HasReactiveInternal,
+  params: ReactivelyParams
+): (prototype: HasReactiveInternal, name: string) => any;
+export function reactively(
+  prototypeOrParams?: HasReactiveInternal | ReactivelyParams,
   name?: any,
   descriptor?: PropertyDescriptor
 ): ((prototype: any, name: string) => void) | any {
-  if (prototype) return addReactive(prototype, name, descriptor!);
-  else return addReactive;
+  if (prototypeOrParams) {
+    if (prototypeOrParams instanceof HasReactive)
+      return addReactive(prototypeOrParams, name, descriptor!);
+    else
+      return (
+        proto: HasReactiveInternal,
+        key: string,
+        descriptor: PropertyDescriptor
+      ) =>
+        addReactive(
+          proto,
+          key,
+          descriptor,
+          prototypeOrParams as ReactivelyParams
+        );
+  } else return addReactive;
 }
 
 /** Classes that contain `@reactive` properties should extend `HasReactive`
@@ -56,7 +77,7 @@ export class HasReactive implements HasReactiveInternal {
 /** Properties added to the instance and prototype as the instance is constructed. */
 interface DecoratedInternal {
   /* list of reactive properties to setup per instance. stored on the prototype */
-  __toInstall?: [string, PropertyDescriptor | undefined][];
+  __toInstall?: InstallEntry[];
 }
 
 export interface HasReactiveInternal {
@@ -73,7 +94,9 @@ export interface HasReactiveInternal {
  */
 export function createReactives(r: HasReactiveInternal) {
   const reactives = r.__reactive || (r.__reactive = {});
-  for (const [key, descriptor] of installList(r as DecoratedInternal)) {
+  for (const { key, descriptor, params } of installList(
+    r as DecoratedInternal
+  )) {
     if (descriptor?.get) {
       // getter
       reactives[key] = new Reactive(descriptor.get.bind(r));
@@ -92,9 +115,14 @@ export function createReactives(r: HasReactiveInternal) {
 
       reactives[key] = new Reactive<unknown>(value);
     }
+    if (params?.equals) reactives[key].equals = params.equals;
   }
 }
-type InstallEntry = [string, PropertyDescriptor | undefined];
+interface InstallEntry {
+  key: string;
+  descriptor: PropertyDescriptor | undefined;
+  params: ReactivelyParams | undefined;
+}
 
 /** collect the list of reactive properties to install up the prototype chain */
 function installList(d: DecoratedInternal): InstallEntry[] {
@@ -107,11 +135,11 @@ function installList(d: DecoratedInternal): InstallEntry[] {
     proto = Object.getPrototypeOf(proto)
   ) {
     if (proto.hasOwnProperty("__toInstall")) {
-      proto.__toInstall!.forEach(([key, descriptor]) => {
-        // if class and subclass have like named property, use the subclass's property 
-        if (!installKeys.has(key)) {
-          installKeys.add(key);
-          installEntries.push([key, descriptor]);
+      proto.__toInstall!.forEach((property) => {
+        // if class and subclass have like named property, use the subclass's property
+        if (!installKeys.has(property.key)) {
+          installKeys.add(property.key);
+          installEntries.push(property);
         }
       });
     }
@@ -124,10 +152,11 @@ function installList(d: DecoratedInternal): InstallEntry[] {
 function addReactive(
   proto: HasReactiveInternal,
   key: string,
-  descriptor: PropertyDescriptor
+  descriptor: PropertyDescriptor,
+  params: ReactivelyParams = {}
 ): any {
   installOneAccessor(proto, key, descriptor);
-  queueReactiveToInstall(proto as DecoratedInternal, key, descriptor);
+  queueReactiveToInstall(proto as DecoratedInternal, key, descriptor, params);
   return {}; // so babel builds don't create a property on the instance
 }
 
@@ -135,7 +164,8 @@ function addReactive(
 export function queueReactiveToInstall(
   proto: DecoratedInternal,
   key: string,
-  descriptor?: PropertyDescriptor
+  descriptor?: PropertyDescriptor,
+  params: ReactivelyParams = {}
 ) {
   if (!proto.hasOwnProperty("__toInstall")) {
     // Accumulate entries onto our class's prototype.
@@ -145,7 +175,7 @@ export function queueReactiveToInstall(
       value: [],
     });
   }
-  proto.__toInstall!.push([key, descriptor]);
+  proto.__toInstall!.push({ key, descriptor, params });
 }
 
 /** Install get and set accessor functions for reactive propertes on the prototype

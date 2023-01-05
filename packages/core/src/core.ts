@@ -142,12 +142,14 @@ export class Reactive<T> {
         this.fn = undefined;
       }
       const value = fnOrValue as T;
-      if (!this.equals(this._value, value) && this.observers) {
-        for (let i = 0; i < this.observers.length; i++) {
-          this.observers[i].stale(CacheDirty);
+      if (!this.equals(this._value, value)) {
+        if (this.observers) {
+          for (let i = 0; i < this.observers.length; i++) {
+            this.observers[i].stale(CacheDirty);
+          }
         }
+        this._value = value;
       }
-      this._value = value;
     }
   }
 

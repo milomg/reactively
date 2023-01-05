@@ -114,3 +114,22 @@ test.skip("one computed, destructured", () => {
   const { c } = o;
   expect(c()).toEqual(7); // doesn't work, because 'this' is undefined
 });
+
+test("custom equality check", () => {
+  class OneReaction extends HasReactive {
+    callCount1 = 0;
+    @reactively({ equals: (a, b) => Math.round(a) === Math.round(b) }) a = 7;
+    @reactively c() {
+      this.callCount1++;
+      const result = this.a + 10;
+      return result;
+    }
+  }
+
+  const o = new OneReaction();
+  expect(o.c()).toBe(17);
+  o.a = 7.1;
+  expect(o.c()).toBe(17);
+  expect(o.a).toEqual(7);
+  expect(o.callCount1).toBe(1);
+});

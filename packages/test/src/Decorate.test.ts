@@ -328,7 +328,7 @@ test("shared HasReactive superclass", () => {
 test("override reactive property", () => {
   class A extends HasReactive {
     @reactively a = "a";
-  } 
+  }
 
   class B extends A {
     @reactively override a = "ba";
@@ -336,4 +336,4 @@ test("override reactive property", () => {
 
   const b = new B();
   expect(b.a).toEqual("ba");
-})
+});
