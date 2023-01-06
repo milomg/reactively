@@ -116,9 +116,15 @@ test.skip("one computed, destructured", () => {
 });
 
 test("custom equality check", () => {
+  const roundedEquals = (a: number, b: number) =>
+    Math.round(a) === Math.round(b);
+
   class OneReaction extends HasReactive {
     callCount1 = 0;
-    @reactively({ equals: (a, b) => Math.round(a) === Math.round(b) }) a = 7;
+
+    @reactively({ equals: roundedEquals })
+    a = 7;
+
     @reactively c() {
       this.callCount1++;
       const result = this.a + 10;
@@ -127,9 +133,10 @@ test("custom equality check", () => {
   }
 
   const o = new OneReaction();
-  expect(o.c()).toBe(17);
+  expect(o.c()).toEqual(17);
+  expect(o.callCount1).toEqual(1);
   o.a = 7.1;
-  expect(o.c()).toBe(17);
+  expect(o.c()).toEqual(17);
   expect(o.a).toEqual(7);
-  expect(o.callCount1).toBe(1);
+  expect(o.callCount1).toEqual(1);
 });
