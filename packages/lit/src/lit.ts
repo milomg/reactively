@@ -42,10 +42,8 @@ export class ReactiveLitElement
   ): PropertyDescriptor | undefined {
     const litDescriptor = super.getPropertyDescriptor(name, key, options);
     if (!this._buildingReactiveProperty) {
-      // console.log("unmodified lit property", { name, key });
       return litDescriptor;
     } else {
-      // console.log("reactive lit property", { name, key });
       return {
         get: function (this: HasReactive) {
           return this.__reactive![name as string].get();
@@ -92,7 +90,6 @@ function installComboAccessor(
   descriptor?: PropertyDescriptor,
   options?: PropertyDeclaration
 ): void {
-  // console.log("installComboAccessor", { key, descriptor });
   if (descriptor?.get) {
     // lit will not install a get accessor if there is already one in the prototype.
     // so we manually our reactive accessor rather than relying on
