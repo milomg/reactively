@@ -18,7 +18,7 @@ implementation by those different compilers are not quite the same as each other
 as specified in the typescript handbook (Sep 2022). Some differences:
 . decorator functions may return a property descriptor, which babel builds will use.
   Returning {} from a decorator function will not add an instance property on babel builds.
-. babel builds provide an additonal property 'initializer' on the descriptor, which
+. babel builds provide an additional property 'initializer' on the descriptor, which
   specifies a function that initialize the value of a property on the instance.
 . babel builds and ts/esbuild builds construct objects differently wrt property 
   inititialization.  
@@ -45,22 +45,32 @@ export function reactively(
   name?: any,
   descriptor?: PropertyDescriptor
 ): ((prototype: any, name: string) => void) | any {
-  if (prototypeOrParams) {
-    if (prototypeOrParams instanceof HasReactive)
-      return addReactive(prototypeOrParams, name, descriptor!);
-    else
-      return (
-        proto: HasReactiveInternal,
-        key: string,
-        descriptor: PropertyDescriptor
-      ) =>
-        addReactive(
-          proto,
-          key,
-          descriptor,
-          prototypeOrParams as ReactivelyParams
-        );
-  } else return addReactive;
+  // '@reactively()' parens so 'decorator factory' style but no parameters
+  if (!prototypeOrParams) {
+    return addReactive;
+  }
+
+  // '@reactively({equals: ...})' parens so 'decorator factory' style with parameters
+  if (Object.getPrototypeOf(prototypeOrParams) === Object.prototype) {
+    return (
+      proto: HasReactiveInternal,
+      key: string,
+      descriptor: PropertyDescriptor
+    ) =>
+      addReactive(
+        proto,
+        key,
+        descriptor,
+        prototypeOrParams as ReactivelyParams
+      );
+  } else {
+    // '@reactively' with no parens so 'decorator style'. We're provided the proto immediately.
+    return addReactive(
+      prototypeOrParams as HasReactiveInternal,
+      name,
+      descriptor!
+    );
+  }
 }
 
 /** Classes that contain `@reactive` properties should extend `HasReactive`
