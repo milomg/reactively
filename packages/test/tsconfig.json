@@ -4,10 +4,11 @@
     "target": "ESNext",
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM"],
-    "types": ["@types/jest", "@types/node"],
+    "types": ["@types/node"],
     "noEmit": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@reactively/core": ["../core/src/core"],
       "@reactively/decorate": ["../decorate/src/decorate"]

@@ -1,3 +1,4 @@
+import { test } from "vitest";
 import { ReactiveFramework } from "./ReactiveFramework";
 export function frameworkTest<T>(
   f: ReactiveFramework,

@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { reactive } from "@reactively/core";
 test("setting a memo to a different memo", () => {
   const a = reactive(1);

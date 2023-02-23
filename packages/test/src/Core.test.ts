@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { frameworkTest } from "./util/FrameworkTest";
 import { ReactiveFramework } from "./util/ReactiveFramework";
 import { reactivelyValue } from "./frameworks/ReactivelyValue";

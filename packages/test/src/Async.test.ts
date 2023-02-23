@@ -1,3 +1,4 @@
+import {expect} from "vitest";
 import { promiseDelay } from "./util/AsyncUtil";
 import { frameworkTest } from "./util/FrameworkTest";
 import { ReactiveFramework } from "./util/ReactiveFramework";

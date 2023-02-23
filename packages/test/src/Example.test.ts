@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { HasReactive, reactively } from "@reactively/decorate";
 
 function saveToCloud(name: string, buf: number[]): number[] {

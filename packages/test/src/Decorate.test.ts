@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { onCleanup, Reactive } from "@reactively/core";
 import { HasReactive, reactively } from "@reactively/decorate";
 
