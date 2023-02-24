@@ -1,6 +1,6 @@
 {
   "name": "@reactively/core",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "main": "./dist/core.js",
   "types": "./dist/core.d.ts",
