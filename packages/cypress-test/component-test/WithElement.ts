@@ -1,3 +1,8 @@
+/** Create an single html element with the specified tag name in the 
+ * texture fixture document.
+ * 
+ * returns the new element and the new element in a cypress selection.
+ */
 export function withElement<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   fn: (
@@ -6,11 +11,10 @@ export function withElement<K extends keyof HTMLElementTagNameMap>(
   ) => void
 ): void {
   cy.get("body").then(async (bodySelector) => {
-    document.querySelectorAll(tag).forEach((e) => e.remove());
     const el = document.createElement(tag);
     bodySelector[0].appendChild(el);
 
-    const sel = cy.get("#hello", { includeShadowDom: true });
+    const sel = cy.get(el);
     fn(sel, el);
   });
 }

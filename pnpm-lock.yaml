@@ -51,23 +51,13 @@ importers:
 
   packages/test:
     specifiers:
-      '@preact/signals': ^1.1.3
       '@reactively/core': workspace:*
       '@reactively/decorate': workspace:*
       '@types/node': ^18.14.0
-      mol_wire_lib: ^1.0.488
-      preact: ^10.12.1
-      solid-js: ^1.6.11
-      usignal: ^0.8.14
       vitest: ^0.28.5
     dependencies:
-      '@preact/signals': 1.1.3_preact@10.12.1
       '@reactively/core': link:../core
       '@reactively/decorate': link:../decorate
-      mol_wire_lib: 1.0.488
-      preact: 10.12.1
-      solid-js: 1.6.11
-      usignal: 0.8.14
     devDependencies:
       '@types/node': 18.14.0
       vitest: 0.28.5
@@ -315,19 +305,6 @@ packages:
   /@lit/reactive-element/1.5.0:
     resolution: {integrity: sha512-fQh9FDK0LPTwDk+0HhSZEtb8K0LTN1wXerwpGrWA+a8tWulYRDLI4vQDWp4GOIsewn0572KYV/oZ3+492D7osA==}
     dev: true
-
-  /@preact/signals-core/1.2.3:
-    resolution: {integrity: sha512-Kui4p7PMcEQevBgsTO0JBo3gyQ88Q3qzEvsVCuSp11t0JcN4DmGCTJcGRVSCq7Bn7lGxJBO+57jNSzDoDJ+QmA==}
-    dev: false
-
-  /@preact/signals/1.1.3_preact@10.12.1:
-    resolution: {integrity: sha512-N09DuAVvc90bBZVRwD+aFhtGyHAmJLhS3IFoawO/bYJRcil4k83nBOchpCEoS0s5+BXBpahgp0Mjf+IOqP57Og==}
-    peerDependencies:
-      preact: 10.x
-    dependencies:
-      '@preact/signals-core': 1.2.3
-      preact: 10.12.1
-    dev: false
 
   /@types/chai-subset/1.3.3:
     resolution: {integrity: sha512-frBecisrNGz+F4T6bcc+NLeolfiojh5FxW2klu669+8BARtyQv2C/GkNW6FUodVe4BroGMP/wER/YDGc7rEllw==}
@@ -682,6 +659,7 @@ packages:
 
   /csstype/3.1.1:
     resolution: {integrity: sha512-DJR/VvkAvSZW9bTouZue2sSxDwdTN92uHjqeKVm+0dAqdfNykRzQ95tay8aXMBAAPpUiq4Qcug2L7neoRh2Egw==}
+    dev: true
 
   /cypress/12.2.0:
     resolution: {integrity: sha512-kvl95ri95KK8mAy++tEU/wUgzAOMiIciZSL97LQvnOinb532m7dGvwN0mDSIGbOd71RREtmT9o4h088RjK5pKw==}
@@ -1284,10 +1262,6 @@ packages:
       ufo: 1.1.0
     dev: true
 
-  /mol_wire_lib/1.0.488:
-    resolution: {integrity: sha512-AqGNHtM5HvxdYKXMt85ESXG+Owj/E6HEUM2a0SKoCpx+R4uHrqM3V8HABt13twXzMDDfjO713TRWQb7Qb4EQRA==}
-    dev: false
-
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
     dev: true
@@ -1391,10 +1365,6 @@ packages:
       picocolors: 1.0.0
       source-map-js: 1.0.2
     dev: true
-
-  /preact/10.12.1:
-    resolution: {integrity: sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==}
-    dev: false
 
   /pretty-bytes/5.6.0:
     resolution: {integrity: sha512-FFw039TmrBqFK8ma/7OL3sDz/VytdtJr044/QUJtH0wK9lb9jLq9tJyIxUwtQJHwar2BqtiA4iCWSwo9JLkzFg==}
@@ -1548,12 +1518,6 @@ packages:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 4.0.0
     dev: true
-
-  /solid-js/1.6.11:
-    resolution: {integrity: sha512-JquQQHPArGq+i2PLURxJ99Pcz2/1docpbycSio/cKSA0SeI3z5zRjy0TNcH4NRYvbOLrcini+iovXwnexKabyw==}
-    dependencies:
-      csstype: 3.1.1
-    dev: false
 
   /solid-js/1.6.6:
     resolution: {integrity: sha512-5x33mEbPI8QLuywvFjQP4krjWDr8xiYFgZx9KCBH7b0ZzypQCHaUubob7bK6i+1u6nhaAqhWtvXS587Kb8DShA==}
@@ -1744,10 +1708,6 @@ packages:
     resolution: {integrity: sha512-KK8xQ1mkzZeg9inewmFVDNkg3l5LUhoq9kN6iWYB/CC9YMG8HA+c1Q8HwDe6dEX7kErrEVNVBO3fWsVq5iDgtw==}
     engines: {node: '>=8'}
     dev: true
-
-  /usignal/0.8.14:
-    resolution: {integrity: sha512-pPWOcODVi1bT11Mj1j4wfQkbHJA4uhvZrHuiQDs15J+mKy46WgeJhyYRGTGAa4Zox2cKjAmurDtJkoD9lURUnQ==}
-    dev: false
 
   /uuid/8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
