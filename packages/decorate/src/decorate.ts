@@ -107,13 +107,14 @@ export function createReactives(r: HasReactiveInternal) {
   for (const { key, descriptor, params } of installList(
     r as DecoratedInternal
   )) {
+    const label = `${r.constructor.name}.${key}`;
     if (descriptor?.get) {
       // getter
-      reactives[key] = new Reactive(descriptor.get.bind(r));
+      reactives[key] = new Reactive(descriptor.get.bind(r), false, label);
     } else if (typeof descriptor?.value === "function") {
       // method
       const boundFn = descriptor.value.bind(r);
-      reactives[key] = new Reactive(boundFn);
+      reactives[key] = new Reactive(boundFn, false, label);
     } else {
       // signal
 
@@ -123,7 +124,7 @@ export function createReactives(r: HasReactiveInternal) {
       const initializer = (descriptor as any)?.initializer;
       const value = initializer ? initializer.call(r) : undefined;
 
-      reactives[key] = new Reactive<unknown>(value);
+      reactives[key] = new Reactive<unknown>(value, false, label);
     }
     if (params?.equals) reactives[key].equals = params.equals;
   }

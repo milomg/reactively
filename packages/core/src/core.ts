@@ -47,6 +47,11 @@ export type CacheState =
   | typeof CacheDirty;
 type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
 
+let debugDirty = false;
+export function logDirty(value?: boolean): void {
+  debugDirty = value ?? true;
+}
+
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
  * The property can be modified externally by calling set().
@@ -87,21 +92,26 @@ export class Reactive<T> {
 
   private state: CacheState;
   private effect: boolean;
+  private label?: string;
   cleanups: ((oldValue: T) => void)[] = [];
   equals = defaultEquality;
 
-  constructor(fnOrValue: (() => T) | T, effect?: boolean) {
+  constructor(fnOrValue: (() => T) | T, effect?: boolean, label?: string) {
     if (typeof fnOrValue === "function") {
       this.fn = fnOrValue as () => T;
       this._value = undefined as any;
       this.effect = effect || false;
       this.state = CacheDirty;
+      debugDirty && console.log("initial dirty (fn)", label);
       if (effect) this.update(); // CONSIDER removing this?
     } else {
       this.fn = undefined;
       this._value = fnOrValue;
       this.state = CacheClean;
       this.effect = false;
+    }
+    if (label) {
+      this.label = label;
     }
   }
 
@@ -133,7 +143,10 @@ export class Reactive<T> {
   set(fnOrValue: T | (() => T)): void {
     if (typeof fnOrValue === "function") {
       const fn = fnOrValue as () => T;
-      if (fn !== this.fn) this.stale(CacheDirty);
+      if (fn !== this.fn) {
+        debugDirty && console.log("dirty", this.label);
+        this.stale(CacheDirty);
+      }
       this.fn = fn;
     } else {
       if (this.fn) {
@@ -143,9 +156,12 @@ export class Reactive<T> {
       }
       const value = fnOrValue as T;
       if (!this.equals(this._value, value)) {
+        debugDirty && console.log("dirty", this.label);
         if (this.observers) {
           for (let i = 0; i < this.observers.length; i++) {
-            this.observers[i].stale(CacheDirty);
+            const observer = this.observers[i];
+            debugDirty && console.log("observer (child) dirty", observer.label);
+            observer.stale(CacheDirty);
           }
         }
         this._value = value;
@@ -221,11 +237,13 @@ export class Reactive<T> {
       CurrentGetsIndex = prevIndex;
     }
 
-    // handle diamond depenendencies if we're the parent of a diamond.
+    // handles diamond depenendencies if we're the parent of a diamond.
     if (!this.equals(oldValue, this._value) && this.observers) {
       // We've changed value, so mark our children as dirty so they'll reevaluate
       for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].state = CacheDirty;
+        const observer = this.observers[i];
+        debugDirty && console.log("marking child dirty", observer.label);
+        observer.state = CacheDirty;
       }
     }
 
@@ -251,6 +269,7 @@ export class Reactive<T> {
 
     // If we were already dirty or marked dirty by the step above, update.
     if (this.state === CacheDirty) {
+      debugDirty && console.log("updating (dirty)", this.label);
       this.update();
     }
 
