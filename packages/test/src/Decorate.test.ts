@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { onCleanup, Reactive } from "@reactively/core";
+import { onCleanup, reactive, Reactive, stabilize } from "@reactively/core";
 import { HasReactive, reactively } from "@reactively/decorate";
 
 /* 
@@ -337,4 +337,29 @@ test("override reactive property", () => {
 
   const b = new B();
   expect(b.a).toEqual("ba");
+});
+
+test("effect getter", () => {
+  const src = reactive(7);
+  let effectCount = 0;
+
+
+  class E extends HasReactive {
+    @reactively({ effect: true }) get e() {
+      effectCount++;
+      return src.value;
+    }
+  }
+
+  const obj = new E();
+  expect(obj.e).toEqual(7);
+  expect(effectCount).toEqual(1);
+
+  src.value = 6;
+  expect(effectCount).toEqual(1);
+
+  stabilize();
+  expect(effectCount).toEqual(2);
+  expect(obj.e).toEqual(6);
+  expect(effectCount).toEqual(2);
 });

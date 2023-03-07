@@ -37,6 +37,9 @@ let CurrentGetsIndex = 0;
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
 
+let stabilizeIdleFn: (() => void) | undefined = undefined; // fn to call if there are dirty effect nodes
+let stabilizationQueued = false; // stabilizeFn() is queued to run after this event loop
+
 /** reactive nodes are marked dirty when their source values change TBD*/
 export const CacheClean = 0; // reactive value is valid, no need to recompute
 export const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
@@ -46,6 +49,16 @@ export type CacheState =
   | typeof CacheCheck
   | typeof CacheDirty;
 type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
+
+export function logDirty(_enable?: boolean): void {
+  // TBD for a debug build
+}
+
+export interface ReactivelyParams {
+  equals?: (a: any, b: any) => boolean;
+  effect?: boolean;
+  label?: string;
+}
 
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
@@ -59,8 +72,15 @@ type CacheNonClean = typeof CacheCheck | typeof CacheDirty;
  * The reactive function is re-evaluated when any of its dependencies change, and the result is
  * cached.
  */
-export function reactive<T>(fnOrValue: T | (() => T)): Reactive<T> {
-  return new Reactive(fnOrValue);
+export function reactive<T>(
+  fnOrValue: T | (() => T),
+  params?: ReactivelyParams
+): Reactive<T> {
+  const node = new Reactive(fnOrValue, params?.effect, params?.label);
+  if (params?.equals) {
+    node.equals = params.equals;
+  }
+  return node;
 }
 
 function defaultEquality(a: any, b: any) {
@@ -87,21 +107,32 @@ export class Reactive<T> {
 
   private state: CacheState;
   private effect: boolean;
+  private label?: string;
   cleanups: ((oldValue: T) => void)[] = [];
   equals = defaultEquality;
 
-  constructor(fnOrValue: (() => T) | T, effect?: boolean) {
+  constructor(fnOrValue: (() => T) | T, effect?: boolean, label?: string) {
     if (typeof fnOrValue === "function") {
       this.fn = fnOrValue as () => T;
       this._value = undefined as any;
       this.effect = effect || false;
       this.state = CacheDirty;
-      if (effect) this.update(); // CONSIDER removing this?
+      if (effect) {
+        EffectQueue.push(this);
+        stabilizeIdle();
+      }
+      // debugDirty && console.log("initial dirty (fn)", label);
+      // enabling this causes update to fire before properties are initialized in decorated classes
+      // which seems bad. The ReactiveLitEffect test has an example.
+      // if (effect) this.update(); // CONSIDER removing this?
     } else {
       this.fn = undefined;
       this._value = fnOrValue;
       this.state = CacheClean;
       this.effect = false;
+    }
+    if (label) {
+      this.label = label;
     }
   }
 
@@ -133,7 +164,9 @@ export class Reactive<T> {
   set(fnOrValue: T | (() => T)): void {
     if (typeof fnOrValue === "function") {
       const fn = fnOrValue as () => T;
-      if (fn !== this.fn) this.stale(CacheDirty);
+      if (fn !== this.fn) {
+        this.stale(CacheDirty);
+      }
       this.fn = fn;
     } else {
       if (this.fn) {
@@ -145,7 +178,8 @@ export class Reactive<T> {
       if (!this.equals(this._value, value)) {
         if (this.observers) {
           for (let i = 0; i < this.observers.length; i++) {
-            this.observers[i].stale(CacheDirty);
+            const observer = this.observers[i];
+            observer.stale(CacheDirty);
           }
         }
         this._value = value;
@@ -156,7 +190,10 @@ export class Reactive<T> {
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
       // If we were previously clean, then we know that we may need to update to get the new value
-      if (this.state === CacheClean && this.effect) EffectQueue.push(this);
+      if (this.state === CacheClean && this.effect) {
+        EffectQueue.push(this);
+        stabilizeIdle();
+      }
 
       this.state = state;
       if (this.observers) {
@@ -221,11 +258,12 @@ export class Reactive<T> {
       CurrentGetsIndex = prevIndex;
     }
 
-    // handle diamond depenendencies if we're the parent of a diamond.
+    // handles diamond depenendencies if we're the parent of a diamond.
     if (!this.equals(oldValue, this._value) && this.observers) {
       // We've changed value, so mark our children as dirty so they'll reevaluate
       for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].state = CacheDirty;
+        const observer = this.observers[i];
+        observer.state = CacheDirty;
       }
     }
 
@@ -278,9 +316,31 @@ export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
 }
 
 /** run all non-clean effect nodes */
-export function stabilize() {
+export function stabilize(): void {
   for (let i = 0; i < EffectQueue.length; i++) {
     EffectQueue[i].get();
   }
   EffectQueue.length = 0;
+}
+
+/** run a function in every event loop if there are dirty effect nodes.  */
+export function stabilizeContinuously(
+  fn: (() => void) | undefined = stabilize
+): void {
+  stabilizeIdleFn = fn;
+  if (EffectQueue.length) {
+    fn?.();
+  }
+}
+
+/** queue stabilizeIdleFn() to run at the next idle time */
+function stabilizeIdle(): void {
+  if (stabilizeIdleFn && !stabilizationQueued) {
+    stabilizationQueued = true;
+
+    queueMicrotask(() => {
+      stabilizationQueued = false;
+      stabilizeIdleFn?.();
+    });
+  }
 }
