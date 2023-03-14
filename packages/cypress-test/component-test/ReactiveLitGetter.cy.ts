@@ -5,6 +5,7 @@ describe("reactive lit element with getter", () => {
   it.only("a reactive property change can trigger an update", () => {
     withElement("reactive-lit2", (selection, el) => {
       selection
+        .get("#hello", { includeShadowDom: true })
         .contains("#1")
         .then(() => {
           el.a = 2;

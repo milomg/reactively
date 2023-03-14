@@ -5,6 +5,7 @@ describe("reactive lit element", () => {
   it("re-renders when lit only property is changed", () => {
     withElement("reactive-lit1", (selection, elem) => {
       selection
+        .get("#hello", { includeShadowDom: true })
         .contains("Hello ?!")
         .then(() => {
           // we've rendered once in the initial state, and computed once
@@ -15,13 +16,15 @@ describe("reactive lit element", () => {
           // we've rendered once in the initial state, and computed once
           expect(elem.computeCount).to.equal(1);
         })
-        .contains("Well ?!"); // verify the re-render
+        .contains("Well ?!") // verify the re-render
+        .then(() => elem.remove());
     });
   });
 
   it("recomputes computed property when combo property changes", () => {
     withElement("reactive-lit1", (selection, e) => {
       selection
+        .get("#hello", { includeShadowDom: true })
         .then(() => {
           // no recompute necessary even as we read computedCombo()
           expect(e.computeCount).to.equal(1);
@@ -35,13 +38,15 @@ describe("reactive lit element", () => {
           expect(e.computeCount).to.equal(2);
           expect(e.computed()).equal("Fred!");
           expect(e.computeCount).to.equal(2);
-        });
+        })
+        .then(() => e.remove());
     });
   });
 
   it("does not re-render when a non-lit reactive property changes", () => {
     withElement("reactive-lit1", (selection, e) => {
       selection
+        .get("#hello", { includeShadowDom: true })
         .then(() => {
           e.nonLit = ","; // does not trigger a re-render
         })
@@ -51,7 +56,8 @@ describe("reactive lit element", () => {
 
           e.litOnly = "Well"; // triggers a re-render
         })
-        .contains("Well ?,"); // verify re-render picked up non-lit change
+        .contains("Well ?,") // verify re-render picked up non-lit change
+        .then(() => e.remove());
     });
   });
 });
