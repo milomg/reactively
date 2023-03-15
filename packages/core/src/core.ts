@@ -52,6 +52,12 @@ export function logDirty(value?: boolean): void {
   debugDirty = value ?? true;
 }
 
+export interface ReactivelyParams {
+  equals?: (a: any, b: any) => boolean;
+  effect?: boolean;
+  label?: string;
+}
+
 /** A reactive element contains a mutable value that can be observed by other reactive elements.
  *
  * The property can be modified externally by calling set().
@@ -64,8 +70,15 @@ export function logDirty(value?: boolean): void {
  * The reactive function is re-evaluated when any of its dependencies change, and the result is
  * cached.
  */
-export function reactive<T>(fnOrValue: T | (() => T)): Reactive<T> {
-  return new Reactive(fnOrValue);
+export function reactive<T>(
+  fnOrValue: T | (() => T),
+  params?: ReactivelyParams
+): Reactive<T> {
+  const node = new Reactive(fnOrValue, params?.effect, params?.label);
+  if (params?.equals) {
+    node.equals = params.equals;
+  }
+  return node;
 }
 
 function defaultEquality(a: any, b: any) {

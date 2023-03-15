@@ -1,4 +1,4 @@
-import { Reactive } from "@reactively/core";
+import { Reactive, ReactivelyParams } from "@reactively/core";
 
 /*
 This module supports creating Typescript classes with reactive properties. 
@@ -23,10 +23,6 @@ as specified in the typescript handbook (Sep 2022). Some differences:
 . babel builds and ts/esbuild builds construct objects differently wrt property 
   inititialization.  
 */
-
-interface ReactivelyParams {
-  equals?: (a: any, b: any) => boolean;
-}
 
 /** Decorate a `@reactively` property in a class.
  *
