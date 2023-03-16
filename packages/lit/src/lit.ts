@@ -64,7 +64,7 @@ export class ReactiveLitElement
 /** Mark a lit+reactively property that is tracked for dependency changes
  * and triggers a component update when set */
 export function reactiveProperty(
-  options?: PropertyDeclaration
+  options?: PropertyDeclaration & ReactivelyParams,
 ):
   | ((
       prototype: LitElement,
@@ -77,7 +77,7 @@ export function reactiveProperty(
     key: string,
     descriptor?: PropertyDescriptor
   ): any {
-    queueReactiveToInstall(proto as any, key, descriptor);
+    queueReactiveToInstall(proto as any, key, descriptor, options);
     installComboAccessor(proto, key, descriptor, options);
     return {};
   };
