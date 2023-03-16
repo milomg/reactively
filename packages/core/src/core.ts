@@ -312,7 +312,7 @@ export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
 }
 
 /** run all non-clean effect nodes */
-export function stabilize() {
+export function stabilize(): void {
   for (let i = 0; i < EffectQueue.length; i++) {
     EffectQueue[i].get();
   }
