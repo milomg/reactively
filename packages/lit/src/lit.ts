@@ -1,20 +1,23 @@
-import { LitElement, PropertyDeclaration } from "lit";
+import { Reactive, ReactivelyParams } from "@reactively/core";
 import {
+  createReactives,
   HasReactive,
   HasReactiveInternal,
-  createReactives,
   queueReactiveToInstall,
+  reactively,
 } from "@reactively/decorate";
-import { Reactive } from "@reactively/core";
+import { LitElement, PropertyDeclaration, TemplateResult } from "lit";
 
-/** An extension to LitElement that enables two additional property decorations (for a total of 3.)
- *  `@property` - lit properties that trigger an update/render when they change, optionally mirrored to html (unchanged from lit)
- *  `@reactively` - reactive properties that update when their @reactively dependencies change
- *                  they do not trigger update/render (from @reactively/decorate)
- *  `@reactiveProperty` - a combination of the above two, a reactive property that tracks dependencies
- *                        and triggers an update/render when it changes. (from @reactively/decorate)
+/** An extension to LitElement for reactive support.
+ *
+ * Users should implement reactiveRender() instead of render(), so that ReactiveLitElement
+ * can internally track reactive sources used while rendering.
+ *
+ * Users should use these decorations:
+ *  `@reactively` - reactive property that updates lazily if its @reactively sources change
+ *  `@reactiveProperty` - reactively property that's also a lit web component property
  */
-export class ReactiveLitElement
+export abstract class ReactiveLitElement
   extends LitElement
   implements HasReactiveInternal
 {
@@ -31,6 +34,45 @@ export class ReactiveLitElement
   constructor() {
     super();
     createReactives(this);
+    this.validateRender();
+  }
+
+  /** subclasses should implement this, returning the contents that will be render()d */
+  protected abstract reactiveRender(): TemplateResult;
+
+  @reactively({ effect: true }) private get template(): TemplateResult {
+    this.requestUpdate(); // effect stabilization has called us, trigger a lit render
+    return this.reactiveRender();
+  }
+
+  override render(): TemplateResult {
+    return this.template;
+  }
+
+  /** log if the user has implmented render() instead of reactiveRender() */
+  private validateRender(): void {
+    const renderProto = hasRender(this);
+    if (renderProto?.constructor?.name !== ReactiveLitElement.name) {
+      console.error(
+        "ReactiveLitElement subclasses should not implement render(). \n" +
+          "Implement reactiveRender() instead.\n",
+        "class:",
+        this.constructor.name,
+        "\n",
+        "instance:",
+        this
+      );
+    }
+
+    function hasRender(self: any): any {
+      if (self === undefined) {
+        return undefined;
+      }
+      if (Object.getOwnPropertyNames(self).includes("render")) {
+        return self;
+      }
+      return hasRender(Object.getPrototypeOf(self));
+    }
   }
 
   /** Produce a lit property descriptor, and also a reactive node for the property
