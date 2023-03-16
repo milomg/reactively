@@ -37,6 +37,9 @@ let CurrentGetsIndex = 0;
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
 
+let idleStabilization = false; // stabilize() all dirty effects after every event loop
+let stabilizationQueued = false; // stabilize() is queued to run after this event loop
+
 /** reactive nodes are marked dirty when their source values change TBD*/
 export const CacheClean = 0; // reactive value is valid, no need to recompute
 export const CacheCheck = 1; // reactive value might be stale, check parent nodes to decide whether to recompute
@@ -187,7 +190,10 @@ export class Reactive<T> {
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
       // If we were previously clean, then we know that we may need to update to get the new value
-      if (this.state === CacheClean && this.effect) EffectQueue.push(this);
+      if (this.state === CacheClean && this.effect) {
+        EffectQueue.push(this);
+        stabilizeIdle();
+      }
 
       this.state = state;
       if (this.observers) {
@@ -317,4 +323,31 @@ export function stabilize(): void {
     EffectQueue[i].get();
   }
   EffectQueue.length = 0;
+}
+
+/** stabilize() dirty effect nodes in every event loop.  */
+export function stabilizeContinuously(continously = true): void {
+  if (!continously) {
+    idleStabilization = false;
+  } else {
+    idleStabilization = true;
+    if (EffectQueue.length) {
+      stabilizeIdle();
+    }
+  }
+}
+
+/** queue stabilize() to run at the next idle time */
+function stabilizeIdle() {
+  if (!idleStabilization || stabilizationQueued) {
+    return;
+  }
+  stabilizationQueued = true;
+  // CONSIDER microtask instead?
+  setTimeout(() => {
+    stabilizationQueued = false;
+    if (idleStabilization) {
+      stabilize();
+    }
+  });
 }
