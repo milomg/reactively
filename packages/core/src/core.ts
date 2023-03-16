@@ -118,6 +118,10 @@ export class Reactive<T> {
       this._value = undefined as any;
       this.effect = effect || false;
       this.state = CacheDirty;
+      if (effect) {
+        EffectQueue.push(this);
+        stabilizeIdle();
+      }
       debugDirty && console.log("initial dirty (fn)", label);
       // enabling this causes update to fire before properties are initialized in decorated classes
       // which seems bad. The ReactiveLitEffect test has an example.
