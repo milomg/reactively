@@ -37,8 +37,8 @@ let CurrentGetsIndex = 0;
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
 
-let idleStabilization = false; // stabilize() all dirty effects after every event loop
-let stabilizationQueued = false; // stabilize() is queued to run after this event loop
+let stabilizeIdleFn: (() => void) | undefined = undefined; // fn to call if there are dirty effect nodes
+let stabilizationQueued = false; // stabilizeFn() is queued to run after this event loop
 
 /** reactive nodes are marked dirty when their source values change TBD*/
 export const CacheClean = 0; // reactive value is valid, no need to recompute
@@ -329,29 +329,24 @@ export function stabilize(): void {
   EffectQueue.length = 0;
 }
 
-/** stabilize() dirty effect nodes in every event loop.  */
-export function stabilizeContinuously(continously = true): void {
-  if (!continously) {
-    idleStabilization = false;
-  } else {
-    idleStabilization = true;
-    if (EffectQueue.length) {
-      stabilizeIdle();
-    }
+/** run a function in every event loop if there are dirty effect nodes.  */
+export function stabilizeContinuously(
+  fn: (() => void) | undefined = stabilize
+): void {
+  stabilizeIdleFn = fn;
+  if (EffectQueue.length) {
+    fn?.();
   }
 }
 
-/** queue stabilize() to run at the next idle time */
-function stabilizeIdle() {
-  if (!idleStabilization || stabilizationQueued) {
-    return;
+/** queue stabilizeIdleFn() to run at the next idle time */
+function stabilizeIdle(): void {
+  if (stabilizeIdleFn && !stabilizationQueued) {
+    stabilizationQueued = true;
+
+    queueMicrotask(() => {
+      stabilizationQueued = false;
+      stabilizeIdleFn?.();
+    });
   }
-  stabilizationQueued = true;
-  // CONSIDER microtask instead?
-  setTimeout(() => {
-    stabilizationQueued = false;
-    if (idleStabilization) {
-      stabilize();
-    }
-  });
 }
