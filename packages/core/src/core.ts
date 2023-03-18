@@ -337,10 +337,11 @@ export function stabilizeContinuously(
 function stabilizeIdle(): void {
   if (stabilizeIdleFn && !stabilizationQueued) {
     stabilizationQueued = true;
+    const doStabilize = stabilizeIdleFn; 
 
     queueMicrotask(() => {
       stabilizationQueued = false;
-      stabilizeIdleFn?.();
+      doStabilize();
     });
   }
 }
