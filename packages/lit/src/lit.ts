@@ -6,9 +6,9 @@ import {
   queueReactiveToInstall,
   reactively,
 } from "@reactively/decorate";
-import { LitElement, PropertyDeclaration, TemplateResult } from "lit";
+import { LitElement, noChange, PropertyDeclaration, TemplateResult } from "lit";
 
-/** An extension to LitElement for reactive support.
+/** An extension to LitElement to support fine grained reactivity.
  *
  * Users should implement reactiveRender() instead of render(), so that ReactiveLitElement
  * can internally track reactive sources used while rendering.
@@ -37,15 +37,19 @@ export abstract class ReactiveLitElement
     this.validateRender();
   }
 
-  /** subclasses should implement this, returning the contents that will be render()d */
-  protected abstract reactiveRender(): TemplateResult;
+  /** subclasses should implement this, returning the contents that will be render()d.
+   * Typically, returna 
+   */
+  protected reactiveRender(): unknown {
+    return noChange;
+  };
 
-  @reactively({ effect: true }) private get template(): TemplateResult {
+  @reactively({ effect: true }) private get template(): unknown {
     this.requestUpdate(); // effect stabilization has called us, trigger a lit render
     return this.reactiveRender();
   }
 
-  override render(): TemplateResult {
+  override render(): unknown {
     return this.template;
   }
 
