@@ -1,4 +1,4 @@
-import { stabilizeContinuously } from "@reactively/core";
+import { autoStabilize } from "@reactively/core";
 import { reactively } from "@reactively/decorate";
 import { ReactiveLitElement, reactiveProperty } from "@reactively/lit";
 import { html, TemplateResult } from "lit";
@@ -36,7 +36,7 @@ declare global {
 describe("reactive lit element", () => {
   it("recomputes computed property when combo property changes", () => {
     withElement("reactive-lit1", (selection, e) => {
-      stabilizeContinuously();
+      autoStabilize();
       selection
         .get("#hello", { includeShadowDom: true })
         .then(() => {
@@ -54,13 +54,13 @@ describe("reactive lit element", () => {
           expect(e.computeCount).to.equal(2);
         })
         .then(() => e.remove())
-        .then(() => stabilizeContinuously(false));
+        .then(() => autoStabilize(undefined));
     });
   });
 
   it("render() when a reactive property used in template changes", () => {
     withElement("reactive-lit1", (selection, e) => {
-      stabilizeContinuously();
+      autoStabilize();
       selection
         .get("#hello", { includeShadowDom: true })
         .then(() => {
@@ -71,13 +71,13 @@ describe("reactive lit element", () => {
           expect(e.computeCount).to.equal(2);
         })
         // .then(() => e.remove())
-        .then(() => stabilizeContinuously(false));
+        .then(() => autoStabilize(undefined));
     });
   });
 
   it("doesn't render() when unused non-lit reactive property changes", () => {
     withElement("reactive-lit1", (selection, e) => {
-      stabilizeContinuously();
+      autoStabilize();
       selection
         .get("#hello", { includeShadowDom: true })
         .then(() => {
@@ -86,7 +86,7 @@ describe("reactive lit element", () => {
         .wait(150)
         .contains("Hello ?!") // verify no re-render
         .then(() => e.remove())
-        .then(() => stabilizeContinuously(false));
+        .then(() => autoStabilize(undefined));
     });
   });
 });

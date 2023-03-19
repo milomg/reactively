@@ -37,7 +37,7 @@ let CurrentGetsIndex = 0;
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
 
-let stabilizeIdleFn: (() => void) | undefined = undefined; // fn to call if there are dirty effect nodes
+let stabilizeFn: ((node: Reactive<any>) => void) | undefined = undefined; // fn to call if there are dirty effect nodes
 let stabilizationQueued = false; // stabilizeFn() is queued to run after this event loop
 
 /** reactive nodes are marked dirty when their source values change TBD*/
@@ -117,14 +117,11 @@ export class Reactive<T> {
       this._value = undefined as any;
       this.effect = effect || false;
       this.state = CacheDirty;
+      // debugDirty && console.log("initial dirty (fn)", label);
       if (effect) {
         EffectQueue.push(this);
-        stabilizeIdle();
+        stabilizeFn?.(this);
       }
-      // debugDirty && console.log("initial dirty (fn)", label);
-      // enabling this causes update to fire before properties are initialized in decorated classes
-      // which seems bad. The ReactiveLitEffect test has an example.
-      // if (effect) this.update(); // CONSIDER removing this?
     } else {
       this.fn = undefined;
       this._value = fnOrValue;
@@ -192,7 +189,7 @@ export class Reactive<T> {
       // If we were previously clean, then we know that we may need to update to get the new value
       if (this.state === CacheClean && this.effect) {
         EffectQueue.push(this);
-        stabilizeIdle();
+        stabilizeFn?.(this);
       }
 
       this.state = state;
@@ -323,25 +320,19 @@ export function stabilize(): void {
   EffectQueue.length = 0;
 }
 
-/** run a function in every event loop if there are dirty effect nodes.  */
-export function stabilizeContinuously(
-  fn: (() => void) | undefined = stabilize
-): void {
-  stabilizeIdleFn = fn;
-  if (EffectQueue.length) {
-    fn?.();
-  }
+/** run a function for each dirty effect node.  */
+export function autoStabilize(fn = deferredStabilize): void {
+  stabilizeFn = fn;
 }
 
-/** queue stabilizeIdleFn() to run at the next idle time */
-function stabilizeIdle(): void {
-  if (stabilizeIdleFn && !stabilizationQueued) {
+/** queue stabilize() to run at the next idle time */
+function deferredStabilize(): void {
+  if (!stabilizationQueued) {
     stabilizationQueued = true;
-    const doStabilize = stabilizeIdleFn; 
 
     queueMicrotask(() => {
       stabilizationQueued = false;
-      doStabilize();
+      stabilize();
     });
   }
 }

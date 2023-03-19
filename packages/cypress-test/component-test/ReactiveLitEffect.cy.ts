@@ -1,5 +1,5 @@
 import { withElement } from "./WithElement";
-import { reactive, stabilizeContinuously } from "@reactively/core";
+import { reactive, autoStabilize } from "@reactively/core";
 import { ReactiveLitElement, reactiveProperty } from "@reactively/lit";
 import { html, TemplateResult } from "lit";
 import { customElement } from "lit/decorators.js";
@@ -35,7 +35,7 @@ declare global {
 
 describe("lit element with an effect", () => {
   it("effect property triggers a rerender on stabilize()", () => {
-    stabilizeContinuously();
+    autoStabilize();
     withElement("lit-effect", (selection, el) => {
       selection
         .get("#hello", { includeShadowDom: true })
@@ -48,7 +48,7 @@ describe("lit element with an effect", () => {
         })
         .contains("21")
         .then(() => expect(el.effectCount).equals(2))
-        .then(() => stabilizeContinuously(false));
+        .then(() => autoStabilize(undefined));
     });
   });
 });
