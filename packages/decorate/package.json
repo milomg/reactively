@@ -1,6 +1,6 @@
 {
   "name": "@reactively/decorate",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "./dist/decorate.js",
   "types": "./dist/decorate.d.ts",
