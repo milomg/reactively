@@ -107,7 +107,7 @@ export class Reactive<T> {
 
   private state: CacheState;
   private effect: boolean;
-  private label?: string;
+  label?: string;
   cleanups: ((oldValue: T) => void)[] = [];
   equals = defaultEquality;
 
