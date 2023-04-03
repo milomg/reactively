@@ -13,13 +13,20 @@ interface ReactiveInternal {
   equals?: (a: any, b: any) => boolean;
 }
 
-/** 
- * @returns a tree of the reactive sources of a reactive node in Mermaid syntax.
+/**
+ * @returns a Mermaid graph of the reactive sources of one or more reactive nodes.
  */
-export function mermaidSources(target: Reactive<any>, shortLabels = false): string {
+export function mermaidSources(
+  target: Reactive<any> | Reactive<any>[],
+  shortLabels = false
+): string {
   const lines = ["graph TD"];
+  const visited = new Set<ReactiveInternal>();
   let syntheticLabel = 0;
-  recursiveSources(target as unknown as ReactiveInternal);
+  const targets = Array.isArray(target) ? target : [target];
+  for (const t of targets) {
+    recursiveSources(t as unknown as ReactiveInternal);
+  }
   return lines.join("\n");
 
   function label(node: ReactiveInternal): string {
@@ -38,13 +45,18 @@ export function mermaidSources(target: Reactive<any>, shortLabels = false): stri
   }
 
   function recursiveSources(node: ReactiveInternal): void {
-    const { sources } = node;
-    if (sources) {
-      for (const s of sources) {
-        const nodeLabel = label(node);
-        const sourceLabel = label(s);
-        lines.push(`    ${sourceLabel} --> ${nodeLabel}`);
-        recursiveSources(s);
+    if (visited.has(node)) {
+      return;
+    } else {
+      visited.add(node);
+      const { sources } = node;
+      if (sources) {
+        for (const s of sources) {
+          const nodeLabel = label(node);
+          const sourceLabel = label(s);
+          lines.push(`    ${sourceLabel} --> ${nodeLabel}`);
+          recursiveSources(s);
+        }
       }
     }
   }
