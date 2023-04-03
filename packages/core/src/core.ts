@@ -83,7 +83,7 @@ export function reactive<T>(
   return node;
 }
 
-function defaultEquality(a: any, b: any) {
+function defaultEquality(a: any, b: any): boolean {
   return a === b;
 }
 
