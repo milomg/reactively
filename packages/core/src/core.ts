@@ -108,7 +108,7 @@ export class Reactive<T> {
   private state: CacheState;
   private effect: boolean;
   label?: string;
-  cleanups: ((oldValue: T) => void)[] = [];
+  cleanups: ((oldValue: T) => void)[] = []; // CONSIDER undefined by default for perf
   equals = defaultEquality;
 
   constructor(fnOrValue: (() => T) | T, effect?: boolean, label?: string) {
