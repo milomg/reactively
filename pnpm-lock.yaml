@@ -32,6 +32,12 @@ importers:
       solid-js: 1.6.6
       vite: 4.0.3
 
+  packages/debug:
+    specifiers:
+      '@reactively/core': workspace:*
+    dependencies:
+      '@reactively/core': link:../core
+
   packages/decorate:
     specifiers:
       '@reactively/core': workspace:*
@@ -52,11 +58,13 @@ importers:
   packages/test:
     specifiers:
       '@reactively/core': workspace:*
+      '@reactively/debug': workspace:*
       '@reactively/decorate': workspace:*
       '@types/node': ^18.14.0
       vitest: ^0.28.5
     dependencies:
       '@reactively/core': link:../core
+      '@reactively/debug': link:../debug
       '@reactively/decorate': link:../decorate
     devDependencies:
       '@types/node': 18.14.0

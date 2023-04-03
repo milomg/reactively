@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "paths": {
+      "@reactively/core": ["../core/src/core"]
+    }
+  }
+}

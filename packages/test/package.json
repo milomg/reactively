@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@reactively/core": "workspace:*",
-    "@reactively/decorate": "workspace:*"
+    "@reactively/decorate": "workspace:*",
+    "@reactively/debug": "workspace:*"
   }
 }

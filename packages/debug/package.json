@@ -1,0 +1,22 @@
+{
+  "name": "@reactively/debug",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./dist/debug.js",
+  "types": "./dist/debug.d.ts",
+  "type": "module",
+  "scripts": {
+    "prepublish": "rimraf dist && pnpm run build && pnpm run build:types",
+    "build": "esbuild ./src/debug.ts --outdir=dist",
+    "build:types": "tsc --project ./tsconfig.build.json"
+  },
+  "keywords": [],
+  "files": [
+    "dist"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@reactively/core": "workspace:*"
+  }
+}

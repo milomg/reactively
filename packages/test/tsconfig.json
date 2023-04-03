@@ -11,7 +11,8 @@
     "allowSyntheticDefaultImports": true,
     "paths": {
       "@reactively/core": ["../core/src/core"],
-      "@reactively/decorate": ["../decorate/src/decorate"]
+      "@reactively/decorate": ["../decorate/src/decorate"],
+      "@reactively/debug": ["../debug/src/debug"]
     }
   }
 }
