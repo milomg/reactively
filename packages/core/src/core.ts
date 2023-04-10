@@ -34,6 +34,52 @@ let CurrentReaction: Reactive<any> | undefined = undefined;
 let CurrentGets: Reactive<any>[] | null = null;
 let CurrentGetsIndex = 0;
 
+// Maintain a queue of eager node recomputations.
+// The queue is an array of arrays. The index in the outer array is the partial
+// height of the node, the inner arrays are `Reactive.update` functions.
+// Below, in `flushEagerQueue` we can recompute the nodes in topological order
+// by iterating by the outer index.
+let EagerQueue: Array<Array<() => void>> = [];
+// Optimization to avoid iterating on the queue if it's empty.
+let IsEagerQueueEmpty = true;
+// The height of the node with the greatest height.
+let GraphHeight = 0;
+// Maximum allowed height.
+let MaxHeight = 0;
+
+// Amortized expansion of the eager queue, needed because some benchmark exceed
+// the height of 128 employed by Jane Street's Incremental library.
+const updateMaxHeight = (maxH: number) => {
+  for (let i = MaxHeight; i <= maxH; i++) EagerQueue[i] = [];
+  MaxHeight = maxH;
+};
+updateMaxHeight(128);
+
+// Useful in benchmarks.
+export const resetEagerQueue = () => {
+  EagerQueue = [];
+  IsEagerQueueEmpty = true;
+  GraphHeight = 0;
+  MaxHeight = 0;
+  updateMaxHeight(128);
+};
+
+// Flush the queue.
+// The outer index of the queue represents the node's partial height, the
+// outer `for` loop guarantees that we recompute nodes following topological
+// order.
+const flushEagerQueue = () => {
+  if (IsEagerQueueEmpty) return;
+  for (let h = 0; h <= GraphHeight; h++) {
+    const queueH = EagerQueue[h];
+    while (queueH.length > 0) {
+      const update = queueH.pop();
+      update!();
+    }
+  }
+  IsEagerQueueEmpty = true;
+};
+
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
 
@@ -106,6 +152,10 @@ export class Reactive<T> {
   private sources: Reactive<any>[] | null = null; // sources in reference order, not deduplicated (up links)
 
   private state: CacheState;
+  private eager: boolean;
+  // To avoid queuing a node twice.
+  private inEagerQueue: boolean;
+  private height: number;
   private effect: boolean;
   private label?: string;
   cleanups: ((oldValue: T) => void)[] = [];
@@ -116,6 +166,9 @@ export class Reactive<T> {
       this.fn = fnOrValue as () => T;
       this._value = undefined as any;
       this.effect = effect || false;
+      this.eager = false;
+      this.inEagerQueue = false;
+      this.height = 0;
       this.state = CacheDirty;
       // debugDirty && console.log("initial dirty (fn)", label);
       if (effect) {
@@ -126,6 +179,9 @@ export class Reactive<T> {
       this.fn = undefined;
       this._value = fnOrValue;
       this.state = CacheClean;
+      this.eager = false;
+      this.inEagerQueue = false;
+      this.height = 0;
       this.effect = false;
     }
     if (label) {
@@ -154,7 +210,12 @@ export class Reactive<T> {
         else CurrentGets.push(this);
       }
     }
-    if (this.fn) this.updateIfNecessary();
+    if (this.fn) {
+      this.updateIfNecessary();
+      // When an effect is read, set the node as "eager".
+      // At this point the node is clean and all the graph edges have been built.
+      if (this.effect) this.setEager();
+    }
     return this._value;
   }
 
@@ -162,7 +223,15 @@ export class Reactive<T> {
     if (typeof fnOrValue === "function") {
       const fn = fnOrValue as () => T;
       if (fn !== this.fn) {
-        this.stale(CacheDirty);
+        // If the node is eager recompute the node and all descendants that
+        // need to be updated in topological order.
+        // Otherwise run the Reactively algorithm.
+        if (this.eager) {
+          this.addToQueue();
+          stabilizeFn?.(this);
+        } else {
+          this.stale(CacheDirty);
+        }
       }
       this.fn = fn;
     } else {
@@ -176,7 +245,15 @@ export class Reactive<T> {
         if (this.observers) {
           for (let i = 0; i < this.observers.length; i++) {
             const observer = this.observers[i];
-            observer.stale(CacheDirty);
+            // If the node is eager recompute the node and all descendants that
+            // need to be updated in topological order.
+            // Otherwise run the Reactively algorithm.
+            if (observer.eager) {
+              observer.addToQueue();
+              stabilizeFn?.(this);
+            } else {
+              observer.stale(CacheDirty);
+            }
           }
         }
         this._value = value;
@@ -186,12 +263,6 @@ export class Reactive<T> {
 
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
-      // If we were previously clean, then we know that we may need to update to get the new value
-      if (this.state === CacheClean && this.effect) {
-        EffectQueue.push(this);
-        stabilizeFn?.(this);
-      }
-
       this.state = state;
       if (this.observers) {
         for (let i = 0; i < this.observers.length; i++) {
@@ -199,6 +270,18 @@ export class Reactive<T> {
         }
       }
     }
+  }
+
+  private addToQueue(): void {
+    if (this.inEagerQueue) return;
+    this.inEagerQueue = true;
+
+    // Add this node's `update` method to the queue.
+    EagerQueue[this.height].push(() => {
+      this.update();
+      this.inEagerQueue = false;
+    });
+    IsEagerQueueEmpty = false;
   }
 
   /** run the computation fn, updating the cached value */
@@ -235,6 +318,7 @@ export class Reactive<T> {
           this.sources = CurrentGets;
         }
 
+        let height = this.height;
         for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
           // Add ourselves to the end of the parent .observers array
           const source = this.sources[i];
@@ -243,7 +327,15 @@ export class Reactive<T> {
           } else {
             source.observers.push(this);
           }
+          if (height < source.height + 1) height = source.height + 1;
         }
+        // Update the node's partial height.
+        // Invariant: the partial height of a node is larger than the partial
+        // height of its sources.
+        this.height = height;
+        if (GraphHeight < this.height) GraphHeight = this.height;
+        // When the graph height matches the max height, double the max height.
+        if (GraphHeight >= MaxHeight) updateMaxHeight(MaxHeight * 2);
       } else if (this.sources && CurrentGetsIndex < this.sources.length) {
         // remove all old sources' .observers links to us
         this.removeParentObservers(CurrentGetsIndex);
@@ -260,13 +352,28 @@ export class Reactive<T> {
       // We've changed value, so mark our children as dirty so they'll reevaluate
       for (let i = 0; i < this.observers.length; i++) {
         const observer = this.observers[i];
-        observer.state = CacheDirty;
+        if (observer.eager) {
+          observer.addToQueue();
+        } else {
+          observer.state = CacheDirty;
+        }
       }
     }
 
     // We've rerun with the latest values from all of our sources.
     // This means that we no longer need to update until a signal changes
     this.state = CacheClean;
+  }
+
+  private setEager(): void {
+    if (this.eager) return;
+
+    this.eager = true;
+
+    // Invariant: if node is eager, then every source is also eager.
+    if (this.sources) {
+      for (const source of this.sources!) source.setEager();
+    }
   }
 
   /** update() if dirty, or a parent turns out to be dirty. */
@@ -300,6 +407,18 @@ export class Reactive<T> {
       const swap = source.observers!.findIndex((v) => v === this);
       source.observers![swap] = source.observers![source.observers!.length - 1];
       source.observers!.pop();
+
+      // Check if the source has any eager observer left, otherwise set it as non-eager.
+      if (this.eager) source.checkEagerObservers();
+    }
+  }
+
+  private checkEagerObservers(): void {
+    if (this.eager && this.observers && this.observers.every((o) => !o.eager)) {
+      this.eager = false;
+      if (this.sources) {
+        for (const source of this.sources) source.checkEagerObservers();
+      }
     }
   }
 }
@@ -314,10 +433,15 @@ export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
 
 /** run all non-clean effect nodes */
 export function stabilize(): void {
+  // Run the effects upon creation.
+  // After being updated, they will be set as eager nodes.
   for (let i = 0; i < EffectQueue.length; i++) {
     EffectQueue[i].get();
   }
   EffectQueue.length = 0;
+
+  // Flush the queue.
+  flushEagerQueue();
 }
 
 /** run a function for each dirty effect node.  */
