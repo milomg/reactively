@@ -73,6 +73,7 @@ export function reactively(
  * (or another class that implements the HasReactive contract).
  */
 export class HasReactive implements HasReactiveInternal {
+  /** @hidden */
   __reactive?: Record<string, Reactive<unknown>>;
 
   constructor() {
