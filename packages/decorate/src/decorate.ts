@@ -73,6 +73,9 @@ export function reactively(
  * (or another class that implements the HasReactive contract).
  */
 export class HasReactive implements HasReactiveInternal {
+  /** Collection of reactive nodes, indexed by property name. 
+   * @internal 
+   */
   __reactive?: Record<string, Reactive<unknown>>;
 
   constructor() {
