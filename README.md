@@ -72,7 +72,7 @@ const sum = reactive(() => {
 
 This allows you to structure your code differently than memoization allows you to, you don't have to know the dependencies up front.
 
-Additionally, Reactively allows you to dynamically change which variables you depend on at runtime. If you are are waiting for a single variable `x` to be true before the rest of your code runs, your code won't execute as those other variables change.
+Additionally, Reactively allows you to dynamically change which variables you depend on at runtime. If you are waiting for a single variable `x` to be true before the rest of your code runs, your code won't execute as those other variables change.
 
 ```ts
 import { reactive } from "@reactively/core";
