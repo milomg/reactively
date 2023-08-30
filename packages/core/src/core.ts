@@ -141,11 +141,7 @@ export class Reactive<T> {
     this.set(v);
   }
 
-  get(): T {
-    if(this.state === CacheClean){
-      return this._value;
-    }
-    
+  get(): T { 
     if (CurrentReaction) {
       if (
         !CurrentGets &&
@@ -157,6 +153,9 @@ export class Reactive<T> {
         if (!CurrentGets) CurrentGets = [this];
         else CurrentGets.push(this);
       }
+    }
+    if(this.state === CacheClean){
+      return this._value;
     }
     if (this.fn) this.updateIfNecessary();
     return this._value;
