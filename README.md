@@ -189,7 +189,7 @@ to push at once.
 _Pull_ systems emphasize traversing the graph in reverse order,
 from user consumed reactive elements up towards roots.
 Pull systems have a simple developer experience and don’t require explicit batching.
-But pull systems are are apt to traverse the tree too often. Each leaf element needs to traverse all the way up the tree to detect changes, potentially resulting in many extra traversals.
+But pull systems are apt to traverse the tree too often. Each leaf element needs to traverse all the way up the tree to detect changes, potentially resulting in many extra traversals.
 
 Reactively is a hybrid _push-pull_ system. It pushes dirty notifications down the graph, and then executes reactive elements lazily on demand as they are pulled from leaves. This costs the framework some bookkeeping and an extra traversal of its internal graph.
 But the developer wins by getting the simplicity of a pull system

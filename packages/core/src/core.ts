@@ -142,6 +142,10 @@ export class Reactive<T> {
   }
 
   get(): T {
+    if(this.state === CacheClean && !CurrentReaction){
+      return this._value;
+    }
+    
     if (CurrentReaction) {
       if (
         !CurrentGets &&
