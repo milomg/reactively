@@ -79,13 +79,14 @@ export function reactive<T>(fnOrValue: T | (() => T)): Reactive<T> {
 export class Reactive<T> {
   private _value: T;
   private fn?: () => T;
-  private observers: Reactive<any>[] | null = null; // nodes that have us as sources (down links)
-  private sources: Reactive<any>[] | null = null; // sources in reference order, not deduplicated (up links)
 
-  // We use slots to allow for a constant time deletion of an edge connecting a source and an observer (while avoiding sets, which are slow to create)
-  // The scheme is described in removeParentObservers() below
-  private observerSlots: number[] | null = null; // index in the observer's sources array that points to us
-  private sourceSlots: number[] | null = null; // index in the source's observer array that points to us
+  // Stored in a single array to improve cache locality
+  // [source1, slot1, source2, slot2, ... sourceN, slotN, observer1, slot1, observer2, slot2, ...]
+  // Sources are stored from 0 to observersStart
+  // Observers are stored from observersStart to the end
+  private sourcesAndObservers: (Reactive<any> | number | undefined)[] = [];
+  private observersStart: number = 0;
+
   private state: CacheState;
   private effect: boolean;
   cleanups: ((oldValue: T) => void)[] = [];
@@ -96,7 +97,7 @@ export class Reactive<T> {
       this._value = undefined as any;
       this.effect = effect || false;
       this.state = CacheDirty;
-      if (effect) this.update(); // CONSIDER removing this?
+      if (effect) this.update();
     } else {
       this.fn = undefined;
       this._value = fnOrValue;
@@ -117,10 +118,9 @@ export class Reactive<T> {
     if (CurrentReaction) {
       if (
         !CurrentGets &&
-        CurrentReaction.sources &&
-        CurrentReaction.sources[CurrentGetsIndex] == this
+        CurrentReaction.sourcesAndObservers[CurrentGetsIndex] == this
       ) {
-        CurrentGetsIndex++;
+        CurrentGetsIndex += 2;
       } else {
         if (!CurrentGets) CurrentGets = [this];
         else CurrentGets.push(this);
@@ -131,9 +131,9 @@ export class Reactive<T> {
   }
 
   set(value: T): void {
-    if (this._value !== value && this.observers) {
-      for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].stale(CacheDirty);
+    if (this._value !== value && this.observersStart < this.sourcesAndObservers.length) {
+      for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
+        (this.sourcesAndObservers[i] as Reactive<any>).stale(CacheDirty);
       }
     }
     this._value = value;
@@ -142,9 +142,9 @@ export class Reactive<T> {
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
       this.state = state;
-      if (this.observers) {
-        for (let i = 0; i < this.observers.length; i++) {
-          this.observers[i].stale(CacheCheck);
+      if (this.observersStart < this.sourcesAndObservers.length) {
+        for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
+          (this.sourcesAndObservers[i] as Reactive<any>).stale(CacheCheck);
         }
       }
     }
@@ -172,44 +172,75 @@ export class Reactive<T> {
       }
       this._value = this.fn!();
 
+      // remove all old sources' .observers links to us
+      this.removeParentObservers();
+
       // if the sources have changed, update source & observer links
       if (CurrentGets) {
-        // remove all old sources' .observers links to us
-        this.removeParentObservers();
-        // update source up links (we will update the sourceSlots array below)
-        if (this.sources && CurrentGetsIndex > 0) {
-          this.sources.length = CurrentGetsIndex + CurrentGets.length;
-          for (let i = 0; i < CurrentGets.length; i++) {
-            this.sources[CurrentGetsIndex + i] = CurrentGets[i];
+        // Write sources
+        for (let i = 0; i < CurrentGets.length; i++) {
+          const targetIndex = CurrentGetsIndex + i * 2;
+          if (targetIndex >= this.observersStart && targetIndex < this.sourcesAndObservers.length) {
+            // We are about to overwrite an observer. Move it to the end.
+            const obs = this.sourcesAndObservers[targetIndex] as Reactive<any>;
+            const slot = this.sourcesAndObservers[targetIndex + 1] as number;
+
+            const newIndex = this.sourcesAndObservers.length;
+            this.sourcesAndObservers.push(obs, slot);
+
+            // Update the observer's pointer to us
+            // stored slot is logical index `k` such that `obs.sourcesAndObservers[k]` is us.
+            // `slot` is absolute logical index.
+
+            // We moved `obs`. `obs` stores `slot`. `slot` is index in `obs.sources`.
+            // `obs.sources[slot+1]` points to index in OUR observers array.
+            // We moved `obs` in OUR observers array.
+            // We need to update `obs`'s stored index for US.
+
+            const observerParamsOffset = slot + 1;
+            obs.sourcesAndObservers[observerParamsOffset] = newIndex; // Store absolute logical index
           }
+
+          this.sourcesAndObservers[targetIndex] = CurrentGets[i];
+          const source = CurrentGets[i];
+
+          // Add us to source's observers
+          source.sourcesAndObservers.push(this, targetIndex);
+
+          // Store the slot (index in source's observers)
+          // Stored as logical index
+          this.sourcesAndObservers[targetIndex + 1] = (source.sourcesAndObservers.length - 2); // Store absolute logical index
+        }
+
+        // 2. Handle shrinking (gap filling with holes)
+        // If we used fewer sources than before, we leave a gap.
+        // We do NOT shift observers. We just null out the stale sources.
+
+        const newSourcesEnd = CurrentGetsIndex + CurrentGets.length * 2;
+
+        if (newSourcesEnd < this.observersStart) {
+          // Fill gap with undefined
+          for (let i = newSourcesEnd; i < this.observersStart; i += 2) {
+            if (!this.sourcesAndObservers[i]) break;
+            this.sourcesAndObservers[i] = undefined;
+            this.sourcesAndObservers[i + 1] = -1;
+          }
+          // observersStart remains unchanged
         } else {
-          this.sources = CurrentGets;
+          // We grew (or stayed same size but filled holes).
+          // If we grew beyond old observersStart, we pushed observers to the end.
+          this.observersStart = newSourcesEnd;
         }
 
-        // Prepare sourceSlots for filling
-        if (!this.sourceSlots) this.sourceSlots = Array(this.sources.length);
-        else this.sourceSlots.length = this.sources.length;
-
-        for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
-          // Add ourselves to the end of the parent .observers array (and observerSlots array).
-          const source = this.sources[i];
-          if (!source.observers) {
-            source.observers = [this];
-            source.observerSlots = [i];
-          } else {
-            source.observers.push(this);
-            source.observerSlots!.push(i);
-          }
-
-          // We are stored in the last element of the parent .observer array.
-          // Update our sourceSlots to save the index
-          this.sourceSlots[i] = source.observers.length - 1;
+        // We moved observers in step 1 if we overlapped. 
+        // If we did NOT overlap (because we filled holes), observersStart was not crossed.
+      } else if (CurrentGetsIndex < this.observersStart) {
+        const newSourcesEnd = CurrentGetsIndex;
+        for (let i = newSourcesEnd; i < this.observersStart; i += 2) {
+          if (!this.sourcesAndObservers[i]) break;
+          this.sourcesAndObservers[i] = undefined;
+          this.sourcesAndObservers[i + 1] = -1;
         }
-      } else if (this.sources && CurrentGetsIndex < this.sources.length) {
-        // remove all old sources' .observers links to us
-        this.removeParentObservers();
-        this.sources.length = CurrentGetsIndex;
-        this.sourceSlots!.length = CurrentGetsIndex;
       }
     } finally {
       CurrentGets = prevGets;
@@ -218,10 +249,13 @@ export class Reactive<T> {
     }
 
     // handle diamond depenendencies if we're the parent of a diamond.
-    if (oldValue !== this._value && this.observers) {
+    if (oldValue !== this._value) {
       // We've changed value, so mark our children as dirty so they'll reevaluate
-      for (let i = 0; i < this.observers.length; i++) {
-        this.observers[i].state = CacheDirty;
+      if (this.observersStart < this.sourcesAndObservers.length) {
+        for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
+          const observer = this.sourcesAndObservers[i] as Reactive<any>;
+          observer.state = CacheDirty;
+        }
       }
     }
 
@@ -234,7 +268,10 @@ export class Reactive<T> {
   private updateIfNecessary(): void {
     // If we are potentially dirty, see if we have a parent who has actually changed value
     if (this.state === CacheCheck) {
-      for (const source of this.sources!) {
+      for (let i = 0; i < this.observersStart; i += 2) {
+        const source = this.sourcesAndObservers[i] as Reactive<any>;
+        if (!source) break; // Skip holes
+
         source.updateIfNecessary(); // updateIfNecessary() can change this.state
         if ((this.state as CacheState) === CacheDirty) {
           // Stop the loop here so we won't trigger updates on other parents unnecessarily
@@ -262,25 +299,30 @@ export class Reactive<T> {
    *  To delete our entry, we pop the last element from the sources observers array and overwrite our entry.
    */
   private removeParentObservers(): void {
-    if (!this.sources || !this.sourceSlots) return;
-    for (let i = CurrentGetsIndex; i < this.sources.length; i++) {
-      const source: Reactive<any> = this.sources[i]; // We don't actually delete sources here because we're replacing the entire array soon
-      const index = this.sourceSlots[i];
-      const observers = source.observers;
-      if (observers && observers.length) {
-        // remove last element from observers and slot arrays (probably not us, but they can take our position instead)
-        const observersLast = observers.pop()!;
-        const observersLastSlot = source.observerSlots!.pop()!;
+    for (let i = CurrentGetsIndex; i < this.observersStart; i += 2) {
+      const source: Reactive<any> = this.sourcesAndObservers[i] as Reactive<any>;
+      if (!source) break; // Skip holes
 
-        // If we happened to be the last element, hooray we're done. Otherwise, we have to actually swap positions
-        if (index < observers.length) {
-          // place the just removed last element in our position (removing us)
-          observers[index] = observersLast;
-          source.observerSlots![index] = observersLastSlot;
+      const index = this.sourcesAndObservers[i + 1] as number; // This is logical index in source's observers list
 
-          // Now, we update the sourceSlot of observersLast to its new position in the observers array
-          observersLast.sourceSlots![observersLastSlot] = index;
-        }
+      // pointer to the last observer in source.sourcesAndObservers
+      const obsLastIndex = source.sourcesAndObservers.length - 2;
+      const observersLast = source.sourcesAndObservers[obsLastIndex] as Reactive<any>;
+      const observersLastSlot = source.sourcesAndObservers[obsLastIndex + 1] as number; // Index in observersLast's sources array
+
+      // We are reducing source.sourcesAndObservers size by 2
+      source.sourcesAndObservers.length -= 2;
+
+      // If we happened to be the last element, we are done
+      if (index < obsLastIndex) {
+        // move last element to our spot
+        source.sourcesAndObservers[index] = observersLast;
+        source.sourcesAndObservers[index + 1] = observersLastSlot;
+
+        // Update the observerLast's slot pointing to this new location
+        // observersLastSlot is the logical index in observersLast.sourcesAndObservers
+        // We need to update observersLast.sourcesAndObservers[observersLastSlot * 2 + 1] to be `index`
+        observersLast.sourcesAndObservers[observersLastSlot + 1] = index;
       }
     }
   }
