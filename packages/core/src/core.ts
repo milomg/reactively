@@ -86,11 +86,12 @@ export class Reactive<T> {
   // Sources are stored from 0 to observersStart
   // Observers are stored from observersStart to the end
   private sourcesAndObservers: (Reactive<any> | number | undefined)[] = [];
+  private sourcesAndObserversLength: number = 0;
   private observersStart: number = 0;
 
   private state: CacheState;
   private effect: boolean;
-  cleanups: ((oldValue: T) => void)[] = [];
+  // cleanups: ((oldValue: T) => void)[] = [];
 
   constructor(fnOrValue: (() => T) | T, effect?: boolean) {
     if (typeof fnOrValue === "function") {
@@ -132,8 +133,8 @@ export class Reactive<T> {
   }
 
   set(value: T): void {
-    if (this._value !== value && this.observersStart < this.sourcesAndObservers.length) {
-      for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
+    if (this._value !== value) {
+      for (let i = this.observersStart; i < this.sourcesAndObserversLength; i += 2) {
         (this.sourcesAndObservers[i] as Reactive<any>).stale(CacheDirty);
       }
     }
@@ -146,10 +147,9 @@ export class Reactive<T> {
       if (this.state === CacheClean && this.effect) EffectQueue[EffectQueueIndex++] = this;
 
       this.state = state;
-      if (this.observersStart < this.sourcesAndObservers.length) {
-        for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
-          (this.sourcesAndObservers[i] as Reactive<any>).stale(CacheCheck);
-        }
+
+      for (let i = this.observersStart; i < this.sourcesAndObserversLength; i += 2) {
+        (this.sourcesAndObservers[i] as Reactive<any>).stale(CacheCheck);
       }
     }
   }
@@ -168,10 +168,10 @@ export class Reactive<T> {
     CurrentGetsIndex = 0;
 
     try {
-      if (this.cleanups.length) {
-        this.cleanups.forEach((c) => c(this._value));
-        this.cleanups = [];
-      }
+      // if (this.cleanups.length) {
+      //   this.cleanups.forEach((c) => c(this._value));
+      //   this.cleanups = [];
+      // }
       this._value = this.fn!();
 
       // remove all old sources' .observers links to us
@@ -179,70 +179,67 @@ export class Reactive<T> {
 
       // if the sources have changed, update source & observer links
       if (CurrentGets) {
+        const cglen = CurrentGets.length;
+        const minLen = CurrentGetsIndex + cglen * 2;
+        const oldObserversLen = this.sourcesAndObserversLength - this.observersStart;
+        const newSourcesLen = Math.max(minLen, this.observersStart);
+        const oldRawLen = this.sourcesAndObservers.length;
+        if (newSourcesLen + oldObserversLen > oldRawLen) {
+          this.sourcesAndObservers.fill(undefined, oldRawLen, newSourcesLen + oldObserversLen);
+        }
+
         // Write sources
-        for (let i = 0; i < CurrentGets.length; i++) {
+        for (let i = 0; i < cglen; i++) {
           const targetIndex = CurrentGetsIndex + i * 2;
-          if (targetIndex >= this.observersStart && targetIndex < this.sourcesAndObservers.length) {
+          if (targetIndex >= this.observersStart && targetIndex < this.sourcesAndObserversLength) {
             // We are about to overwrite an observer. Move it to the end.
             const obs = this.sourcesAndObservers[targetIndex] as Reactive<any>;
             const slot = this.sourcesAndObservers[targetIndex + 1] as number;
 
-            const newIndex = this.sourcesAndObservers.length;
-            this.sourcesAndObservers.push(obs, slot);
+            const newIndex = this.sourcesAndObserversLength;
+            this.sourcesAndObservers[newIndex] = obs;
+            this.sourcesAndObservers[newIndex + 1] = slot;
+            this.sourcesAndObserversLength += 2;
 
-            // Update the observer's pointer to us
-            // stored slot is logical index `k` such that `obs.sourcesAndObservers[k]` is us.
-            // `slot` is absolute logical index.
-
-            // We moved `obs`. `obs` stores `slot`. `slot` is index in `obs.sources`.
-            // `obs.sources[slot+1]` points to index in OUR observers array.
-            // We moved `obs` in OUR observers array.
-            // We need to update `obs`'s stored index for US.
-
-            const observerParamsOffset = slot + 1;
-            obs.sourcesAndObservers[observerParamsOffset] = newIndex; // Store absolute logical index
+            obs.sourcesAndObservers[slot + 1] = newIndex; // Store absolute logical index
           }
 
-          this.sourcesAndObservers[targetIndex] = CurrentGets[i];
           const source = CurrentGets[i];
 
           // Add us to source's observers
-          source.sourcesAndObservers.push(this, targetIndex);
+          const newIndex = source.sourcesAndObserversLength;
+          source.sourcesAndObservers[newIndex] = this;
+          source.sourcesAndObservers[newIndex + 1] = targetIndex;
+          source.sourcesAndObserversLength += 2;
 
           // Store the slot (index in source's observers)
           // Stored as logical index
-          this.sourcesAndObservers[targetIndex + 1] = (source.sourcesAndObservers.length - 2); // Store absolute logical index
+          this.sourcesAndObservers[targetIndex] = CurrentGets[i];
+          this.sourcesAndObservers[targetIndex + 1] = newIndex; // Store absolute logical index
+        }
+
+        if (minLen >= this.sourcesAndObserversLength) {
+          this.sourcesAndObserversLength = minLen;
         }
 
         // 2. Handle shrinking (gap filling with holes)
         // If we used fewer sources than before, we leave a gap.
         // We do NOT shift observers. We just null out the stale sources.
 
-        const newSourcesEnd = CurrentGetsIndex + CurrentGets.length * 2;
-
-        if (newSourcesEnd < this.observersStart) {
+        if (minLen < this.observersStart) {
           // Fill gap with undefined
-          for (let i = newSourcesEnd; i < this.observersStart; i += 2) {
-            if (!this.sourcesAndObservers[i]) break;
-            this.sourcesAndObservers[i] = undefined;
-            this.sourcesAndObservers[i + 1] = -1;
-          }
+          this.sourcesAndObservers.fill(undefined, minLen, this.observersStart);
           // observersStart remains unchanged
         } else {
           // We grew (or stayed same size but filled holes).
           // If we grew beyond old observersStart, we pushed observers to the end.
-          this.observersStart = newSourcesEnd;
+          this.observersStart = minLen;
         }
 
         // We moved observers in step 1 if we overlapped. 
         // If we did NOT overlap (because we filled holes), observersStart was not crossed.
       } else if (CurrentGetsIndex < this.observersStart) {
-        const newSourcesEnd = CurrentGetsIndex;
-        for (let i = newSourcesEnd; i < this.observersStart; i += 2) {
-          if (!this.sourcesAndObservers[i]) break;
-          this.sourcesAndObservers[i] = undefined;
-          this.sourcesAndObservers[i + 1] = -1;
-        }
+        this.sourcesAndObservers.fill(undefined, CurrentGetsIndex, this.observersStart);
       }
     } finally {
       CurrentGets = prevGets;
@@ -253,8 +250,8 @@ export class Reactive<T> {
     // handle diamond depenendencies if we're the parent of a diamond.
     if (oldValue !== this._value) {
       // We've changed value, so mark our children as dirty so they'll reevaluate
-      if (this.observersStart < this.sourcesAndObservers.length) {
-        for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
+      if (this.observersStart < this.sourcesAndObserversLength) {
+        for (let i = this.observersStart; i < this.sourcesAndObserversLength; i += 2) {
           const observer = this.sourcesAndObservers[i] as Reactive<any>;
           observer.state = CacheDirty;
         }
@@ -308,12 +305,14 @@ export class Reactive<T> {
       const index = this.sourcesAndObservers[i + 1] as number; // This is logical index in source's observers list
 
       // pointer to the last observer in source.sourcesAndObservers
-      const obsLastIndex = source.sourcesAndObservers.length - 2;
+      const obsLastIndex = source.sourcesAndObserversLength - 2;
       const observersLast = source.sourcesAndObservers[obsLastIndex] as Reactive<any>;
       const observersLastSlot = source.sourcesAndObservers[obsLastIndex + 1] as number; // Index in observersLast's sources array
 
       // We are reducing source.sourcesAndObservers size by 2
-      source.sourcesAndObservers.length -= 2;
+      source.sourcesAndObservers[obsLastIndex] = undefined;
+      // source.sourcesAndObservers[obsLastIndex + 1] = undefined;
+      source.sourcesAndObserversLength -= 2;
 
       // If we happened to be the last element, we are done
       if (index < obsLastIndex) {
@@ -328,15 +327,26 @@ export class Reactive<T> {
       }
     }
   }
-}
 
-export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
-  if (CurrentReaction) {
-    CurrentReaction.cleanups.push(fn);
-  } else {
-    console.error("onCleanup must be called from within a @reactive function");
+  destroy() {
+    let prevGetsIndex = CurrentGetsIndex;
+    CurrentGetsIndex = 0;
+    this.removeParentObservers();
+    CurrentGetsIndex = prevGetsIndex;
+    this.sourcesAndObservers.length = 0;
+    this.sourcesAndObserversLength = 0;
+    this.observersStart = 0;
+    this.state = CacheClean;
   }
 }
+
+// export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
+//   if (CurrentReaction) {
+//     CurrentReaction.cleanups.push(fn);
+//   } else {
+//     console.error("onCleanup must be called from within a @reactive function");
+//   }
+// }
 
 /** run all non-clean effect nodes */
 export function stabilize() {
