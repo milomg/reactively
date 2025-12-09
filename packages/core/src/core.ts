@@ -36,6 +36,7 @@ let CurrentGetsIndex = 0;
 
 /** A list of non-clean 'effect' nodes that will be updated when stabilize() is called */
 let EffectQueue: Reactive<any>[] = [];
+let EffectQueueIndex = 0;
 
 /** reactive nodes are marked dirty when their source values change TBD*/
 export const CacheClean = 0; // reactive value is valid, no need to recompute
@@ -141,6 +142,9 @@ export class Reactive<T> {
 
   private stale(state: CacheNonClean): void {
     if (this.state < state) {
+      // If we were previously clean, then we know that we may need to update to get the new value
+      if (this.state === CacheClean && this.effect) EffectQueue[EffectQueueIndex++] = this;
+
       this.state = state;
       if (this.observersStart < this.sourcesAndObservers.length) {
         for (let i = this.observersStart; i < this.sourcesAndObservers.length; i += 2) {
@@ -148,8 +152,6 @@ export class Reactive<T> {
         }
       }
     }
-    // If we were previously clean, then we know that we may need to update to get the new value
-    if (this.state === CacheClean && this.effect) EffectQueue.push(this);
   }
 
   /** run the computation fn, updating the cached value */
@@ -338,8 +340,9 @@ export function onCleanup<T = any>(fn: (oldValue: T) => void): void {
 
 /** run all non-clean effect nodes */
 export function stabilize() {
-  for (let i = 0; i < EffectQueue.length; i++) {
+  for (let i = 0; i < EffectQueueIndex; i++) {
     EffectQueue[i].get();
+    EffectQueue[i] = undefined as any;
   }
-  EffectQueue.length = 0;
+  EffectQueueIndex = 0;
 }
